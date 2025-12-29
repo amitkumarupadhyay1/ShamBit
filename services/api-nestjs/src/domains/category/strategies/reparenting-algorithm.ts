@@ -30,7 +30,7 @@ export class CategoryReparentingAlgorithm {
     categoryId: string,
     newParentId: string | null,
     userId: string,
-    options: ReparentingOptions = {}
+    options: ReparentingOptions = {},
   ): Promise<ReparentingResult> {
     const startTime = Date.now();
     const result: ReparentingResult = {
@@ -47,7 +47,11 @@ export class CategoryReparentingAlgorithm {
 
     try {
       // Step 1: Validate the operation
-      const validation = await this.validateReparenting(categoryId, newParentId, options);
+      const validation = await this.validateReparenting(
+        categoryId,
+        newParentId,
+        options,
+      );
       if (!validation.isValid) {
         result.errors = validation.errors;
         result.warnings = validation.warnings;
@@ -64,7 +68,10 @@ export class CategoryReparentingAlgorithm {
       result.oldPath = category.path;
 
       // Step 3: Calculate new path information
-      const newPathInfo = await this.calculateNewPathInfo(newParentId, category.slug);
+      const newPathInfo = await this.calculateNewPathInfo(
+        newParentId,
+        category.slug,
+      );
       result.newPath = newPathInfo.path;
 
       // Step 4: If dry run, return early with calculations
@@ -83,7 +90,7 @@ export class CategoryReparentingAlgorithm {
         newParentId,
         newPathInfo,
         userId,
-        options
+        options,
       );
 
       result.success = transactionResult.success;
@@ -91,7 +98,6 @@ export class CategoryReparentingAlgorithm {
       result.affectedProducts = transactionResult.affectedProducts;
       result.errors = transactionResult.errors;
       result.warnings = transactionResult.warnings;
-
     } catch (error) {
       result.errors.push(`Reparenting failed: ${error.message}`);
     }
@@ -103,7 +109,7 @@ export class CategoryReparentingAlgorithm {
   private async validateReparenting(
     categoryId: string,
     newParentId: string | null,
-    options: ReparentingOptions
+    options: ReparentingOptions,
   ): Promise<{ isValid: boolean; errors: string[]; warnings: string[] }> {
     const errors: string[] = [];
     const warnings: string[] = [];
@@ -172,7 +178,9 @@ export class CategoryReparentingAlgorithm {
 
         // Check if parent can have children
         if (newParent.isLeaf && newParent.status === CategoryStatus.ACTIVE) {
-          warnings.push('Moving to a leaf category - parent will no longer be able to contain products');
+          warnings.push(
+            'Moving to a leaf category - parent will no longer be able to contain products',
+          );
         }
 
         // Check parent status
@@ -184,14 +192,19 @@ export class CategoryReparentingAlgorithm {
 
     // Business rule validations
     if (options.validateConstraints) {
-      const constraintValidation = await this.validateBusinessConstraints(category, newParentId);
+      const constraintValidation = await this.validateBusinessConstraints(
+        category,
+        newParentId,
+      );
       errors.push(...constraintValidation.errors);
       warnings.push(...constraintValidation.warnings);
     }
 
     // Performance warnings
     if (category.childCount > 100) {
-      warnings.push(`Category has ${category.childCount} children - operation may take longer`);
+      warnings.push(
+        `Category has ${category.childCount} children - operation may take longer`,
+      );
     }
 
     const descendantCount = await this.prisma.category.count({
@@ -199,7 +212,9 @@ export class CategoryReparentingAlgorithm {
     });
 
     if (descendantCount > 1000) {
-      warnings.push(`Category has ${descendantCount} descendants - consider running during maintenance window`);
+      warnings.push(
+        `Category has ${descendantCount} descendants - consider running during maintenance window`,
+      );
     }
 
     return {
@@ -211,7 +226,7 @@ export class CategoryReparentingAlgorithm {
 
   private async calculateNewPathInfo(
     newParentId: string | null,
-    categorySlug: string
+    categorySlug: string,
   ): Promise<{ path: string; pathIds: string[]; depth: number }> {
     if (!newParentId) {
       return {
@@ -246,7 +261,7 @@ export class CategoryReparentingAlgorithm {
     newParentId: string | null,
     newPathInfo: { path: string; pathIds: string[]; depth: number },
     userId: string,
-    options: ReparentingOptions
+    options: ReparentingOptions,
   ): Promise<{
     success: boolean;
     affectedCategories: number;
@@ -296,23 +311,25 @@ export class CategoryReparentingAlgorithm {
         // Step 3: Update descendants in batches
         for (let i = 0; i < descendants.length; i += batchSize) {
           const batch = descendants.slice(i, i + batchSize);
-          
+
           await Promise.all(
             batch.map(async (descendant) => {
               // Calculate new path for descendant
-              const relativePath = descendant.path.substring(category.path.length);
+              const relativePath = descendant.path.substring(
+                category.path.length,
+              );
               const newDescendantPath = newPathInfo.path + relativePath;
-              
+
               // Calculate new pathIds for descendant
               const relativePathIds = descendant.pathIds.slice(
-                descendant.pathIds.indexOf(category.id) + 1
+                descendant.pathIds.indexOf(category.id) + 1,
               );
               const newDescendantPathIds = [
                 ...newPathInfo.pathIds,
                 category.id,
                 ...relativePathIds,
               ];
-              
+
               // Calculate new depth
               const depthDifference = newPathInfo.depth - category.depth;
               const newDescendantDepth = descendant.depth + depthDifference;
@@ -328,7 +345,7 @@ export class CategoryReparentingAlgorithm {
               });
 
               affectedCategories++;
-            })
+            }),
           );
         }
 
@@ -353,12 +370,12 @@ export class CategoryReparentingAlgorithm {
 
         // Step 5: Update tree statistics for affected parents
         const parentsToUpdate = new Set<string>();
-        
+
         // Add old parent
         if (category.parentId) {
           parentsToUpdate.add(category.parentId);
         }
-        
+
         // Add new parent
         if (newParentId) {
           parentsToUpdate.add(newParentId);
@@ -409,7 +426,6 @@ export class CategoryReparentingAlgorithm {
         errors,
         warnings,
       };
-
     } catch (error) {
       errors.push(`Transaction failed: ${error.message}`);
       return {
@@ -458,10 +474,7 @@ export class CategoryReparentingAlgorithm {
   private async countAffectedProducts(categoryId: string): Promise<number> {
     return this.prisma.product.count({
       where: {
-        OR: [
-          { categoryId },
-          { categoryPathIds: { has: categoryId } },
-        ],
+        OR: [{ categoryId }, { categoryPathIds: { has: categoryId } }],
       },
     });
   }
@@ -480,7 +493,7 @@ export class CategoryReparentingAlgorithm {
 
   private async validateBusinessConstraints(
     category: any,
-    newParentId: string | null
+    newParentId: string | null,
   ): Promise<{ errors: string[]; warnings: string[] }> {
     const errors: string[] = [];
     const warnings: string[] = [];
@@ -495,7 +508,10 @@ export class CategoryReparentingAlgorithm {
     return { errors, warnings };
   }
 
-  private async updateTreeStatistics(tx: any, categoryId: string): Promise<void> {
+  private async updateTreeStatistics(
+    tx: any,
+    categoryId: string,
+  ): Promise<void> {
     const [childCount, descendantCount, productCount] = await Promise.all([
       tx.category.count({
         where: { parentId: categoryId, deletedAt: null },
@@ -522,7 +538,7 @@ export class CategoryReparentingAlgorithm {
   async batchReparent(
     operations: Array<{ categoryId: string; newParentId: string | null }>,
     userId: string,
-    options: ReparentingOptions = {}
+    options: ReparentingOptions = {},
   ): Promise<ReparentingResult[]> {
     const results: ReparentingResult[] = [];
 
@@ -534,7 +550,7 @@ export class CategoryReparentingAlgorithm {
         operation.categoryId,
         operation.newParentId,
         userId,
-        options
+        options,
       );
       results.push(result);
 
@@ -548,11 +564,13 @@ export class CategoryReparentingAlgorithm {
   }
 
   private async sortOperationsByDepth(
-    operations: Array<{ categoryId: string; newParentId: string | null }>
-  ): Promise<Array<{ categoryId: string; newParentId: string | null; depth: number }>> {
+    operations: Array<{ categoryId: string; newParentId: string | null }>,
+  ): Promise<
+    Array<{ categoryId: string; newParentId: string | null; depth: number }>
+  > {
     const categoriesData = await this.prisma.category.findMany({
       where: {
-        id: { in: operations.map(op => op.categoryId) },
+        id: { in: operations.map((op) => op.categoryId) },
       },
       select: {
         id: true,
@@ -560,10 +578,10 @@ export class CategoryReparentingAlgorithm {
       },
     });
 
-    const depthMap = new Map(categoriesData.map(cat => [cat.id, cat.depth]));
+    const depthMap = new Map(categoriesData.map((cat) => [cat.id, cat.depth]));
 
     return operations
-      .map(op => ({
+      .map((op) => ({
         ...op,
         depth: depthMap.get(op.categoryId) || 0,
       }))

@@ -19,7 +19,11 @@ import { CategoryPolicies } from './category.policies';
 import { CategoryValidators } from './category.validators';
 
 import { CreateCategoryDto } from './dtos/create-category.dto';
-import { UpdateCategoryDto, CategoryStatusUpdateDto, MoveCategoryDto } from './dtos/update-category.dto';
+import {
+  UpdateCategoryDto,
+  CategoryStatusUpdateDto,
+  MoveCategoryDto,
+} from './dtos/update-category.dto';
 import {
   CategoryFilters,
   PaginationOptions,
@@ -53,7 +57,7 @@ export class CategoryService {
     filters: CategoryFilters = {},
     pagination: PaginationOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     this.logger.log('CategoryService.findAll', { filters, pagination, userId });
 
@@ -91,7 +95,7 @@ export class CategoryService {
   async findRoots(
     filters: CategoryFilters = {},
     pagination: PaginationOptions = {},
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     this.logger.log('CategoryService.findRoots', { filters, pagination });
 
@@ -103,54 +107,76 @@ export class CategoryService {
     parentId: string,
     filters: CategoryFilters = {},
     pagination: PaginationOptions = {},
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     const enhancedFilters = this.applyVisibilityFilters(filters, userRole);
-    return this.categoryRepository.findChildren(parentId, enhancedFilters, pagination);
+    return this.categoryRepository.findChildren(
+      parentId,
+      enhancedFilters,
+      pagination,
+    );
   }
 
-  async getAncestors(categoryId: string, includeRoot: boolean = true): Promise<Category[]> {
+  async getAncestors(
+    categoryId: string,
+    includeRoot: boolean = true,
+  ): Promise<Category[]> {
     return this.categoryRepository.findAncestors(categoryId, includeRoot);
   }
 
   async getDescendants(
     categoryId: string,
     maxDepth?: number,
-    activeOnly: boolean = false
+    activeOnly: boolean = false,
   ): Promise<Category[]> {
-    return this.categoryRepository.findDescendants(categoryId, maxDepth, activeOnly);
+    return this.categoryRepository.findDescendants(
+      categoryId,
+      maxDepth,
+      activeOnly,
+    );
   }
 
   async getCategoryTree(
     rootId?: string,
     maxDepth?: number,
     activeOnly: boolean = true,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Category[]> {
-    return this.categoryTreeService.getCategoryTree(rootId, maxDepth, activeOnly, userRole);
+    return this.categoryTreeService.getCategoryTree(
+      rootId,
+      maxDepth,
+      activeOnly,
+      userRole,
+    );
   }
 
   // Create operations
   async create(
     createCategoryDto: CreateCategoryDto,
     createdBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Category> {
     this.logger.log('CategoryService.create', { createCategoryDto, createdBy });
 
     // Validate permissions
     if (!CategoryPolicies.canUserCreateCategory(null, createdBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to create categories');
+      throw new ForbiddenException(
+        'Insufficient permissions to create categories',
+      );
     }
 
     // Validate input data
     CategoryValidators.validateCategoryName(createCategoryDto.name);
-    const normalizedSlug = CategoryValidators.validateAndNormalizeCategorySlug(createCategoryDto.slug);
-    CategoryValidators.validateCategoryDescription(createCategoryDto.description);
+    const normalizedSlug = CategoryValidators.validateAndNormalizeCategorySlug(
+      createCategoryDto.slug,
+    );
+    CategoryValidators.validateCategoryDescription(
+      createCategoryDto.description,
+    );
     CategoryValidators.validateSeoFields(
       createCategoryDto.seoTitle,
       createCategoryDto.seoDescription,
-      createCategoryDto.seoKeywords
+      createCategoryDto.seoKeywords,
     );
 
     if (createCategoryDto.iconUrl) {
@@ -160,22 +186,37 @@ export class CategoryService {
       CategoryValidators.validateUrl(createCategoryDto.bannerUrl, 'Banner URL');
     }
 
-    CategoryValidators.validateBrandIds(createCategoryDto.allowedBrands || [], 'Allowed brands');
-    CategoryValidators.validateBrandIds(createCategoryDto.restrictedBrands || [], 'Restricted brands');
+    CategoryValidators.validateBrandIds(
+      createCategoryDto.allowedBrands || [],
+      'Allowed brands',
+    );
+    CategoryValidators.validateBrandIds(
+      createCategoryDto.restrictedBrands || [],
+      'Restricted brands',
+    );
     CategoryValidators.validateMetadata(createCategoryDto.metadata);
 
     // Validate parent category if specified
     let parentCategory: Category | null = null;
     if (createCategoryDto.parentId) {
       parentCategory = await this.findById(createCategoryDto.parentId);
-      
-      if (!CategoryPolicies.canUserCreateCategory(parentCategory, createdBy, userRole)) {
-        throw new ForbiddenException('Cannot create category under this parent');
+
+      if (
+        !CategoryPolicies.canUserCreateCategory(
+          parentCategory,
+          createdBy,
+          userRole,
+        )
+      ) {
+        throw new ForbiddenException(
+          'Cannot create category under this parent',
+        );
       }
     }
 
     // Check slug uniqueness
-    const slugExists = !(await this.categoryRepository.validateSlug(normalizedSlug));
+    const slugExists =
+      !(await this.categoryRepository.validateSlug(normalizedSlug));
     if (slugExists) {
       throw new ConflictException('Category with this slug already exists');
     }
@@ -197,7 +238,7 @@ export class CategoryService {
       createdBy,
       null,
       category,
-      'Category created'
+      'Category created',
     );
 
     // Emit event
@@ -210,11 +251,13 @@ export class CategoryService {
         category.parentId || null,
         category.path,
         category.depth,
-        createdBy
-      )
+        createdBy,
+      ),
     );
 
-    this.logger.log('Category created successfully', { categoryId: category.id });
+    this.logger.log('Category created successfully', {
+      categoryId: category.id,
+    });
     return category;
   }
 
@@ -223,15 +266,27 @@ export class CategoryService {
     id: string,
     updateCategoryDto: UpdateCategoryDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Category> {
-    this.logger.log('CategoryService.update', { id, updateCategoryDto, updatedBy });
+    this.logger.log('CategoryService.update', {
+      id,
+      updateCategoryDto,
+      updatedBy,
+    });
 
     const existingCategory = await this.findById(id);
 
     // Check permissions
-    if (!CategoryPolicies.canUserModifyCategory(existingCategory, updatedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to update this category');
+    if (
+      !CategoryPolicies.canUserModifyCategory(
+        existingCategory,
+        updatedBy,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to update this category',
+      );
     }
 
     // Validate input data
@@ -240,13 +295,15 @@ export class CategoryService {
     }
 
     if (updateCategoryDto.description !== undefined) {
-      CategoryValidators.validateCategoryDescription(updateCategoryDto.description);
+      CategoryValidators.validateCategoryDescription(
+        updateCategoryDto.description,
+      );
     }
 
     CategoryValidators.validateSeoFields(
       updateCategoryDto.seoTitle,
       updateCategoryDto.seoDescription,
-      updateCategoryDto.seoKeywords
+      updateCategoryDto.seoKeywords,
     );
 
     if (updateCategoryDto.iconUrl) {
@@ -257,24 +314,40 @@ export class CategoryService {
     }
 
     if (updateCategoryDto.allowedBrands) {
-      CategoryValidators.validateBrandIds(updateCategoryDto.allowedBrands, 'Allowed brands');
+      CategoryValidators.validateBrandIds(
+        updateCategoryDto.allowedBrands,
+        'Allowed brands',
+      );
     }
     if (updateCategoryDto.restrictedBrands) {
-      CategoryValidators.validateBrandIds(updateCategoryDto.restrictedBrands, 'Restricted brands');
+      CategoryValidators.validateBrandIds(
+        updateCategoryDto.restrictedBrands,
+        'Restricted brands',
+      );
     }
 
     CategoryValidators.validateMetadata(updateCategoryDto.metadata);
 
     // Validate status transition if provided
     if (updateCategoryDto.status) {
-      if (!CategoryPolicies.canTransitionTo(existingCategory.status, updateCategoryDto.status)) {
+      if (
+        !CategoryPolicies.canTransitionTo(
+          existingCategory.status,
+          updateCategoryDto.status,
+        )
+      ) {
         throw new BadRequestException(
-          `Invalid status transition from ${existingCategory.status} to ${updateCategoryDto.status}`
+          `Invalid status transition from ${existingCategory.status} to ${updateCategoryDto.status}`,
         );
       }
 
-      if (CategoryPolicies.requiresAdminApproval(updateCategoryDto.status) && userRole !== UserRole.ADMIN) {
-        throw new ForbiddenException('Admin approval required for this status change');
+      if (
+        CategoryPolicies.requiresAdminApproval(updateCategoryDto.status) &&
+        userRole !== UserRole.ADMIN
+      ) {
+        throw new ForbiddenException(
+          'Admin approval required for this status change',
+        );
       }
     }
 
@@ -290,12 +363,19 @@ export class CategoryService {
       updatedBy,
       existingCategory,
       updatedCategory,
-      'Category updated'
+      'Category updated',
     );
 
     // Emit appropriate events based on status change
-    if (updateCategoryDto.status && updateCategoryDto.status !== existingCategory.status) {
-      await this.emitStatusChangeEvent(updatedCategory, existingCategory.status, updatedBy);
+    if (
+      updateCategoryDto.status &&
+      updateCategoryDto.status !== existingCategory.status
+    ) {
+      await this.emitStatusChangeEvent(
+        updatedCategory,
+        existingCategory.status,
+        updatedBy,
+      );
     }
 
     // Emit general update event
@@ -305,8 +385,8 @@ export class CategoryService {
         id,
         updatedCategory.name,
         this.calculateChanges(existingCategory, updatedCategory),
-        updatedBy
-      )
+        updatedBy,
+      ),
     );
 
     this.logger.log('Category updated successfully', { categoryId: id });
@@ -317,9 +397,14 @@ export class CategoryService {
     id: string,
     statusUpdate: CategoryStatusUpdateDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Category> {
-    return this.update(id, { status: statusUpdate.status }, updatedBy, userRole);
+    return this.update(
+      id,
+      { status: statusUpdate.status },
+      updatedBy,
+      userRole,
+    );
   }
 
   // Move operations
@@ -327,7 +412,7 @@ export class CategoryService {
     id: string,
     moveDto: MoveCategoryDto,
     movedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<MoveResult> {
     this.logger.log('CategoryService.moveCategory', { id, moveDto, movedBy });
 
@@ -335,11 +420,16 @@ export class CategoryService {
 
     // Check permissions
     if (!CategoryPolicies.canUserModifyCategory(category, movedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to move this category');
+      throw new ForbiddenException(
+        'Insufficient permissions to move this category',
+      );
     }
 
     // Validate move operation
-    const validation = await this.categoryRepository.validateMove(id, moveDto.newParentId || null);
+    const validation = await this.categoryRepository.validateMove(
+      id,
+      moveDto.newParentId || null,
+    );
     if (!validation.isValid) {
       throw new BadRequestException(validation.errors.join('; '));
     }
@@ -348,13 +438,25 @@ export class CategoryService {
     let newParent: Category | null = null;
     if (moveDto.newParentId) {
       newParent = await this.findById(moveDto.newParentId);
-      
-      if (!CategoryPolicies.canMoveCategory(category, newParent, movedBy, userRole)) {
+
+      if (
+        !CategoryPolicies.canMoveCategory(
+          category,
+          newParent,
+          movedBy,
+          userRole,
+        )
+      ) {
         throw new ForbiddenException('Cannot move category to this parent');
       }
     }
 
-    const result = await this.categoryRepository.move(id, moveDto.newParentId || null, movedBy, moveDto.reason);
+    const result = await this.categoryRepository.move(
+      id,
+      moveDto.newParentId || null,
+      movedBy,
+      moveDto.reason,
+    );
 
     // Create audit log
     await this.categoryAuditService.logAction(
@@ -363,7 +465,7 @@ export class CategoryService {
       movedBy,
       { parentId: category.parentId, path: category.path },
       { parentId: moveDto.newParentId || null, path: result.newPath },
-      moveDto.reason || 'Category moved'
+      moveDto.reason || 'Category moved',
     );
 
     this.logger.log('Category moved successfully', result);
@@ -371,14 +473,23 @@ export class CategoryService {
   }
 
   // Delete operations
-  async delete(id: string, deletedBy: string, userRole: UserRole, reason?: string): Promise<void> {
+  async delete(
+    id: string,
+    deletedBy: string,
+    userRole: UserRole,
+    reason?: string,
+  ): Promise<void> {
     this.logger.log('CategoryService.delete', { id, deletedBy });
 
     const category = await this.findById(id);
 
     // Check permissions
-    if (!CategoryPolicies.canUserDeleteCategory(category, deletedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to delete this category');
+    if (
+      !CategoryPolicies.canUserDeleteCategory(category, deletedBy, userRole)
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to delete this category',
+      );
     }
 
     // Validate deletion constraints
@@ -399,7 +510,7 @@ export class CategoryService {
       deletedBy,
       category,
       null,
-      reason || 'Category deleted'
+      reason || 'Category deleted',
     );
 
     this.logger.log('Category deleted successfully', { categoryId: id });
@@ -410,7 +521,7 @@ export class CategoryService {
     query: string,
     filters: CategoryFilters = {},
     pagination: PaginationOptions = {},
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     const searchFilters = {
       ...this.applyVisibilityFilters(filters, userRole),
@@ -422,7 +533,7 @@ export class CategoryService {
 
   async getFeaturedCategories(
     filters: CategoryFilters = {},
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Category[]> {
     const featuredFilters = {
       ...this.applyVisibilityFilters(filters, userRole),
@@ -430,13 +541,15 @@ export class CategoryService {
       status: CategoryStatus.ACTIVE,
     };
 
-    const result = await this.categoryRepository.findAll(featuredFilters, { limit: 50 });
+    const result = await this.categoryRepository.findAll(featuredFilters, {
+      limit: 50,
+    });
     return result.data;
   }
 
   async getLeafCategories(
     parentId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Category[]> {
     const filters: CategoryFilters = {
       isLeaf: true,
@@ -446,11 +559,13 @@ export class CategoryService {
     if (parentId) {
       // Get all descendants of parent that are leaf categories
       const descendants = await this.getDescendants(parentId, undefined, true);
-      return descendants.filter(cat => cat.isLeaf);
+      return descendants.filter((cat) => cat.isLeaf);
     }
 
     const enhancedFilters = this.applyVisibilityFilters(filters, userRole);
-    const result = await this.categoryRepository.findAll(enhancedFilters, { limit: 1000 });
+    const result = await this.categoryRepository.findAll(enhancedFilters, {
+      limit: 1000,
+    });
     return result.data;
   }
 
@@ -464,7 +579,10 @@ export class CategoryService {
   }
 
   // Brand integration
-  async validateBrandInCategory(brandId: string, categoryId: string): Promise<boolean> {
+  async validateBrandInCategory(
+    brandId: string,
+    categoryId: string,
+  ): Promise<boolean> {
     return this.categoryRepository.validateBrandInCategory(brandId, categoryId);
   }
 
@@ -478,19 +596,27 @@ export class CategoryService {
     status: CategoryStatus,
     updatedBy: string,
     userRole: UserRole,
-    reason?: string
+    reason?: string,
   ): Promise<Category[]> {
-    this.logger.log('CategoryService.bulkUpdateStatus', { categoryIds, status, updatedBy });
+    this.logger.log('CategoryService.bulkUpdateStatus', {
+      categoryIds,
+      status,
+      updatedBy,
+    });
 
     // Validate permissions for each category
     for (const categoryId of categoryIds) {
       const category = await this.findById(categoryId);
-      if (!CategoryPolicies.canUserModifyCategory(category, updatedBy, userRole)) {
-        throw new ForbiddenException(`Insufficient permissions to update category ${categoryId}`);
+      if (
+        !CategoryPolicies.canUserModifyCategory(category, updatedBy, userRole)
+      ) {
+        throw new ForbiddenException(
+          `Insufficient permissions to update category ${categoryId}`,
+        );
       }
     }
 
-    const updates = categoryIds.map(id => ({
+    const updates = categoryIds.map((id) => ({
       id,
       data: { status },
       updatedBy,
@@ -506,13 +632,13 @@ export class CategoryService {
         updatedBy,
         null,
         category,
-        reason || 'Bulk status update'
+        reason || 'Bulk status update',
       );
     }
 
-    this.logger.log('Bulk status update completed', { 
-      count: updatedCategories.length, 
-      status 
+    this.logger.log('Bulk status update completed', {
+      count: updatedCategories.length,
+      status,
     });
 
     return updatedCategories;
@@ -532,7 +658,7 @@ export class CategoryService {
   // Private helper methods
   private applyVisibilityFilters(
     filters: CategoryFilters,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): CategoryFilters {
     const enhancedFilters = { ...filters };
 
@@ -558,42 +684,69 @@ export class CategoryService {
   private async emitStatusChangeEvent(
     category: Category,
     _oldStatus: CategoryStatus,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     switch (category.status) {
       case CategoryStatus.ACTIVE:
         this.eventEmitter.emit(
           CategoryActivatedEvent.eventName,
-          new CategoryActivatedEvent(category.id, category.name, category.path, updatedBy)
+          new CategoryActivatedEvent(
+            category.id,
+            category.name,
+            category.path,
+            updatedBy,
+          ),
         );
         break;
       case CategoryStatus.INACTIVE:
         this.eventEmitter.emit(
           CategoryDeactivatedEvent.eventName,
-          new CategoryDeactivatedEvent(category.id, category.name, category.path, updatedBy)
+          new CategoryDeactivatedEvent(
+            category.id,
+            category.name,
+            category.path,
+            updatedBy,
+          ),
         );
         break;
       case CategoryStatus.ARCHIVED:
         this.eventEmitter.emit(
           CategoryArchivedEvent.eventName,
-          new CategoryArchivedEvent(category.id, category.name, category.path, updatedBy)
+          new CategoryArchivedEvent(
+            category.id,
+            category.name,
+            category.path,
+            updatedBy,
+          ),
         );
         break;
     }
   }
 
-  private calculateChanges(oldCategory: Category, newCategory: Category): Record<string, { from: any; to: any }> {
+  private calculateChanges(
+    oldCategory: Category,
+    newCategory: Category,
+  ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     const fields = [
-      'name', 'description', 'status', 'visibility', 'isLeaf', 'isFeatured',
-      'seoTitle', 'seoDescription', 'iconUrl', 'bannerUrl', 'displayOrder'
+      'name',
+      'description',
+      'status',
+      'visibility',
+      'isLeaf',
+      'isFeatured',
+      'seoTitle',
+      'seoDescription',
+      'iconUrl',
+      'bannerUrl',
+      'displayOrder',
     ];
-    
+
     for (const field of fields) {
       const oldValue = (oldCategory as any)[field];
       const newValue = (newCategory as any)[field];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changes[field] = { from: oldValue, to: newValue };
       }

@@ -22,7 +22,7 @@ export class EmailService {
 
       // TODO: Implement actual email sending logic
       // This could use services like SendGrid, AWS SES, Nodemailer, etc.
-      
+
       // For now, just log the email
       this.logger.log('Email sent successfully', {
         to: options.to,
@@ -40,7 +40,9 @@ export class EmailService {
     }
   }
 
-  async sendBulkEmails(emails: EmailOptions[]): Promise<{ sent: number; failed: number }> {
+  async sendBulkEmails(
+    emails: EmailOptions[],
+  ): Promise<{ sent: number; failed: number }> {
     let sent = 0;
     let failed = 0;
 

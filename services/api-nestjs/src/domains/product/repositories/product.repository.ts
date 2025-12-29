@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { 
+import {
   ProductRepository as IProductRepository,
   ProductFilters,
   PaginationOptions,
   ProductIncludeOptions,
   ProductStatistics,
   BulkUpdateData,
-  ProductValidationResult
+  ProductValidationResult,
 } from '../interfaces/product-repository.interface';
 import { Product } from '../entities/product.entity';
 import { ProductStatus } from '../enums/product-status.enum';
@@ -20,7 +20,7 @@ export class ProductRepository implements IProductRepository {
   async findAll(
     filters: ProductFilters = {},
     pagination: PaginationOptions = {},
-    includes: ProductIncludeOptions = {}
+    includes: ProductIncludeOptions = {},
   ): Promise<{ data: Product[]; total: number }> {
     const where = this.buildWhereClause(filters);
     const orderBy = this.buildOrderByClause(pagination);
@@ -43,9 +43,12 @@ export class ProductRepository implements IProductRepository {
     };
   }
 
-  async findById(id: string, includes: ProductIncludeOptions = {}): Promise<Product | null> {
+  async findById(
+    id: string,
+    includes: ProductIncludeOptions = {},
+  ): Promise<Product | null> {
     const include = this.buildIncludeClause(includes);
-    
+
     const product = await this.prisma.product.findUnique({
       where: { id },
       include,
@@ -54,9 +57,12 @@ export class ProductRepository implements IProductRepository {
     return product ? this.mapToEntity(product) : null;
   }
 
-  async findBySlug(slug: string, includes: ProductIncludeOptions = {}): Promise<Product | null> {
+  async findBySlug(
+    slug: string,
+    includes: ProductIncludeOptions = {},
+  ): Promise<Product | null> {
     const include = this.buildIncludeClause(includes);
-    
+
     const product = await this.prisma.product.findUnique({
       where: { slug },
       include,
@@ -65,9 +71,12 @@ export class ProductRepository implements IProductRepository {
     return product ? this.mapToEntity(product) : null;
   }
 
-  async findByIds(ids: string[], includes: ProductIncludeOptions = {}): Promise<Product[]> {
+  async findByIds(
+    ids: string[],
+    includes: ProductIncludeOptions = {},
+  ): Promise<Product[]> {
     const include = this.buildIncludeClause(includes);
-    
+
     const products = await this.prisma.product.findMany({
       where: { id: { in: ids } },
       include,
@@ -161,7 +170,11 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async softDelete(id: string, deletedBy: string, reason?: string): Promise<void> {
+  async softDelete(
+    id: string,
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.prisma.product.update({
       where: { id },
       data: {
@@ -176,10 +189,10 @@ export class ProductRepository implements IProductRepository {
   }
 
   async validateSlug(slug: string, excludeId?: string): Promise<boolean> {
-    const where: any = { 
-      slug, 
+    const where: any = {
+      slug,
       // TODO: Uncomment after Prisma client regeneration
-      // deletedAt: null 
+      // deletedAt: null
     };
     if (excludeId) {
       where.id = { not: excludeId };
@@ -189,12 +202,16 @@ export class ProductRepository implements IProductRepository {
     return count === 0;
   }
 
-  async validateName(name: string, sellerId: string, excludeId?: string): Promise<boolean> {
-    const where: any = { 
-      name, 
-      sellerId, 
+  async validateName(
+    name: string,
+    sellerId: string,
+    excludeId?: string,
+  ): Promise<boolean> {
+    const where: any = {
+      name,
+      sellerId,
       // TODO: Uncomment after Prisma client regeneration
-      // deletedAt: null 
+      // deletedAt: null
     };
     if (excludeId) {
       where.id = { not: excludeId };
@@ -204,15 +221,23 @@ export class ProductRepository implements IProductRepository {
     return count === 0;
   }
 
-  async validateCategoryBrandCombination(categoryId: string, brandId: string): Promise<boolean> {
+  async validateCategoryBrandCombination(
+    categoryId: string,
+    brandId: string,
+  ): Promise<boolean> {
     // This would integrate with category and brand validation
     // For now, assume it's valid
     return true;
   }
 
-  async updateStatus(id: string, status: ProductStatus, updatedBy: string, reason?: string): Promise<Product> {
+  async updateStatus(
+    id: string,
+    status: ProductStatus,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product> {
     const updateData: any = { status, updatedBy };
-    
+
     if (status === ProductStatus.PUBLISHED) {
       updateData.publishedAt = new Date();
     }
@@ -231,21 +256,24 @@ export class ProductRepository implements IProductRepository {
   }
 
   async updateModerationStatus(
-    id: string, 
-    moderationStatus: ProductModerationStatus, 
-    moderatedBy: string, 
-    notes?: string
+    id: string,
+    moderationStatus: ProductModerationStatus,
+    moderatedBy: string,
+    notes?: string,
   ): Promise<Product> {
     const product = await this.prisma.product.update({
       where: { id },
-      data: { 
+      data: {
         // TODO: Uncomment after Prisma client regeneration
-        // moderationStatus, 
-        // moderatedBy, 
+        // moderationStatus,
+        // moderatedBy,
         // moderatedAt: new Date(),
         // moderationNotes: notes,
         // updatedBy: moderatedBy,
-        status: moderationStatus === ProductModerationStatus.APPROVED ? ProductStatus.PUBLISHED : ProductStatus.DRAFT,
+        status:
+          moderationStatus === ProductModerationStatus.APPROVED
+            ? ProductStatus.PUBLISHED
+            : ProductStatus.DRAFT,
         updatedAt: new Date(),
       },
       include: {
@@ -258,9 +286,14 @@ export class ProductRepository implements IProductRepository {
     return this.mapToEntity(product);
   }
 
-  async bulkUpdateStatus(ids: string[], status: ProductStatus, updatedBy: string, reason?: string): Promise<Product[]> {
+  async bulkUpdateStatus(
+    ids: string[],
+    status: ProductStatus,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product[]> {
     const updateData: any = { status, updatedBy };
-    
+
     if (status === ProductStatus.PUBLISHED) {
       updateData.publishedAt = new Date();
     }
@@ -282,7 +315,9 @@ export class ProductRepository implements IProductRepository {
             // Only update fields that exist in the current schema
             ...(update.data.name && { name: update.data.name }),
             ...(update.data.slug && { slug: update.data.slug }),
-            ...(update.data.description && { description: update.data.description }),
+            ...(update.data.description && {
+              description: update.data.description,
+            }),
             ...(update.data.status && { status: update.data.status }),
             // TODO: Uncomment after Prisma client regeneration
             // updatedBy: update.updatedBy,
@@ -291,11 +326,15 @@ export class ProductRepository implements IProductRepository {
       }
     });
 
-    const ids = updates.map(u => u.id);
+    const ids = updates.map((u) => u.id);
     return this.findByIds(ids);
   }
 
-  async bulkDelete(ids: string[], deletedBy: string, reason?: string): Promise<void> {
+  async bulkDelete(
+    ids: string[],
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.prisma.product.updateMany({
       where: { id: { in: ids } },
       data: {
@@ -309,7 +348,10 @@ export class ProductRepository implements IProductRepository {
     });
   }
 
-  async searchByName(query: string, filters: ProductFilters = {}): Promise<Product[]> {
+  async searchByName(
+    query: string,
+    filters: ProductFilters = {},
+  ): Promise<Product[]> {
     const where = {
       ...this.buildWhereClause(filters),
       name: { contains: query, mode: 'insensitive' },
@@ -327,7 +369,10 @@ export class ProductRepository implements IProductRepository {
     return products.map(this.mapToEntity);
   }
 
-  async searchByDescription(query: string, filters: ProductFilters = {}): Promise<Product[]> {
+  async searchByDescription(
+    query: string,
+    filters: ProductFilters = {},
+  ): Promise<Product[]> {
     const where = {
       ...this.buildWhereClause(filters),
       description: { contains: query, mode: 'insensitive' },
@@ -345,7 +390,10 @@ export class ProductRepository implements IProductRepository {
     return products.map(this.mapToEntity);
   }
 
-  async fullTextSearch(query: string, filters: ProductFilters = {}): Promise<Product[]> {
+  async fullTextSearch(
+    query: string,
+    filters: ProductFilters = {},
+  ): Promise<Product[]> {
     const where = {
       ...this.buildWhereClause(filters),
       OR: [
@@ -368,24 +416,36 @@ export class ProductRepository implements IProductRepository {
     return products.map(this.mapToEntity);
   }
 
-  async findByCategory(categoryId: string, filters: ProductFilters = {}, pagination: PaginationOptions = {}): Promise<{ data: Product[]; total: number }> {
+  async findByCategory(
+    categoryId: string,
+    filters: ProductFilters = {},
+    pagination: PaginationOptions = {},
+  ): Promise<{ data: Product[]; total: number }> {
     return this.findAll({ ...filters, categoryId }, pagination);
   }
 
-  async findByCategoryTree(categoryId: string, includeDescendants: boolean = false): Promise<Product[]> {
+  async findByCategoryTree(
+    categoryId: string,
+    includeDescendants: boolean = false,
+  ): Promise<Product[]> {
     // This would require category tree traversal
     // For now, just find products in the specific category
     const result = await this.findByCategory(categoryId);
     return result.data;
   }
 
-  async updateCategory(id: string, categoryId: string, updatedBy: string, reason?: string): Promise<Product> {
+  async updateCategory(
+    id: string,
+    categoryId: string,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product> {
     const product = await this.prisma.product.update({
       where: { id },
-      data: { 
-        categoryId, 
+      data: {
+        categoryId,
         // TODO: Uncomment after Prisma client regeneration
-        // updatedBy 
+        // updatedBy
       },
       include: {
         category: true,
@@ -397,17 +457,26 @@ export class ProductRepository implements IProductRepository {
     return this.mapToEntity(product);
   }
 
-  async findByBrand(brandId: string, filters: ProductFilters = {}, pagination: PaginationOptions = {}): Promise<{ data: Product[]; total: number }> {
+  async findByBrand(
+    brandId: string,
+    filters: ProductFilters = {},
+    pagination: PaginationOptions = {},
+  ): Promise<{ data: Product[]; total: number }> {
     return this.findAll({ ...filters, brandId }, pagination);
   }
 
-  async updateBrand(id: string, brandId: string, updatedBy: string, reason?: string): Promise<Product> {
+  async updateBrand(
+    id: string,
+    brandId: string,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product> {
     const product = await this.prisma.product.update({
       where: { id },
-      data: { 
-        brandId, 
+      data: {
+        brandId,
         // TODO: Uncomment after Prisma client regeneration
-        // updatedBy 
+        // updatedBy
       },
       include: {
         category: true,
@@ -419,15 +488,19 @@ export class ProductRepository implements IProductRepository {
     return this.mapToEntity(product);
   }
 
-  async findBySeller(sellerId: string, filters: ProductFilters = {}, pagination: PaginationOptions = {}): Promise<{ data: Product[]; total: number }> {
+  async findBySeller(
+    sellerId: string,
+    filters: ProductFilters = {},
+    pagination: PaginationOptions = {},
+  ): Promise<{ data: Product[]; total: number }> {
     return this.findAll({ ...filters, sellerId }, pagination);
   }
 
   async getSellerStatistics(sellerId: string): Promise<ProductStatistics> {
-    const baseWhere = { 
-      sellerId, 
+    const baseWhere = {
+      sellerId,
       // TODO: Uncomment after Prisma client regeneration
-      // deletedAt: null 
+      // deletedAt: null
     };
 
     const [
@@ -443,13 +516,27 @@ export class ProductRepository implements IProductRepository {
       withVariants,
     ] = await Promise.all([
       this.prisma.product.count({ where: baseWhere }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.DRAFT } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.SUBMITTED } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.APPROVED } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.PUBLISHED } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.REJECTED } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.SUSPENDED } }),
-      this.prisma.product.count({ where: { ...baseWhere, status: ProductStatus.ARCHIVED } }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.DRAFT },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.SUBMITTED },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.APPROVED },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.PUBLISHED },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.REJECTED },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.SUSPENDED },
+      }),
+      this.prisma.product.count({
+        where: { ...baseWhere, status: ProductStatus.ARCHIVED },
+      }),
       // TODO: Uncomment after Prisma client regeneration
       // this.prisma.product.count({ where: { ...baseWhere, isFeatured: true } }),
       // this.prisma.product.count({ where: { ...baseWhere, hasVariants: true } }),
@@ -475,20 +562,27 @@ export class ProductRepository implements IProductRepository {
     };
   }
 
-  async findFeatured(filters: ProductFilters = {}, limit: number = 10): Promise<Product[]> {
+  async findFeatured(
+    filters: ProductFilters = {},
+    limit: number = 10,
+  ): Promise<Product[]> {
     // TODO: Uncomment after Prisma client regeneration
     // const result = await this.findAll({ ...filters, isFeatured: true }, { limit });
     const result = await this.findAll(filters, { limit });
     return result.data;
   }
 
-  async setFeatured(id: string, isFeatured: boolean, updatedBy: string): Promise<Product> {
+  async setFeatured(
+    id: string,
+    isFeatured: boolean,
+    updatedBy: string,
+  ): Promise<Product> {
     const product = await this.prisma.product.update({
       where: { id },
-      data: { 
+      data: {
         // TODO: Uncomment after Prisma client regeneration
-        // isFeatured, 
-        // updatedBy 
+        // isFeatured,
+        // updatedBy
       },
       include: {
         category: true,
@@ -525,19 +619,25 @@ export class ProductRepository implements IProductRepository {
     return this.updateStatus(id, ProductStatus.PUBLISHED, publishedBy);
   }
 
-  async unpublish(id: string, unpublishedBy: string, reason?: string): Promise<Product> {
+  async unpublish(
+    id: string,
+    unpublishedBy: string,
+    reason?: string,
+  ): Promise<Product> {
     return this.updateStatus(id, ProductStatus.DRAFT, unpublishedBy, reason);
   }
 
   async findPendingModeration(limit: number = 50): Promise<Product[]> {
     const result = await this.findAll(
       { moderationStatus: ProductModerationStatus.PENDING },
-      { limit, sortBy: 'createdAt', sortOrder: 'asc' }
+      { limit, sortBy: 'createdAt', sortOrder: 'asc' },
     );
     return result.data;
   }
 
-  async findByModerationStatus(status: ProductModerationStatus): Promise<Product[]> {
+  async findByModerationStatus(
+    status: ProductModerationStatus,
+  ): Promise<Product[]> {
     const result = await this.findAll({ moderationStatus: status });
     return result.data;
   }
@@ -568,7 +668,7 @@ export class ProductRepository implements IProductRepository {
       // this.prisma.product.count({ where: { status: ProductStatus.ARCHIVED, deletedAt: null } }),
       // this.prisma.product.count({ where: { isFeatured: true, deletedAt: null } }),
       // this.prisma.product.count({ where: { hasVariants: true, deletedAt: null } }),
-      
+
       // Temporary placeholders
       this.prisma.product.count(),
       this.prisma.product.count({ where: { status: ProductStatus.DRAFT } }),
@@ -580,7 +680,7 @@ export class ProductRepository implements IProductRepository {
       this.prisma.product.count({ where: { status: ProductStatus.ARCHIVED } }),
       this.prisma.product.count(), // Placeholder for featured
       this.prisma.product.count(), // Placeholder for withVariants
-      
+
       this.prisma.product.groupBy({
         by: ['categoryId'],
         // TODO: Uncomment after Prisma client regeneration
@@ -606,14 +706,20 @@ export class ProductRepository implements IProductRepository {
       archivedProducts: archived,
       featuredProducts: featured,
       productsWithVariants: withVariants,
-      productsByCategory: byCategory.reduce((acc, item) => {
-        acc[item.categoryId] = item._count || 0;
-        return acc;
-      }, {} as Record<string, number>),
-      productsByBrand: byBrand.reduce((acc, item) => {
-        acc[item.brandId || 'unknown'] = item._count || 0;
-        return acc;
-      }, {} as Record<string, number>),
+      productsByCategory: byCategory.reduce(
+        (acc, item) => {
+          acc[item.categoryId] = item._count || 0;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      productsByBrand: byBrand.reduce(
+        (acc, item) => {
+          acc[item.brandId || 'unknown'] = item._count || 0;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
       productsBySeller: {},
       lastUpdated: new Date(),
     };
@@ -622,7 +728,7 @@ export class ProductRepository implements IProductRepository {
   async getCategoryStatistics(categoryId: string): Promise<ProductStatistics> {
     const baseStats = await this.getStatistics();
     const categoryProducts = await this.findByCategory(categoryId);
-    
+
     return {
       ...baseStats,
       totalProducts: categoryProducts.total,
@@ -633,7 +739,7 @@ export class ProductRepository implements IProductRepository {
   async getBrandStatistics(brandId: string): Promise<ProductStatistics> {
     const baseStats = await this.getStatistics();
     const brandProducts = await this.findByBrand(brandId);
-    
+
     return {
       ...baseStats,
       totalProducts: brandProducts.total,
@@ -717,9 +823,9 @@ export class ProductRepository implements IProductRepository {
 
   // Private helper methods
   private buildWhereClause(filters: ProductFilters): any {
-    const where: any = { 
+    const where: any = {
       // TODO: Uncomment after Prisma client regeneration
-      // deletedAt: null 
+      // deletedAt: null
     };
 
     if (filters.status) {
@@ -844,7 +950,7 @@ export class ProductRepository implements IProductRepository {
 
   private mapToEntity(prismaData: any): Product {
     const product = new Product();
-    
+
     product.id = prismaData.id;
     product.name = prismaData.name;
     product.slug = prismaData.slug;
@@ -856,7 +962,7 @@ export class ProductRepository implements IProductRepository {
     // product.isActive = prismaData.isActive;
     product.createdAt = prismaData.createdAt;
     product.updatedAt = prismaData.updatedAt;
-    
+
     // TODO: Uncomment after Prisma client regeneration
     // product.shortDescription = prismaData.shortDescription;
     // product.visibility = prismaData.visibility;
@@ -887,7 +993,8 @@ export class ProductRepository implements IProductRepository {
     // Map relationships if included
     if (prismaData.attributeValues) {
       product.attributeValues = prismaData.attributeValues.map((av: any) => {
-        const attributeValue = new (require('../entities/product-attribute-value.entity').ProductAttributeValue)();
+        const attributeValue =
+          new (require('../entities/product-attribute-value.entity').ProductAttributeValue)();
         attributeValue.id = av.id;
         attributeValue.productId = av.productId;
         attributeValue.attributeId = av.attributeId;
@@ -902,14 +1009,14 @@ export class ProductRepository implements IProductRepository {
         attributeValue.isOverridden = av.isOverridden;
         attributeValue.createdAt = av.createdAt;
         attributeValue.updatedAt = av.updatedAt;
-        
+
         if (av.attribute) {
           attributeValue.attribute = av.attribute;
         }
         if (av.option) {
           attributeValue.option = av.option;
         }
-        
+
         return attributeValue;
       });
     }

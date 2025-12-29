@@ -4,10 +4,10 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 import { Settlement } from '../entities/settlement.entity';
 import { SellerAccount } from '../entities/seller-account.entity';
 import { SettlementSchedule } from '../entities/settlement-schedule.entity';
-import { 
-  SettlementFilters, 
-  PaginationOptions, 
-  SettlementIncludeOptions 
+import {
+  SettlementFilters,
+  PaginationOptions,
+  SettlementIncludeOptions,
 } from '../interfaces/settlement-repository.interface';
 
 @Injectable()
@@ -17,7 +17,10 @@ export class SettlementRepository {
     private readonly logger: LoggerService,
   ) {}
 
-  async findById(id: string, includes?: SettlementIncludeOptions): Promise<Settlement | null> {
+  async findById(
+    id: string,
+    includes?: SettlementIncludeOptions,
+  ): Promise<Settlement | null> {
     try {
       // Placeholder implementation
       return null;
@@ -27,12 +30,19 @@ export class SettlementRepository {
     }
   }
 
-  async findAll(filters: SettlementFilters, pagination: PaginationOptions, includes: SettlementIncludeOptions): Promise<Settlement[]> {
+  async findAll(
+    filters: SettlementFilters,
+    pagination: PaginationOptions,
+    includes: SettlementIncludeOptions,
+  ): Promise<Settlement[]> {
     try {
       // Placeholder implementation
       return [];
     } catch (error) {
-      this.logger.error('Failed to find settlements', error, { filters, pagination });
+      this.logger.error('Failed to find settlements', error, {
+        filters,
+        pagination,
+      });
       throw error;
     }
   }
@@ -76,12 +86,20 @@ export class SettlementRepository {
     }
   }
 
-  async findBySellerAndPeriod(sellerId: string, periodStart: Date, periodEnd: Date) {
+  async findBySellerAndPeriod(
+    sellerId: string,
+    periodStart: Date,
+    periodEnd: Date,
+  ) {
     try {
       // Placeholder implementation
       return null;
     } catch (error) {
-      this.logger.error('Failed to find settlement by seller and period', error, { sellerId, periodStart, periodEnd });
+      this.logger.error(
+        'Failed to find settlement by seller and period',
+        error,
+        { sellerId, periodStart, periodEnd },
+      );
       throw error;
     }
   }
@@ -91,7 +109,9 @@ export class SettlementRepository {
       // Placeholder implementation
       return null;
     } catch (error) {
-      this.logger.error('Failed to create settlement transaction', error, { data });
+      this.logger.error('Failed to create settlement transaction', error, {
+        data,
+      });
       throw error;
     }
   }
@@ -101,12 +121,17 @@ export class SettlementRepository {
       // Placeholder implementation
       return null;
     } catch (error) {
-      this.logger.error('Failed to find seller account by seller ID', error, { sellerId });
+      this.logger.error('Failed to find seller account by seller ID', error, {
+        sellerId,
+      });
       throw error;
     }
   }
 
-  async createSellerAccount(data: any, tx?: any): Promise<SellerAccount | null> {
+  async createSellerAccount(
+    data: any,
+    tx?: any,
+  ): Promise<SellerAccount | null> {
     try {
       // Placeholder implementation
       return new SellerAccount({
@@ -124,7 +149,11 @@ export class SettlementRepository {
     }
   }
 
-  async updateSellerAccount(id: string, data: any, tx?: any): Promise<SellerAccount | null> {
+  async updateSellerAccount(
+    id: string,
+    data: any,
+    tx?: any,
+  ): Promise<SellerAccount | null> {
     try {
       // Placeholder implementation
       return new SellerAccount({
@@ -142,7 +171,11 @@ export class SettlementRepository {
     }
   }
 
-  async updateSettlementSchedule(sellerId: string, data: any, tx?: any): Promise<SettlementSchedule | null> {
+  async updateSettlementSchedule(
+    sellerId: string,
+    data: any,
+    tx?: any,
+  ): Promise<SettlementSchedule | null> {
     try {
       // Placeholder implementation
       return new SettlementSchedule({
@@ -155,7 +188,10 @@ export class SettlementRepository {
         updatedAt: new Date(),
       });
     } catch (error) {
-      this.logger.error('Failed to update settlement schedule', error, { sellerId, data });
+      this.logger.error('Failed to update settlement schedule', error, {
+        sellerId,
+        data,
+      });
       throw error;
     }
   }
@@ -175,7 +211,10 @@ export class SettlementRepository {
       // Placeholder implementation
       return null;
     } catch (error) {
-      this.logger.error('Failed to update settlement status', error, { id, status });
+      this.logger.error('Failed to update settlement status', error, {
+        id,
+        status,
+      });
       throw error;
     }
   }
@@ -185,7 +224,9 @@ export class SettlementRepository {
       // Placeholder implementation
       return null;
     } catch (error) {
-      this.logger.error('Failed to create settlement schedule', error, { data });
+      this.logger.error('Failed to create settlement schedule', error, {
+        data,
+      });
       throw error;
     }
   }

@@ -56,7 +56,8 @@ export class AttributeService {
     }
 
     // Check if attribute is assigned to any categories
-    const isAssigned = await this.attributeRepository.isAssignedToCategories(id);
+    const isAssigned =
+      await this.attributeRepository.isAssignedToCategories(id);
     if (isAssigned) {
       throw new BadRequestException(
         'Cannot delete attribute that is assigned to categories',
@@ -80,22 +81,29 @@ export class AttributeService {
     }
 
     // Check if already assigned
-    const existingAssignment = await this.attributeRepository.getCategoryAttributeAssignment(
-      assignmentDto.categoryId,
-      assignmentDto.attributeId,
-    );
+    const existingAssignment =
+      await this.attributeRepository.getCategoryAttributeAssignment(
+        assignmentDto.categoryId,
+        assignmentDto.attributeId,
+      );
     if (existingAssignment) {
-      throw new ConflictException('Attribute already assigned to this category');
+      throw new ConflictException(
+        'Attribute already assigned to this category',
+      );
     }
 
     return this.attributeRepository.assignToCategory(assignmentDto);
   }
 
-  async removeFromCategory(categoryId: string, attributeId: string): Promise<void> {
-    const assignment = await this.attributeRepository.getCategoryAttributeAssignment(
-      categoryId,
-      attributeId,
-    );
+  async removeFromCategory(
+    categoryId: string,
+    attributeId: string,
+  ): Promise<void> {
+    const assignment =
+      await this.attributeRepository.getCategoryAttributeAssignment(
+        categoryId,
+        attributeId,
+      );
     if (!assignment) {
       throw new NotFoundException('Attribute assignment not found');
     }
@@ -108,10 +116,11 @@ export class AttributeService {
     attributeId: string,
     updateData: Partial<CategoryAttributeAssignmentDto>,
   ) {
-    const assignment = await this.attributeRepository.getCategoryAttributeAssignment(
-      categoryId,
-      attributeId,
-    );
+    const assignment =
+      await this.attributeRepository.getCategoryAttributeAssignment(
+        categoryId,
+        attributeId,
+      );
     if (!assignment) {
       throw new NotFoundException('Attribute assignment not found');
     }
@@ -123,16 +132,20 @@ export class AttributeService {
     );
   }
 
-  async validateAttributeValue(attributeId: string, value: any): Promise<boolean> {
+  async validateAttributeValue(
+    attributeId: string,
+    value: any,
+  ): Promise<boolean> {
     const attribute = await this.findById(attributeId);
-    
+
     // Basic type validation
     switch (attribute.type) {
       case 'STRING':
         if (typeof value !== 'string') return false;
         break;
       case 'NUMBER':
-        if (typeof value !== 'number' && !Number.isFinite(Number(value))) return false;
+        if (typeof value !== 'number' && !Number.isFinite(Number(value)))
+          return false;
         break;
       case 'BOOLEAN':
         if (typeof value !== 'boolean') return false;
@@ -144,7 +157,11 @@ export class AttributeService {
         if (!attribute.options?.includes(value)) return false;
         break;
       case 'MULTI_SELECT':
-        if (!Array.isArray(value) || !value.every(v => attribute.options?.includes(v))) return false;
+        if (
+          !Array.isArray(value) ||
+          !value.every((v) => attribute.options?.includes(v))
+        )
+          return false;
         break;
     }
 
@@ -164,9 +181,13 @@ export class AttributeService {
       case 'required':
         return value !== null && value !== undefined && value !== '';
       case 'min':
-        return typeof value === 'string' ? value.length >= rule.params.min : value >= rule.params.min;
+        return typeof value === 'string'
+          ? value.length >= rule.params.min
+          : value >= rule.params.min;
       case 'max':
-        return typeof value === 'string' ? value.length <= rule.params.max : value <= rule.params.max;
+        return typeof value === 'string'
+          ? value.length <= rule.params.max
+          : value <= rule.params.max;
       case 'pattern':
         return new RegExp(rule.params.pattern).test(value);
       default:

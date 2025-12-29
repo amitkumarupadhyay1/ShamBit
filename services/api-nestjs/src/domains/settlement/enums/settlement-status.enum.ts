@@ -144,7 +144,7 @@ export enum SettlementErrorCode {
 
 export function canTransitionSettlementStatus(
   currentStatus: SettlementStatus,
-  newStatus: SettlementStatus
+  newStatus: SettlementStatus,
 ): boolean {
   const validTransitions: Record<SettlementStatus, SettlementStatus[]> = {
     [SettlementStatus.PENDING]: [
@@ -167,7 +167,7 @@ export function canTransitionSettlementStatus(
 
 export function canTransitionSellerAccountStatus(
   currentStatus: SellerAccountStatus,
-  newStatus: SellerAccountStatus
+  newStatus: SellerAccountStatus,
 ): boolean {
   const validTransitions: Record<SellerAccountStatus, SellerAccountStatus[]> = {
     [SellerAccountStatus.CREATED]: [
@@ -184,9 +184,7 @@ export function canTransitionSellerAccountStatus(
       SellerAccountStatus.UNDER_REVIEW,
       SellerAccountStatus.REJECTED,
     ],
-    [SellerAccountStatus.ACTIVATED]: [
-      SellerAccountStatus.SUSPENDED,
-    ],
+    [SellerAccountStatus.ACTIVATED]: [SellerAccountStatus.SUSPENDED],
     [SellerAccountStatus.SUSPENDED]: [
       SellerAccountStatus.ACTIVATED,
       SellerAccountStatus.REJECTED,
@@ -200,13 +198,10 @@ export function canTransitionSellerAccountStatus(
 
 export function canTransitionKycStatus(
   currentStatus: KycStatus,
-  newStatus: KycStatus
+  newStatus: KycStatus,
 ): boolean {
   const validTransitions: Record<KycStatus, KycStatus[]> = {
-    [KycStatus.PENDING]: [
-      KycStatus.UNDER_REVIEW,
-      KycStatus.REJECTED,
-    ],
+    [KycStatus.PENDING]: [KycStatus.UNDER_REVIEW, KycStatus.REJECTED],
     [KycStatus.UNDER_REVIEW]: [
       KycStatus.VERIFIED,
       KycStatus.REJECTED,
@@ -224,7 +219,9 @@ export function canTransitionKycStatus(
   return allowedTransitions.includes(newStatus);
 }
 
-export function getSettlementStatusDisplayName(status: SettlementStatus): string {
+export function getSettlementStatusDisplayName(
+  status: SettlementStatus,
+): string {
   const displayNames: Record<SettlementStatus, string> = {
     [SettlementStatus.PENDING]: 'Pending',
     [SettlementStatus.PROCESSING]: 'Processing',
@@ -235,7 +232,9 @@ export function getSettlementStatusDisplayName(status: SettlementStatus): string
   return displayNames[status] || status;
 }
 
-export function getSellerAccountStatusDisplayName(status: SellerAccountStatus): string {
+export function getSellerAccountStatusDisplayName(
+  status: SellerAccountStatus,
+): string {
   const displayNames: Record<SellerAccountStatus, string> = {
     [SellerAccountStatus.CREATED]: 'Created',
     [SellerAccountStatus.UNDER_REVIEW]: 'Under Review',
@@ -263,11 +262,15 @@ export function isTerminalSettlementStatus(status: SettlementStatus): boolean {
   return status === SettlementStatus.SETTLED;
 }
 
-export function isTerminalSellerAccountStatus(status: SellerAccountStatus): boolean {
+export function isTerminalSellerAccountStatus(
+  status: SellerAccountStatus,
+): boolean {
   return status === SellerAccountStatus.REJECTED;
 }
 
-export function isActiveSellerAccountStatus(status: SellerAccountStatus): boolean {
+export function isActiveSellerAccountStatus(
+  status: SellerAccountStatus,
+): boolean {
   return status === SellerAccountStatus.ACTIVATED;
 }
 
@@ -289,7 +292,7 @@ export enum SettlementPriority {
 export function getSettlementPriority(
   amount: number,
   sellerTier: SellerTier,
-  isManual: boolean = false
+  isManual: boolean = false,
 ): SettlementPriority {
   // Manual settlements get higher priority
   if (isManual) {
@@ -297,11 +300,13 @@ export function getSettlementPriority(
   }
 
   // Large amounts get higher priority
-  if (amount > 10000000) { // ₹1,00,000
+  if (amount > 10000000) {
+    // ₹1,00,000
     return SettlementPriority.HIGH;
   }
 
-  if (amount > 5000000) { // ₹50,000
+  if (amount > 5000000) {
+    // ₹50,000
     return SettlementPriority.NORMAL;
   }
 

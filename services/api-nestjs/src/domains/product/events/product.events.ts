@@ -17,7 +17,7 @@ export class ProductCreatedEvent {
     public readonly sellerId: string,
     public readonly status: ProductStatus,
     public readonly createdBy: string,
-    public readonly createdAt: Date = new Date()
+    public readonly createdAt: Date = new Date(),
   ) {}
 }
 
@@ -29,7 +29,7 @@ export class ProductUpdatedEvent {
     public readonly name: string,
     public readonly changes: Record<string, { from: any; to: any }>,
     public readonly updatedBy: string,
-    public readonly updatedAt: Date = new Date()
+    public readonly updatedAt: Date = new Date(),
   ) {}
 }
 
@@ -42,7 +42,7 @@ export class ProductDeletedEvent {
     public readonly sellerId: string,
     public readonly deletedBy: string,
     public readonly reason?: string,
-    public readonly deletedAt: Date = new Date()
+    public readonly deletedAt: Date = new Date(),
   ) {}
 }
 
@@ -61,7 +61,7 @@ export class ProductStatusChangedEvent {
     public readonly sellerId: string,
     public readonly changedBy: string,
     public readonly reason?: string,
-    public readonly changedAt: Date = new Date()
+    public readonly changedAt: Date = new Date(),
   ) {}
 }
 
@@ -73,7 +73,7 @@ export class ProductSubmittedEvent {
     public readonly name: string,
     public readonly sellerId: string,
     public readonly submittedBy: string,
-    public readonly submittedAt: Date = new Date()
+    public readonly submittedAt: Date = new Date(),
   ) {}
 }
 
@@ -85,7 +85,7 @@ export class ProductApprovedEvent {
     public readonly name: string,
     public readonly sellerId: string,
     public readonly approvedBy: string,
-    public readonly approvedAt: Date = new Date()
+    public readonly approvedAt: Date = new Date(),
   ) {}
 }
 
@@ -98,7 +98,7 @@ export class ProductRejectedEvent {
     public readonly sellerId: string,
     public readonly rejectedBy: string,
     public readonly reason?: string,
-    public readonly rejectedAt: Date = new Date()
+    public readonly rejectedAt: Date = new Date(),
   ) {}
 }
 
@@ -113,7 +113,7 @@ export class ProductPublishedEvent {
     public readonly brandId: string,
     public readonly sellerId: string,
     public readonly publishedBy: string,
-    public readonly publishedAt: Date = new Date()
+    public readonly publishedAt: Date = new Date(),
   ) {}
 }
 
@@ -126,7 +126,7 @@ export class ProductUnpublishedEvent {
     public readonly sellerId: string,
     public readonly unpublishedBy: string,
     public readonly reason?: string,
-    public readonly unpublishedAt: Date = new Date()
+    public readonly unpublishedAt: Date = new Date(),
   ) {}
 }
 
@@ -139,7 +139,7 @@ export class ProductSuspendedEvent {
     public readonly sellerId: string,
     public readonly suspendedBy: string,
     public readonly reason?: string,
-    public readonly suspendedAt: Date = new Date()
+    public readonly suspendedAt: Date = new Date(),
   ) {}
 }
 
@@ -152,7 +152,7 @@ export class ProductArchivedEvent {
     public readonly sellerId: string,
     public readonly archivedBy: string,
     public readonly reason?: string,
-    public readonly archivedAt: Date = new Date()
+    public readonly archivedAt: Date = new Date(),
   ) {}
 }
 
@@ -171,7 +171,7 @@ export class ProductModerationStatusChangedEvent {
     public readonly sellerId: string,
     public readonly moderatedBy: string,
     public readonly notes?: string,
-    public readonly moderatedAt: Date = new Date()
+    public readonly moderatedAt: Date = new Date(),
   ) {}
 }
 
@@ -184,7 +184,7 @@ export class ProductFlaggedEvent {
     public readonly sellerId: string,
     public readonly flaggedBy: string,
     public readonly reason: string,
-    public readonly flaggedAt: Date = new Date()
+    public readonly flaggedAt: Date = new Date(),
   ) {}
 }
 
@@ -196,7 +196,7 @@ export class ProductModerationStartedEvent {
     public readonly name: string,
     public readonly sellerId: string,
     public readonly moderatorId: string,
-    public readonly startedAt: Date = new Date()
+    public readonly startedAt: Date = new Date(),
   ) {}
 }
 
@@ -210,7 +210,7 @@ export class ProductModerationCompletedEvent {
     public readonly moderatorId: string,
     public readonly decision: ProductModerationStatus,
     public readonly notes?: string,
-    public readonly completedAt: Date = new Date()
+    public readonly completedAt: Date = new Date(),
   ) {}
 }
 
@@ -229,7 +229,7 @@ export class ProductAttributeValueChangedEvent {
     public readonly toValue: any,
     public readonly locale: string,
     public readonly changedBy: string,
-    public readonly changedAt: Date = new Date()
+    public readonly changedAt: Date = new Date(),
   ) {}
 }
 
@@ -243,7 +243,7 @@ export class ProductAttributeInheritedEvent {
     public readonly value: any,
     public readonly inheritedFrom: string, // Category ID
     public readonly locale: string,
-    public readonly inheritedAt: Date = new Date()
+    public readonly inheritedAt: Date = new Date(),
   ) {}
 }
 
@@ -258,7 +258,7 @@ export class ProductAttributeOverriddenEvent {
     public readonly overriddenValue: any,
     public readonly locale: string,
     public readonly overriddenBy: string,
-    public readonly overriddenAt: Date = new Date()
+    public readonly overriddenAt: Date = new Date(),
   ) {}
 }
 
@@ -277,7 +277,7 @@ export class ProductCategoryChangedEvent {
     public readonly sellerId: string,
     public readonly changedBy: string,
     public readonly reason?: string,
-    public readonly changedAt: Date = new Date()
+    public readonly changedAt: Date = new Date(),
   ) {}
 }
 
@@ -292,7 +292,7 @@ export class ProductBrandChangedEvent {
     public readonly sellerId: string,
     public readonly changedBy: string,
     public readonly reason?: string,
-    public readonly changedAt: Date = new Date()
+    public readonly changedAt: Date = new Date(),
   ) {}
 }
 
@@ -308,7 +308,7 @@ export class ProductMediaAddedEvent {
     public readonly mediaType: 'image' | 'video' | 'document',
     public readonly mediaUrl: string,
     public readonly addedBy: string,
-    public readonly addedAt: Date = new Date()
+    public readonly addedAt: Date = new Date(),
   ) {}
 }
 
@@ -320,7 +320,7 @@ export class ProductMediaRemovedEvent {
     public readonly mediaType: 'image' | 'video' | 'document',
     public readonly mediaUrl: string,
     public readonly removedBy: string,
-    public readonly removedAt: Date = new Date()
+    public readonly removedAt: Date = new Date(),
   ) {}
 }
 
@@ -336,7 +336,7 @@ export class ProductFeaturedEvent {
     public readonly name: string,
     public readonly sellerId: string,
     public readonly featuredBy: string,
-    public readonly featuredAt: Date = new Date()
+    public readonly featuredAt: Date = new Date(),
   ) {}
 }
 
@@ -348,7 +348,7 @@ export class ProductUnfeaturedEvent {
     public readonly name: string,
     public readonly sellerId: string,
     public readonly unfeaturedBy: string,
-    public readonly unfeaturedAt: Date = new Date()
+    public readonly unfeaturedAt: Date = new Date(),
   ) {}
 }
 
@@ -365,7 +365,7 @@ export class ProductVariantConfigurationChangedEvent {
     public readonly hasVariants: boolean,
     public readonly variantAttributes: string[],
     public readonly changedBy: string,
-    public readonly changedAt: Date = new Date()
+    public readonly changedAt: Date = new Date(),
   ) {}
 }
 
@@ -383,7 +383,7 @@ export class ProductBulkOperationEvent {
     public readonly performedBy: string,
     public readonly batchId: string,
     public readonly reason?: string,
-    public readonly performedAt: Date = new Date()
+    public readonly performedAt: Date = new Date(),
   ) {}
 }
 
@@ -401,7 +401,7 @@ export class ProductClonedEvent {
     public readonly clonedName: string,
     public readonly sellerId: string,
     public readonly clonedBy: string,
-    public readonly clonedAt: Date = new Date()
+    public readonly clonedAt: Date = new Date(),
   ) {}
 }
 
@@ -414,11 +414,15 @@ export class ProductWorkflowCompletedEvent {
 
   constructor(
     public readonly productId: string,
-    public readonly workflowType: 'submission' | 'approval' | 'publishing' | 'moderation',
+    public readonly workflowType:
+      | 'submission'
+      | 'approval'
+      | 'publishing'
+      | 'moderation',
     public readonly startStatus: ProductStatus | ProductModerationStatus,
     public readonly endStatus: ProductStatus | ProductModerationStatus,
     public readonly duration: number, // milliseconds
     public readonly completedBy: string,
-    public readonly completedAt: Date = new Date()
+    public readonly completedAt: Date = new Date(),
   ) {}
 }

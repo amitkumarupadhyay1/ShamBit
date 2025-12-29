@@ -2,7 +2,7 @@
 
 export class InventoryCreatedEvent {
   static readonly eventName = 'inventory.created';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -14,7 +14,7 @@ export class InventoryCreatedEvent {
 
 export class InventoryUpdatedEvent {
   static readonly eventName = 'inventory.updated';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -27,7 +27,7 @@ export class InventoryUpdatedEvent {
 
 export class InventoryAdjustedEvent {
   static readonly eventName = 'inventory.adjusted';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -43,7 +43,7 @@ export class InventoryAdjustedEvent {
 
 export class InventoryReservedEvent {
   static readonly eventName = 'inventory.reserved';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -57,7 +57,7 @@ export class InventoryReservedEvent {
 
 export class InventoryReleasedEvent {
   static readonly eventName = 'inventory.released';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -72,7 +72,7 @@ export class InventoryReleasedEvent {
 
 export class InventoryCommittedEvent {
   static readonly eventName = 'inventory.committed';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -87,7 +87,7 @@ export class InventoryCommittedEvent {
 
 export class InventoryLowStockEvent {
   static readonly eventName = 'inventory.low_stock';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -101,7 +101,7 @@ export class InventoryLowStockEvent {
 
 export class InventoryOutOfStockEvent {
   static readonly eventName = 'inventory.out_of_stock';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -114,7 +114,7 @@ export class InventoryOutOfStockEvent {
 
 export class InventoryRestockedEvent {
   static readonly eventName = 'inventory.restocked';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
@@ -127,12 +127,17 @@ export class InventoryRestockedEvent {
 
 export class InventoryMovementEvent {
   static readonly eventName = 'inventory.movement';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,
     public readonly sellerId: string,
-    public readonly movementType: 'INBOUND' | 'OUTBOUND' | 'ADJUSTMENT' | 'RESERVATION' | 'RELEASE',
+    public readonly movementType:
+      | 'INBOUND'
+      | 'OUTBOUND'
+      | 'ADJUSTMENT'
+      | 'RESERVATION'
+      | 'RELEASE',
     public readonly quantity: number,
     public readonly runningBalance: number,
     public readonly referenceType?: string,
@@ -145,7 +150,7 @@ export class InventoryMovementEvent {
 
 export class InventoryBulkAdjustmentEvent {
   static readonly eventName = 'inventory.bulk.adjustment';
-  
+
   constructor(
     public readonly sellerId: string,
     public readonly itemsProcessed: number,
@@ -159,7 +164,7 @@ export class InventoryBulkAdjustmentEvent {
 
 export class InventoryReconciliationEvent {
   static readonly eventName = 'inventory.reconciliation';
-  
+
   constructor(
     public readonly inventoryId: string,
     public readonly variantId: string,

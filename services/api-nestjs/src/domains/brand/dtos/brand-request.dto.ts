@@ -1,7 +1,19 @@
-import { IsString, IsOptional, IsArray, IsUrl, Length, Matches, IsEnum, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsUrl,
+  Length,
+  Matches,
+  IsEnum,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
-import { BrandRequestType, BrandRequestStatus } from '../enums/request-status.enum';
+import {
+  BrandRequestType,
+  BrandRequestStatus,
+} from '../enums/request-status.enum';
 import { BrandScope } from '../enums/brand-scope.enum';
 
 export class CreateBrandRequestDto {
@@ -91,7 +103,8 @@ export class CreateBrandRequestDto {
 
   @ApiProperty({
     description: 'Business justification for the brand request',
-    example: 'We are an authorized retailer of Nike products and need to list them under the official brand.',
+    example:
+      'We are an authorized retailer of Nike products and need to list them under the official brand.',
     minLength: 50,
     maxLength: 2000,
   })
@@ -101,7 +114,8 @@ export class CreateBrandRequestDto {
 
   @ApiPropertyOptional({
     description: 'Expected usage and volume',
-    example: 'We plan to list approximately 100 Nike products across footwear and apparel categories.',
+    example:
+      'We plan to list approximately 100 Nike products across footwear and apparel categories.',
     maxLength: 1000,
   })
   @IsOptional()

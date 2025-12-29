@@ -27,7 +27,7 @@ export class BrandRepository {
 
   async findAll(
     filters: BrandFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: Brand[]; total: number }> {
     const {
       page = 1,
@@ -47,10 +47,7 @@ export class BrandRepository {
       if (filters.sellerId === null) {
         where.isGlobal = true;
       } else {
-        where.OR = [
-          { isGlobal: true },
-          { sellerId: filters.sellerId },
-        ];
+        where.OR = [{ isGlobal: true }, { sellerId: filters.sellerId }];
       }
     }
 
@@ -85,7 +82,7 @@ export class BrandRepository {
 
     const [data, total] = await Promise.all([
       this.prisma.brand.findMany({
-        where: where as any,
+        where: where,
         include: {
           categories: {
             include: {
@@ -116,7 +113,7 @@ export class BrandRepository {
           [sortBy]: sortOrder,
         },
       }),
-      this.prisma.brand.count({ where: where as any }),
+      this.prisma.brand.count({ where: where }),
     ]);
 
     return {
@@ -166,7 +163,9 @@ export class BrandRepository {
     return brand ? this.mapToDomain(brand) : null;
   }
 
-  async create(data: CreateBrandDto & { createdBy: string; status: BrandStatus }): Promise<Brand> {
+  async create(
+    data: CreateBrandDto & { createdBy: string; status: BrandStatus },
+  ): Promise<Brand> {
     const { categoryIds, ...brandData } = data;
 
     const brand = await this.prisma.brand.create({
@@ -192,7 +191,10 @@ export class BrandRepository {
     return this.mapToDomain(brand);
   }
 
-  async update(id: string, data: UpdateBrandDto & { updatedBy: string }): Promise<Brand> {
+  async update(
+    id: string,
+    data: UpdateBrandDto & { updatedBy: string },
+  ): Promise<Brand> {
     const { categoryIds, ...brandData } = data;
 
     const updateData: any = {
@@ -214,7 +216,7 @@ export class BrandRepository {
 
     const brand = await this.prisma.brand.update({
       where: { id },
-      data: updateData as any,
+      data: updateData,
       include: {
         categories: {
           include: {
@@ -238,7 +240,11 @@ export class BrandRepository {
     });
   }
 
-  async updateStatus(id: string, status: BrandStatus, updatedBy: string): Promise<Brand> {
+  async updateStatus(
+    id: string,
+    status: BrandStatus,
+    updatedBy: string,
+  ): Promise<Brand> {
     const brand = await this.prisma.brand.update({
       where: { id },
       data: { status, updatedBy } as any,
@@ -271,24 +277,24 @@ export class BrandRepository {
 
   async countByStatus(sellerId?: string): Promise<Record<BrandStatus, number>> {
     const where: any = { deletedAt: null };
-    
+
     if (sellerId) {
-      where.OR = [
-        { isGlobal: true },
-        { sellerId },
-      ];
+      where.OR = [{ isGlobal: true }, { sellerId }];
     }
 
     const counts = await this.prisma.brand.groupBy({
       by: ['status'],
-      where: where as any,
+      where: where,
       _count: true,
     });
 
-    const result = Object.values(BrandStatus).reduce((acc, status) => {
-      acc[status] = 0;
-      return acc;
-    }, {} as Record<BrandStatus, number>);
+    const result = Object.values(BrandStatus).reduce(
+      (acc, status) => {
+        acc[status] = 0;
+        return acc;
+      },
+      {} as Record<BrandStatus, number>,
+    );
 
     counts.forEach(({ status, _count }) => {
       result[status] = _count;

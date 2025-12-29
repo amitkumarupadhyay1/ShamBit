@@ -23,20 +23,20 @@ export class Brand {
   logoUrl?: string;
   websiteUrl?: string;
   status: BrandStatus;
-  
+
   // Classification
   isGlobal: boolean;
   isVerified: boolean;
-  
+
   // Ownership
   sellerId?: string;
-  
+
   // Metadata
   metadata?: BrandMetadata;
-  
+
   // Relationships
   categoryIds: string[];
-  
+
   // Audit fields
   createdBy: string;
   updatedBy?: string;

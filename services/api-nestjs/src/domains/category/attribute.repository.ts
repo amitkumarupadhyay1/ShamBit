@@ -64,7 +64,10 @@ export class AttributeRepository {
     });
   }
 
-  async getCategoryAttributeAssignment(categoryId: string, attributeId: string) {
+  async getCategoryAttributeAssignment(
+    categoryId: string,
+    attributeId: string,
+  ) {
     return this.prisma.categoryAttribute.findUnique({
       where: {
         categoryId_attributeId: {
@@ -84,7 +87,10 @@ export class AttributeRepository {
     });
   }
 
-  async removeFromCategory(categoryId: string, attributeId: string): Promise<void> {
+  async removeFromCategory(
+    categoryId: string,
+    attributeId: string,
+  ): Promise<void> {
     await this.prisma.categoryAttribute.delete({
       where: {
         categoryId_attributeId: {

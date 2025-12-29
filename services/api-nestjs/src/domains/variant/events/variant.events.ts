@@ -2,7 +2,7 @@
 
 export class VariantCreatedEvent {
   static readonly eventName = 'variant.created';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -14,7 +14,7 @@ export class VariantCreatedEvent {
 
 export class VariantUpdatedEvent {
   static readonly eventName = 'variant.updated';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -27,7 +27,7 @@ export class VariantUpdatedEvent {
 
 export class VariantDeletedEvent {
   static readonly eventName = 'variant.deleted';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -40,7 +40,7 @@ export class VariantDeletedEvent {
 
 export class VariantStatusChangedEvent {
   static readonly eventName = 'variant.status.changed';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -54,7 +54,7 @@ export class VariantStatusChangedEvent {
 
 export class VariantActivatedEvent {
   static readonly eventName = 'variant.activated';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -66,7 +66,7 @@ export class VariantActivatedEvent {
 
 export class VariantDisabledEvent {
   static readonly eventName = 'variant.disabled';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -79,7 +79,7 @@ export class VariantDisabledEvent {
 
 export class VariantArchivedEvent {
   static readonly eventName = 'variant.archived';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
@@ -92,7 +92,7 @@ export class VariantArchivedEvent {
 
 export class VariantBulkGeneratedEvent {
   static readonly eventName = 'variant.bulk.generated';
-  
+
   constructor(
     public readonly productId: string,
     public readonly variantsCreated: number,
@@ -105,14 +105,18 @@ export class VariantBulkGeneratedEvent {
 
 export class VariantStockChangedEvent {
   static readonly eventName = 'variant.stock.changed';
-  
+
   constructor(
     public readonly variantId: string,
     public readonly sku: string,
     public readonly productId: string,
     public readonly oldQuantity: number,
     public readonly newQuantity: number,
-    public readonly changeType: 'INCREASE' | 'DECREASE' | 'RESERVATION' | 'RELEASE',
+    public readonly changeType:
+      | 'INCREASE'
+      | 'DECREASE'
+      | 'RESERVATION'
+      | 'RELEASE',
     public readonly reason: string,
     public readonly updatedBy: string,
     public readonly timestamp: Date = new Date(),

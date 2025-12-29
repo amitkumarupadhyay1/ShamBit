@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
-import { CreatePricingDto, UpdatePricingDto, PricingResponseDto } from './pricing.service';
+import {
+  CreatePricingDto,
+  UpdatePricingDto,
+  PricingResponseDto,
+} from './pricing.service';
 
 @Injectable()
 export class PricingRepository {
@@ -34,7 +38,10 @@ export class PricingRepository {
     };
   }
 
-  async update(id: string, data: UpdatePricingDto): Promise<PricingResponseDto> {
+  async update(
+    id: string,
+    data: UpdatePricingDto,
+  ): Promise<PricingResponseDto> {
     const pricing = await this.prisma.variantPricing.update({
       where: { id },
       data: {
@@ -91,7 +98,9 @@ export class PricingRepository {
     });
   }
 
-  async bulkUpdate(updates: Array<{ id: string; data: UpdatePricingDto }>): Promise<void> {
+  async bulkUpdate(
+    updates: Array<{ id: string; data: UpdatePricingDto }>,
+  ): Promise<void> {
     const promises = updates.map(({ id, data }) =>
       this.prisma.variantPricing.update({
         where: { id },
@@ -104,7 +113,7 @@ export class PricingRepository {
           validTo: data.validTo,
           isActive: data.isActive,
         },
-      })
+      }),
     );
 
     await Promise.all(promises);

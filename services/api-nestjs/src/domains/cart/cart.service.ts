@@ -125,7 +125,11 @@ export class CartService {
     return updatedCart;
   }
 
-  async removeFromCart(cartId: string, itemId: string, userId?: string): Promise<Cart> {
+  async removeFromCart(
+    cartId: string,
+    itemId: string,
+    userId?: string,
+  ): Promise<Cart> {
     this.logger.log('CartService.removeFromCart', { cartId, itemId, userId });
 
     await this.cartItemService.removeItem(itemId);
@@ -147,7 +151,12 @@ export class CartService {
     quantity: number,
     userId?: string,
   ): Promise<Cart> {
-    this.logger.log('CartService.updateQuantity', { cartId, itemId, quantity, userId });
+    this.logger.log('CartService.updateQuantity', {
+      cartId,
+      itemId,
+      quantity,
+      userId,
+    });
 
     if (quantity <= 0) {
       return this.removeFromCart(cartId, itemId, userId);
@@ -167,8 +176,16 @@ export class CartService {
     return updatedCart;
   }
 
-  async applyPromotion(cartId: string, promotionCode: string, userId?: string): Promise<Cart> {
-    this.logger.log('CartService.applyPromotion', { cartId, promotionCode, userId });
+  async applyPromotion(
+    cartId: string,
+    promotionCode: string,
+    userId?: string,
+  ): Promise<Cart> {
+    this.logger.log('CartService.applyPromotion', {
+      cartId,
+      promotionCode,
+      userId,
+    });
 
     const cart = await this.cartRepository.findById(cartId);
     if (!cart) {
@@ -178,7 +195,7 @@ export class CartService {
     // Check promotion eligibility
     const eligibilityCheck = {
       userId: userId || 'guest',
-      items: cart.items.map(item => ({
+      items: cart.items.map((item) => ({
         variantId: item.variantId,
         productId: '', // Would be fetched from variant
         categoryId: '', // Would be fetched from product
@@ -190,10 +207,13 @@ export class CartService {
       promotionCode,
     };
 
-    const promotions = await this.promotionService.getEligiblePromotions(eligibilityCheck);
-    
+    const promotions =
+      await this.promotionService.getEligiblePromotions(eligibilityCheck);
+
     if (promotions.length === 0) {
-      throw new BadRequestException('Promotion code is not valid or applicable');
+      throw new BadRequestException(
+        'Promotion code is not valid or applicable',
+      );
     }
 
     // Apply promotion
@@ -272,7 +292,7 @@ export class CartService {
     if (cart.appliedPromotions.length > 0) {
       const eligibilityCheck = {
         userId: cart.userId || 'guest',
-        items: cart.items.map(item => ({
+        items: cart.items.map((item) => ({
           variantId: item.variantId,
           productId: '', // Would be fetched
           categoryId: '', // Would be fetched
@@ -283,8 +303,12 @@ export class CartService {
         totalAmount: subtotal,
       };
 
-      const applications = await this.promotionService.applyPromotions(eligibilityCheck);
-      discountAmount = applications.reduce((sum, app) => sum + app.discountAmount, 0);
+      const applications =
+        await this.promotionService.applyPromotions(eligibilityCheck);
+      discountAmount = applications.reduce(
+        (sum, app) => sum + app.discountAmount,
+        0,
+      );
     }
 
     const totalAmount = subtotal - discountAmount;

@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { 
+import {
   AttributeRepository as IAttributeRepository,
   AttributeFilters,
   PaginationOptions,
   AttributeIncludeOptions,
   AttributeStatistics,
   AttributeUsageStats,
-  BulkUpdateData
+  BulkUpdateData,
 } from '../interfaces/attribute-repository.interface';
 import { Attribute } from '../entities/attribute.entity';
 import { AttributeStatus } from '../enums/attribute-status.enum';
@@ -20,7 +20,7 @@ export class AttributeRepository implements IAttributeRepository {
   async findAll(
     filters: AttributeFilters = {},
     pagination: PaginationOptions = {},
-    includes: AttributeIncludeOptions = {}
+    includes: AttributeIncludeOptions = {},
   ): Promise<{ data: Attribute[]; total: number }> {
     const where = this.buildWhereClause(filters);
     const orderBy = this.buildOrderByClause(pagination);
@@ -43,9 +43,12 @@ export class AttributeRepository implements IAttributeRepository {
     };
   }
 
-  async findById(id: string, includes: AttributeIncludeOptions = {}): Promise<Attribute | null> {
+  async findById(
+    id: string,
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute | null> {
     const include = this.buildIncludeClause(includes);
-    
+
     const attribute = await this.prisma.attribute.findUnique({
       where: { id },
       include,
@@ -54,9 +57,12 @@ export class AttributeRepository implements IAttributeRepository {
     return attribute ? this.mapToEntity(attribute) : null;
   }
 
-  async findBySlug(slug: string, includes: AttributeIncludeOptions = {}): Promise<Attribute | null> {
+  async findBySlug(
+    slug: string,
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute | null> {
     const include = this.buildIncludeClause(includes);
-    
+
     const attribute = await this.prisma.attribute.findUnique({
       where: { slug },
       include,
@@ -65,9 +71,12 @@ export class AttributeRepository implements IAttributeRepository {
     return attribute ? this.mapToEntity(attribute) : null;
   }
 
-  async findByIds(ids: string[], includes: AttributeIncludeOptions = {}): Promise<Attribute[]> {
+  async findByIds(
+    ids: string[],
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute[]> {
     const include = this.buildIncludeClause(includes);
-    
+
     const attributes = await this.prisma.attribute.findMany({
       where: { id: { in: ids } },
       include,
@@ -98,17 +107,19 @@ export class AttributeRepository implements IAttributeRepository {
         isLocalizable: data.isLocalizable || false,
         status: data.status || AttributeStatus.DRAFT,
         createdBy: data.createdBy!,
-        localizations: data.localizations ? {
-          createMany: {
-            data: data.localizations.map(loc => ({
-              locale: loc.locale,
-              name: loc.name,
-              description: loc.description,
-              helpText: loc.helpText,
-              placeholder: loc.placeholder,
-            }))
-          }
-        } : undefined,
+        localizations: data.localizations
+          ? {
+              createMany: {
+                data: data.localizations.map((loc) => ({
+                  locale: loc.locale,
+                  name: loc.name,
+                  description: loc.description,
+                  helpText: loc.helpText,
+                  placeholder: loc.placeholder,
+                })),
+              },
+            }
+          : undefined,
       },
       include: {
         attributeOptions: true,
@@ -140,24 +151,28 @@ export class AttributeRepository implements IAttributeRepository {
         isLocalizable: data.isLocalizable,
         status: data.status,
         updatedBy: data.updatedBy,
-        localizations: data.localizations ? {
-          upsert: data.localizations.map(loc => ({
-            where: { attributeId_locale: { attributeId: id, locale: loc.locale } },
-            update: {
-              name: loc.name,
-              description: loc.description,
-              helpText: loc.helpText,
-              placeholder: loc.placeholder,
-            },
-            create: {
-              locale: loc.locale,
-              name: loc.name,
-              description: loc.description,
-              helpText: loc.helpText,
-              placeholder: loc.placeholder,
+        localizations: data.localizations
+          ? {
+              upsert: data.localizations.map((loc) => ({
+                where: {
+                  attributeId_locale: { attributeId: id, locale: loc.locale },
+                },
+                update: {
+                  name: loc.name,
+                  description: loc.description,
+                  helpText: loc.helpText,
+                  placeholder: loc.placeholder,
+                },
+                create: {
+                  locale: loc.locale,
+                  name: loc.name,
+                  description: loc.description,
+                  helpText: loc.helpText,
+                  placeholder: loc.placeholder,
+                },
+              })),
             }
-          }))
-        } : undefined,
+          : undefined,
       },
       include: {
         attributeOptions: true,
@@ -174,7 +189,11 @@ export class AttributeRepository implements IAttributeRepository {
     });
   }
 
-  async softDelete(id: string, deletedBy: string, reason?: string): Promise<void> {
+  async softDelete(
+    id: string,
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.prisma.attribute.update({
       where: { id },
       data: {
@@ -205,7 +224,11 @@ export class AttributeRepository implements IAttributeRepository {
     return count === 0;
   }
 
-  async updateStatus(id: string, status: AttributeStatus, updatedBy: string): Promise<Attribute> {
+  async updateStatus(
+    id: string,
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute> {
     const attribute = await this.prisma.attribute.update({
       where: { id },
       data: { status, updatedBy },
@@ -218,7 +241,11 @@ export class AttributeRepository implements IAttributeRepository {
     return this.mapToEntity(attribute);
   }
 
-  async bulkUpdateStatus(ids: string[], status: AttributeStatus, updatedBy: string): Promise<Attribute[]> {
+  async bulkUpdateStatus(
+    ids: string[],
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute[]> {
     await this.prisma.attribute.updateMany({
       where: { id: { in: ids } },
       data: { status, updatedBy },
@@ -240,11 +267,15 @@ export class AttributeRepository implements IAttributeRepository {
       }
     });
 
-    const ids = updates.map(u => u.id);
+    const ids = updates.map((u) => u.id);
     return this.findByIds(ids);
   }
 
-  async bulkDelete(ids: string[], deletedBy: string, reason?: string): Promise<void> {
+  async bulkDelete(
+    ids: string[],
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.prisma.attribute.updateMany({
       where: { id: { in: ids } },
       data: {
@@ -255,7 +286,10 @@ export class AttributeRepository implements IAttributeRepository {
     });
   }
 
-  async searchByName(query: string, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async searchByName(
+    query: string,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     const where = {
       ...this.buildWhereClause(filters),
       OR: [
@@ -277,7 +311,10 @@ export class AttributeRepository implements IAttributeRepository {
     return attributes.map(this.mapToEntity);
   }
 
-  async findByGroup(groupName: string, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async findByGroup(
+    groupName: string,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     const where = {
       ...this.buildWhereClause(filters),
       groupName,
@@ -295,7 +332,10 @@ export class AttributeRepository implements IAttributeRepository {
     return attributes.map(this.mapToEntity);
   }
 
-  async findByDataType(dataType: AttributeDataType, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async findByDataType(
+    dataType: AttributeDataType,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     const where = {
       ...this.buildWhereClause(filters),
       dataType,
@@ -313,7 +353,10 @@ export class AttributeRepository implements IAttributeRepository {
     return attributes.map(this.mapToEntity);
   }
 
-  async findByCategoryId(categoryId: string, includeInherited: boolean = true): Promise<Attribute[]> {
+  async findByCategoryId(
+    categoryId: string,
+    includeInherited: boolean = true,
+  ): Promise<Attribute[]> {
     // This would integrate with the category system
     // For now, return attributes that are commonly used
     const attributes = await this.prisma.attribute.findMany({
@@ -331,7 +374,9 @@ export class AttributeRepository implements IAttributeRepository {
     return attributes.map(this.mapToEntity);
   }
 
-  async findVariantAttributesForCategory(categoryId: string): Promise<Attribute[]> {
+  async findVariantAttributesForCategory(
+    categoryId: string,
+  ): Promise<Attribute[]> {
     const attributes = await this.prisma.attribute.findMany({
       where: {
         isVariant: true,
@@ -348,7 +393,9 @@ export class AttributeRepository implements IAttributeRepository {
     return attributes.map(this.mapToEntity);
   }
 
-  async findFilterableAttributesForCategory(categoryId: string): Promise<Attribute[]> {
+  async findFilterableAttributesForCategory(
+    categoryId: string,
+  ): Promise<Attribute[]> {
     const attributes = await this.prisma.attribute.findMany({
       where: {
         isFilterable: true,
@@ -380,14 +427,30 @@ export class AttributeRepository implements IAttributeRepository {
       byGroup,
     ] = await Promise.all([
       this.prisma.attribute.count({ where: { deletedAt: null } }),
-      this.prisma.attribute.count({ where: { status: AttributeStatus.ACTIVE, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { status: AttributeStatus.DRAFT, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { status: AttributeStatus.DEPRECATED, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { status: AttributeStatus.ARCHIVED, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { isVariant: true, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { isFilterable: true, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { isSearchable: true, deletedAt: null } }),
-      this.prisma.attribute.count({ where: { isLocalizable: true, deletedAt: null } }),
+      this.prisma.attribute.count({
+        where: { status: AttributeStatus.ACTIVE, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { status: AttributeStatus.DRAFT, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { status: AttributeStatus.DEPRECATED, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { status: AttributeStatus.ARCHIVED, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { isVariant: true, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { isFilterable: true, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { isSearchable: true, deletedAt: null },
+      }),
+      this.prisma.attribute.count({
+        where: { isLocalizable: true, deletedAt: null },
+      }),
       this.prisma.attribute.groupBy({
         by: ['dataType'],
         where: { deletedAt: null },
@@ -410,16 +473,22 @@ export class AttributeRepository implements IAttributeRepository {
       filterableAttributes: filterable,
       searchableAttributes: searchable,
       localizableAttributes: localizable,
-      attributesByType: byType.reduce((acc, item) => {
-        acc[item.dataType] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
-      attributesByGroup: byGroup.reduce((acc, item) => {
-        if (item.groupName) {
-          acc[item.groupName] = item._count;
-        }
-        return acc;
-      }, {} as Record<string, number>),
+      attributesByType: byType.reduce(
+        (acc, item) => {
+          acc[item.dataType] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      attributesByGroup: byGroup.reduce(
+        (acc, item) => {
+          if (item.groupName) {
+            acc[item.groupName] = item._count;
+          }
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
       lastUpdated: new Date(),
     };
   }
@@ -601,13 +670,15 @@ export class AttributeRepository implements IAttributeRepository {
 
   private mapToEntity(prismaData: any): Attribute {
     const attribute = new Attribute();
-    
+
     attribute.id = prismaData.id;
     attribute.name = prismaData.name;
     attribute.slug = prismaData.slug;
     attribute.description = prismaData.description;
     attribute.dataType = prismaData.dataType;
-    attribute.validation = this.convertValidationFromPrisma(prismaData.validation);
+    attribute.validation = this.convertValidationFromPrisma(
+      prismaData.validation,
+    );
     attribute.isRequired = prismaData.isRequired;
     attribute.isVariant = prismaData.isVariant;
     attribute.isFilterable = prismaData.isFilterable;
@@ -630,7 +701,8 @@ export class AttributeRepository implements IAttributeRepository {
     // Map relationships if included
     if (prismaData.attributeOptions) {
       attribute.options = prismaData.attributeOptions.map((option: any) => {
-        const opt = new (require('../entities/attribute-option.entity').AttributeOption)();
+        const opt =
+          new (require('../entities/attribute-option.entity').AttributeOption)();
         opt.id = option.id;
         opt.attributeId = option.attributeId;
         opt.value = option.value;
@@ -649,7 +721,8 @@ export class AttributeRepository implements IAttributeRepository {
 
     if (prismaData.localizations) {
       attribute.localizations = prismaData.localizations.map((loc: any) => {
-        const localization = new (require('../entities/attribute-localization.entity').AttributeLocalization)();
+        const localization =
+          new (require('../entities/attribute-localization.entity').AttributeLocalization)();
         localization.id = loc.id;
         localization.attributeId = loc.attributeId;
         localization.locale = loc.locale;

@@ -33,12 +33,18 @@ export class SearchService {
 
   async getTrendingProducts(query: any) {
     // TODO: Implement trending logic (by category, limit, etc.)
-    return { results: [], meta: { category: query?.category, limit: query?.limit ?? 10 } };
+    return {
+      results: [],
+      meta: { category: query?.category, limit: query?.limit ?? 10 },
+    };
   }
 
   async getRecommendations(query: any) {
     // TODO: Implement collaborative/filtered recommendations
-    return { recommendations: [], meta: { userId: query?.userId, productId: query?.productId } };
+    return {
+      recommendations: [],
+      meta: { userId: query?.userId, productId: query?.productId },
+    };
   }
 
   async getPopularCategories() {

@@ -81,8 +81,14 @@ export class NotificationService {
     });
 
     // Check user preferences
-    const preferences = await this.preferenceService.getUserPreferences(sendDto.userId);
-    const allowedChannels = this.filterChannelsByPreferences(sendDto.channels, preferences, sendDto.type);
+    const preferences = await this.preferenceService.getUserPreferences(
+      sendDto.userId,
+    );
+    const allowedChannels = this.filterChannelsByPreferences(
+      sendDto.channels,
+      preferences,
+      sendDto.type,
+    );
 
     if (allowedChannels.length === 0) {
       this.logger.log('No allowed channels for notification', {
@@ -95,7 +101,9 @@ export class NotificationService {
     // Get notification template
     const template = await this.templateService.getTemplate(sendDto.type);
     if (!template) {
-      this.logger.error('Notification template not found', undefined, { type: sendDto.type });
+      this.logger.error('Notification template not found', undefined, {
+        type: sendDto.type,
+      });
       return;
     }
 
@@ -118,11 +126,15 @@ export class NotificationService {
           sendDto.priority || NotificationPriority.MEDIUM,
         );
       } catch (error) {
-        this.logger.error('Failed to send notification through channel', undefined, {
-          userId: sendDto.userId,
-          channel,
-          error: error.message,
-        });
+        this.logger.error(
+          'Failed to send notification through channel',
+          undefined,
+          {
+            userId: sendDto.userId,
+            channel,
+            error: error.message,
+          },
+        );
       }
     }
   }
@@ -130,20 +142,22 @@ export class NotificationService {
   private filterChannelsByPreferences(
     channels: NotificationChannel[],
     preferences: any[],
-    type: NotificationType
+    type: NotificationType,
   ): NotificationChannel[] {
     // If no preferences found, use default channels
     if (!preferences || preferences.length === 0) {
       return channels;
     }
 
-    const typePreference = preferences.find(pref => pref.type === type);
+    const typePreference = preferences.find((pref) => pref.type === type);
     if (!typePreference || !typePreference.isEnabled) {
       return [];
     }
 
     // Return intersection of requested channels and user's preferred channels
-    return channels.filter(channel => typePreference.channels.includes(channel));
+    return channels.filter((channel) =>
+      typePreference.channels.includes(channel),
+    );
   }
 
   private async sendThroughChannel(
@@ -153,7 +167,7 @@ export class NotificationService {
     title: string,
     message: string,
     data?: Record<string, any>,
-    priority: NotificationPriority = NotificationPriority.MEDIUM
+    priority: NotificationPriority = NotificationPriority.MEDIUM,
   ): Promise<void> {
     // Create notification record
     const notification = await this.notificationRepository.create({
@@ -190,11 +204,11 @@ export class NotificationService {
     userId: string,
     title: string,
     message: string,
-    data?: Record<string, any>
+    data?: Record<string, any>,
   ): Promise<void> {
     // TODO: Get user email from user service
     const userEmail = `user-${userId}@example.com`; // Placeholder
-    
+
     await this.emailService.sendEmail({
       to: userEmail,
       subject: title,
@@ -207,7 +221,7 @@ export class NotificationService {
     userId: string,
     title: string,
     message: string,
-    data?: Record<string, any>
+    data?: Record<string, any>,
   ): Promise<void> {
     await this.pushNotificationService.sendPushNotification({
       userId,
@@ -221,13 +235,16 @@ export class NotificationService {
     userId: string,
     title: string,
     message: string,
-    data?: Record<string, any>
+    data?: Record<string, any>,
   ): Promise<void> {
     // TODO: Implement SMS service
     this.logger.log('SMS notification not implemented', { userId, title });
   }
 
-  async getNotifications(userId: string, limit: number = 50): Promise<Notification[]> {
+  async getNotifications(
+    userId: string,
+    limit: number = 50,
+  ): Promise<Notification[]> {
     return this.notificationRepository.findByUserId(userId, limit);
   }
 
@@ -237,24 +254,33 @@ export class NotificationService {
   }
 
   async getUnreadCount(userId: string): Promise<number> {
-    const notifications = await this.notificationRepository.findByUserId(userId);
-    return notifications.filter(n => !n.isRead).length;
+    const notifications =
+      await this.notificationRepository.findByUserId(userId);
+    return notifications.filter((n) => !n.isRead).length;
   }
 
-  async getUserNotifications(userId: string, query: { limit?: number; isRead?: boolean }): Promise<Notification[]> {
+  async getUserNotifications(
+    userId: string,
+    query: { limit?: number; isRead?: boolean },
+  ): Promise<Notification[]> {
     // TODO: Add filtering by isRead status
     return this.notificationRepository.findByUserId(userId, query.limit || 50);
   }
 
-  async getNotification(id: string, userId: string): Promise<Notification | null> {
-    const notifications = await this.notificationRepository.findByUserId(userId);
-    return notifications.find(n => n.id === id) || null;
+  async getNotification(
+    id: string,
+    userId: string,
+  ): Promise<Notification | null> {
+    const notifications =
+      await this.notificationRepository.findByUserId(userId);
+    return notifications.find((n) => n.id === id) || null;
   }
 
   async markAllAsRead(userId: string): Promise<void> {
-    const notifications = await this.notificationRepository.findByUserId(userId);
-    const unreadNotifications = notifications.filter(n => !n.isRead);
-    
+    const notifications =
+      await this.notificationRepository.findByUserId(userId);
+    const unreadNotifications = notifications.filter((n) => !n.isRead);
+
     for (const notification of unreadNotifications) {
       await this.notificationRepository.markAsRead(notification.id);
     }
@@ -269,13 +295,27 @@ export class NotificationService {
     return this.preferenceService.getUserPreferences(userId);
   }
 
-  async updatePreferences(userId: string, preferences: Record<string, any>): Promise<void> {
+  async updatePreferences(
+    userId: string,
+    preferences: Record<string, any>,
+  ): Promise<void> {
     // TODO: Implement preference updates
-    this.logger.log('Update preferences not implemented', { userId, preferences });
+    this.logger.log('Update preferences not implemented', {
+      userId,
+      preferences,
+    });
   }
 
-  async sendTestNotification(userId: string, type: string, message: string): Promise<void> {
+  async sendTestNotification(
+    userId: string,
+    type: string,
+    message: string,
+  ): Promise<void> {
     // TODO: Implement test notification
-    this.logger.log('Send test notification not implemented', { userId, type, message });
+    this.logger.log('Send test notification not implemented', {
+      userId,
+      type,
+      message,
+    });
   }
 }

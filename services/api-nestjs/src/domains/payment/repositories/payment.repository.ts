@@ -5,7 +5,11 @@ import { PaymentIntent } from '../entities/payment-intent.entity';
 import { PaymentTransactionEntity } from '../entities/payment-transaction.entity';
 import { PaymentAttemptEntity } from '../entities/payment-attempt.entity';
 import { PaymentIntentStatus } from '../enums/payment-status.enum';
-import { PaymentFilters, PaginationOptions, PaymentIncludeOptions } from '../interfaces/payment-repository.interface';
+import {
+  PaymentFilters,
+  PaginationOptions,
+  PaymentIncludeOptions,
+} from '../interfaces/payment-repository.interface';
 
 @Injectable()
 export class PaymentRepository {
@@ -17,13 +21,16 @@ export class PaymentRepository {
   async findAll(
     filters: PaymentFilters = {},
     pagination: PaginationOptions = {},
-    includes: PaymentIncludeOptions = {}
+    includes: PaymentIncludeOptions = {},
   ): Promise<PaymentIntent[]> {
     try {
       // Placeholder implementation
       return [];
     } catch (error) {
-      this.logger.error('Failed to find all payment intents', error, { filters, pagination });
+      this.logger.error('Failed to find all payment intents', error, {
+        filters,
+        pagination,
+      });
       throw error;
     }
   }
@@ -41,7 +48,9 @@ export class PaymentRepository {
     try {
       return await this.findPaymentIntentByOrderId(orderId);
     } catch (error) {
-      this.logger.error('Failed to find payment intent by order ID', error, { orderId });
+      this.logger.error('Failed to find payment intent by order ID', error, {
+        orderId,
+      });
       throw error;
     }
   }
@@ -50,7 +59,11 @@ export class PaymentRepository {
     try {
       return await this.findPaymentIntentByOrderId(orderId);
     } catch (error) {
-      this.logger.error('Failed to find active payment intent by order ID', error, { orderId });
+      this.logger.error(
+        'Failed to find active payment intent by order ID',
+        error,
+        { orderId },
+      );
       throw error;
     }
   }
@@ -84,17 +97,25 @@ export class PaymentRepository {
     }
   }
 
-  async findFailedPaymentsForRetry(limit: number = 10): Promise<PaymentIntent[]> {
+  async findFailedPaymentsForRetry(
+    limit: number = 10,
+  ): Promise<PaymentIntent[]> {
     try {
       // Placeholder implementation
       return [];
     } catch (error) {
-      this.logger.error('Failed to find failed payments for retry', error, { limit });
+      this.logger.error('Failed to find failed payments for retry', error, {
+        limit,
+      });
       throw error;
     }
   }
 
-  async updateStatus(id: string, status: PaymentIntentStatus, updatedBy: string): Promise<PaymentIntent | null> {
+  async updateStatus(
+    id: string,
+    status: PaymentIntentStatus,
+    updatedBy: string,
+  ): Promise<PaymentIntent | null> {
     try {
       // Placeholder implementation
       return new PaymentIntent({
@@ -104,7 +125,10 @@ export class PaymentRepository {
         updatedAt: new Date(),
       });
     } catch (error) {
-      this.logger.error('Failed to update payment status', error, { id, status });
+      this.logger.error('Failed to update payment status', error, {
+        id,
+        status,
+      });
       throw error;
     }
   }
@@ -132,7 +156,9 @@ export class PaymentRepository {
         createdAt: new Date(),
       });
     } catch (error) {
-      this.logger.error('Failed to create payment transaction', error, { data });
+      this.logger.error('Failed to create payment transaction', error, {
+        data,
+      });
       throw error;
     }
   }
@@ -163,7 +189,9 @@ export class PaymentRepository {
         },
       });
     } catch (error) {
-      this.logger.error('Failed to find payment intent by order ID', error, { orderId });
+      this.logger.error('Failed to find payment intent by order ID', error, {
+        orderId,
+      });
       throw error;
     }
   }
@@ -207,7 +235,9 @@ export class PaymentRepository {
         },
       });
     } catch (error) {
-      this.logger.error('Failed to create payment transaction', error, { data });
+      this.logger.error('Failed to create payment transaction', error, {
+        data,
+      });
       throw error;
     }
   }
@@ -219,7 +249,10 @@ export class PaymentRepository {
         data,
       });
     } catch (error) {
-      this.logger.error('Failed to update payment transaction', error, { id, data });
+      this.logger.error('Failed to update payment transaction', error, {
+        id,
+        data,
+      });
       throw error;
     }
   }
@@ -231,7 +264,11 @@ export class PaymentRepository {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      this.logger.error('Failed to find transactions by payment intent ID', error, { paymentIntentId });
+      this.logger.error(
+        'Failed to find transactions by payment intent ID',
+        error,
+        { paymentIntentId },
+      );
       throw error;
     }
   }
@@ -254,41 +291,45 @@ export class PaymentRepository {
         orderBy: { createdAt: 'desc' },
       });
     } catch (error) {
-      this.logger.error('Failed to find attempts by payment intent ID', error, { paymentIntentId });
+      this.logger.error('Failed to find attempts by payment intent ID', error, {
+        paymentIntentId,
+      });
       throw error;
     }
   }
 
-  async findSuccessfulTransactionsForSettlement(
-    filters: {
-      sellerId: string;
-      periodStart: Date;
-      periodEnd: Date;
-      currency: string;
-    }
-  ): Promise<any[]> {
+  async findSuccessfulTransactionsForSettlement(filters: {
+    sellerId: string;
+    periodStart: Date;
+    periodEnd: Date;
+    currency: string;
+  }): Promise<any[]> {
     try {
       // Placeholder implementation
       return [];
     } catch (error) {
-      this.logger.error('Failed to find successful transactions for settlement', error, { filters });
+      this.logger.error(
+        'Failed to find successful transactions for settlement',
+        error,
+        { filters },
+      );
       throw error;
     }
   }
 
-  async findRefundsForSettlement(
-    filters: {
-      sellerId: string;
-      periodStart: Date;
-      periodEnd: Date;
-      currency: string;
-    }
-  ): Promise<any[]> {
+  async findRefundsForSettlement(filters: {
+    sellerId: string;
+    periodStart: Date;
+    periodEnd: Date;
+    currency: string;
+  }): Promise<any[]> {
     try {
       // Placeholder implementation
       return [];
     } catch (error) {
-      this.logger.error('Failed to find refunds for settlement', error, { filters });
+      this.logger.error('Failed to find refunds for settlement', error, {
+        filters,
+      });
       throw error;
     }
   }

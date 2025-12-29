@@ -68,7 +68,10 @@ export class CommissionRepository {
     };
   }
 
-  async update(id: string, data: Partial<CreateCommissionRuleDto>): Promise<CommissionRule> {
+  async update(
+    id: string,
+    data: Partial<CreateCommissionRuleDto>,
+  ): Promise<CommissionRule> {
     const rule = await this.prisma.commissionRule.update({
       where: { id },
       data: {
@@ -115,7 +118,7 @@ export class CommissionRepository {
       },
     });
 
-    return rules.map(rule => ({
+    return rules.map((rule) => ({
       id: rule.id,
       name: rule.name,
       type: rule.type as 'CATEGORY' | 'SELLER' | 'PRODUCT',
@@ -138,7 +141,7 @@ export class CommissionRepository {
       orderBy: { priority: 'desc' },
     });
 
-    return rules.map(rule => ({
+    return rules.map((rule) => ({
       id: rule.id,
       name: rule.name,
       type: rule.type as 'CATEGORY' | 'SELLER' | 'PRODUCT',

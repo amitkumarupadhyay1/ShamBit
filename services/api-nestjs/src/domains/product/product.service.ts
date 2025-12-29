@@ -84,21 +84,29 @@ export class ProductService {
     pagination: PaginationOptions = {},
     includes: ProductIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     this.logger.log('ProductService.findAll', { filters, pagination, userId });
 
     // Apply visibility filters based on user role
-    const enhancedFilters = this.applyVisibilityFilters(filters, userRole, userId);
+    const enhancedFilters = this.applyVisibilityFilters(
+      filters,
+      userRole,
+      userId,
+    );
 
-    return this.productRepository.findAll(enhancedFilters, pagination, includes);
+    return this.productRepository.findAll(
+      enhancedFilters,
+      pagination,
+      includes,
+    );
   }
 
   async findById(
     id: string,
     includes: ProductIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Product> {
     const product = await this.productRepository.findById(id, includes);
     if (!product) {
@@ -117,7 +125,7 @@ export class ProductService {
     slug: string,
     includes: ProductIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Product> {
     const product = await this.productRepository.findBySlug(slug, includes);
     if (!product) {
@@ -139,7 +147,7 @@ export class ProductService {
   async create(
     createProductDto: CreateProductDto,
     createdBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
     this.logger.log('ProductService.create', { createProductDto, createdBy });
 
@@ -149,14 +157,18 @@ export class ProductService {
     // Generate slug if not provided
     if (!createProductDto.slug) {
       createProductDto.slug = ProductValidators.validateProductSlug(
-        createProductDto.name.toLowerCase().replace(/\s+/g, '-')
+        createProductDto.name.toLowerCase().replace(/\s+/g, '-'),
       );
     } else {
-      createProductDto.slug = ProductValidators.validateProductSlug(createProductDto.slug);
+      createProductDto.slug = ProductValidators.validateProductSlug(
+        createProductDto.slug,
+      );
     }
 
     // Check slug uniqueness
-    const slugExists = !(await this.productRepository.validateSlug(createProductDto.slug));
+    const slugExists = !(await this.productRepository.validateSlug(
+      createProductDto.slug,
+    ));
     if (slugExists) {
       throw new ConflictException('Product with this slug already exists');
     }
@@ -164,13 +176,13 @@ export class ProductService {
     // Validate category and brand integration
     await this.productIntegrationService.validateCategoryBrandCombination(
       createProductDto.categoryId,
-      createProductDto.brandId
+      createProductDto.brandId,
     );
 
     // Validate seller can use this brand
     await this.productIntegrationService.validateSellerCanUseBrand(
       createdBy,
-      createProductDto.brandId
+      createProductDto.brandId,
     );
 
     // Set default values
@@ -183,21 +195,34 @@ export class ProductService {
       version: 1,
       createdBy,
     };
-    
+
     // Convert scheduledPublishAt string to Date if provided
     if (createProductDto.scheduledPublishAt) {
-      productData.scheduledPublishAt = new Date(createProductDto.scheduledPublishAt);
+      productData.scheduledPublishAt = new Date(
+        createProductDto.scheduledPublishAt,
+      );
     }
 
     // Create the product
     const product = await this.productRepository.create(productData);
 
     // Handle attribute values if provided
-    if (createProductDto.attributeValues && createProductDto.attributeValues.length > 0) {
-      await this.setAttributeValues(product.id, createProductDto.attributeValues, createdBy);
+    if (
+      createProductDto.attributeValues &&
+      createProductDto.attributeValues.length > 0
+    ) {
+      await this.setAttributeValues(
+        product.id,
+        createProductDto.attributeValues,
+        createdBy,
+      );
     } else {
       // Inherit attributes from category
-      await this.inheritAttributesFromCategory(product.id, product.categoryId, createdBy);
+      await this.inheritAttributesFromCategory(
+        product.id,
+        product.categoryId,
+        createdBy,
+      );
     }
 
     // Create audit log
@@ -207,7 +232,7 @@ export class ProductService {
       createdBy,
       null,
       product,
-      'Product created'
+      'Product created',
     );
 
     // Emit event
@@ -221,8 +246,8 @@ export class ProductService {
         product.brandId,
         product.sellerId,
         product.status,
-        createdBy
-      )
+        createdBy,
+      ),
     );
 
     this.logger.log('Product created successfully', { productId: product.id });
@@ -237,15 +262,23 @@ export class ProductService {
     id: string,
     updateProductDto: UpdateProductDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
-    this.logger.log('ProductService.update', { id, updateProductDto, updatedBy });
+    this.logger.log('ProductService.update', {
+      id,
+      updateProductDto,
+      updatedBy,
+    });
 
     const existingProduct = await this.findById(id, {}, updatedBy, userRole);
 
     // Check permissions
-    if (!ProductPolicies.canUserEditProduct(existingProduct, updatedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to update this product');
+    if (
+      !ProductPolicies.canUserEditProduct(existingProduct, updatedBy, userRole)
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to update this product',
+      );
     }
 
     // Validate input data
@@ -254,10 +287,15 @@ export class ProductService {
     }
 
     if (updateProductDto.slug) {
-      updateProductDto.slug = ProductValidators.validateProductSlug(updateProductDto.slug);
-      
+      updateProductDto.slug = ProductValidators.validateProductSlug(
+        updateProductDto.slug,
+      );
+
       // Check slug uniqueness
-      const slugExists = !(await this.productRepository.validateSlug(updateProductDto.slug, id));
+      const slugExists = !(await this.productRepository.validateSlug(
+        updateProductDto.slug,
+        id,
+      ));
       if (slugExists) {
         throw new ConflictException('Product with this slug already exists');
       }
@@ -265,31 +303,51 @@ export class ProductService {
 
     // Validate other fields
     ProductValidators.validateProductDescription(updateProductDto.description);
-    ProductValidators.validateShortDescription(updateProductDto.shortDescription);
+    ProductValidators.validateShortDescription(
+      updateProductDto.shortDescription,
+    );
     ProductValidators.validateSeoTitle(updateProductDto.seoTitle);
     ProductValidators.validateSeoDescription(updateProductDto.seoDescription);
     ProductValidators.validateSeoKeywords(updateProductDto.seoKeywords);
-    
+
     if (updateProductDto.images) {
       ProductValidators.validateImages(updateProductDto.images);
     }
-    
+
     ProductValidators.validateVideos(updateProductDto.videos);
     ProductValidators.validateDocuments(updateProductDto.documents);
     ProductValidators.validateTags(updateProductDto.tags);
     ProductValidators.validateMetadata(updateProductDto.metaData);
     ProductValidators.validateDisplayOrder(updateProductDto.displayOrder);
-    ProductValidators.validateScheduledPublishAt(updateProductDto.scheduledPublishAt);
+    ProductValidators.validateScheduledPublishAt(
+      updateProductDto.scheduledPublishAt,
+    );
 
     // Validate variant configuration changes
-    if (updateProductDto.hasVariants !== undefined || updateProductDto.variantAttributes) {
-      const hasVariants = updateProductDto.hasVariants ?? existingProduct.hasVariants;
-      const variantAttributes = updateProductDto.variantAttributes ?? existingProduct.variantAttributes;
-      
-      ProductValidators.validateVariantConfiguration(hasVariants, variantAttributes);
-      
-      if (!ProductPolicies.canModifyVariantConfiguration(existingProduct, userRole, updatedBy === existingProduct.sellerId)) {
-        throw new ForbiddenException('Cannot modify variant configuration for this product');
+    if (
+      updateProductDto.hasVariants !== undefined ||
+      updateProductDto.variantAttributes
+    ) {
+      const hasVariants =
+        updateProductDto.hasVariants ?? existingProduct.hasVariants;
+      const variantAttributes =
+        updateProductDto.variantAttributes ?? existingProduct.variantAttributes;
+
+      ProductValidators.validateVariantConfiguration(
+        hasVariants,
+        variantAttributes,
+      );
+
+      if (
+        !ProductPolicies.canModifyVariantConfiguration(
+          existingProduct,
+          userRole,
+          updatedBy === existingProduct.sellerId,
+        )
+      ) {
+        throw new ForbiddenException(
+          'Cannot modify variant configuration for this product',
+        );
       }
     }
 
@@ -299,17 +357,23 @@ export class ProductService {
       version: existingProduct.version + 1,
       updatedBy,
     };
-    
+
     // Convert scheduledPublishAt string to Date if provided
     if (updateProductDto.scheduledPublishAt) {
-      updateData.scheduledPublishAt = new Date(updateProductDto.scheduledPublishAt);
+      updateData.scheduledPublishAt = new Date(
+        updateProductDto.scheduledPublishAt,
+      );
     }
-    
+
     const updatedProduct = await this.productRepository.update(id, updateData);
 
     // Handle attribute values if provided
     if (updateProductDto.attributeValues) {
-      await this.setAttributeValues(id, updateProductDto.attributeValues, updatedBy);
+      await this.setAttributeValues(
+        id,
+        updateProductDto.attributeValues,
+        updatedBy,
+      );
     }
 
     // Check if moderation review is required
@@ -319,7 +383,7 @@ export class ProductService {
         id,
         ProductModerationStatus.PENDING,
         'system',
-        'Product requires moderation review due to significant changes'
+        'Product requires moderation review due to significant changes',
       );
     }
 
@@ -330,18 +394,13 @@ export class ProductService {
       updatedBy,
       existingProduct,
       updatedProduct,
-      'Product updated'
+      'Product updated',
     );
 
     // Emit event
     this.eventEmitter.emit(
       ProductUpdatedEvent.eventName,
-      new ProductUpdatedEvent(
-        id,
-        updatedProduct.name,
-        changes,
-        updatedBy
-      )
+      new ProductUpdatedEvent(id, updatedProduct.name, changes, updatedBy),
     );
 
     this.logger.log('Product updated successfully', { productId: id });
@@ -356,9 +415,13 @@ export class ProductService {
     id: string,
     statusUpdate: ProductStatusUpdateDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
-    this.logger.log('ProductService.updateStatus', { id, statusUpdate, updatedBy });
+    this.logger.log('ProductService.updateStatus', {
+      id,
+      statusUpdate,
+      updatedBy,
+    });
 
     const product = await this.findById(id, {}, updatedBy, userRole);
     const isOwner = updatedBy === product.sellerId;
@@ -368,7 +431,7 @@ export class ProductService {
       product.status,
       statusUpdate.status,
       userRole,
-      isOwner
+      isOwner,
     );
 
     // Additional business rule validation
@@ -385,7 +448,7 @@ export class ProductService {
       id,
       statusUpdate.status,
       updatedBy,
-      statusUpdate.reason
+      statusUpdate.reason,
     );
 
     // Create audit log
@@ -395,13 +458,21 @@ export class ProductService {
       updatedBy,
       { status: product.status },
       { status: statusUpdate.status },
-      statusUpdate.reason || 'Status updated'
+      statusUpdate.reason || 'Status updated',
     );
 
     // Emit status-specific events
-    await this.emitStatusChangeEvent(updatedProduct, product.status, updatedBy, statusUpdate.reason);
+    await this.emitStatusChangeEvent(
+      updatedProduct,
+      product.status,
+      updatedBy,
+      statusUpdate.reason,
+    );
 
-    this.logger.log('Product status updated successfully', { productId: id, status: statusUpdate.status });
+    this.logger.log('Product status updated successfully', {
+      productId: id,
+      status: statusUpdate.status,
+    });
     return updatedProduct;
   }
 
@@ -409,9 +480,13 @@ export class ProductService {
     id: string,
     moderationStatus: ProductModerationStatus,
     moderatedBy: string,
-    notes?: string
+    notes?: string,
   ): Promise<Product> {
-    this.logger.log('ProductService.updateModerationStatus', { id, moderationStatus, moderatedBy });
+    this.logger.log('ProductService.updateModerationStatus', {
+      id,
+      moderationStatus,
+      moderatedBy,
+    });
 
     const product = await this.productRepository.findById(id);
     if (!product) {
@@ -422,7 +497,7 @@ export class ProductService {
     ProductValidators.validateModerationStatusTransition(
       product.moderationStatus,
       moderationStatus,
-      'ADMIN' // Assume admin for now, should be passed from controller
+      'ADMIN', // Assume admin for now, should be passed from controller
     );
 
     // Update moderation status
@@ -430,7 +505,7 @@ export class ProductService {
       id,
       moderationStatus,
       moderatedBy,
-      notes
+      notes,
     );
 
     // Create audit log
@@ -440,7 +515,7 @@ export class ProductService {
       moderatedBy,
       { moderationStatus: product.moderationStatus },
       { moderationStatus },
-      notes || 'Moderation status updated'
+      notes || 'Moderation status updated',
     );
 
     // Emit event
@@ -453,11 +528,14 @@ export class ProductService {
         moderationStatus,
         product.sellerId,
         moderatedBy,
-        notes
-      )
+        notes,
+      ),
     );
 
-    this.logger.log('Product moderation status updated', { productId: id, status: moderationStatus });
+    this.logger.log('Product moderation status updated', {
+      productId: id,
+      status: moderationStatus,
+    });
     return updatedProduct;
   }
 
@@ -469,23 +547,36 @@ export class ProductService {
     id: string,
     categoryUpdate: ProductCategoryUpdateDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
-    this.logger.log('ProductService.updateCategory', { id, categoryUpdate, updatedBy });
+    this.logger.log('ProductService.updateCategory', {
+      id,
+      categoryUpdate,
+      updatedBy,
+    });
 
     const product = await this.findById(id, {}, updatedBy, userRole);
     const isOwner = updatedBy === product.sellerId;
 
     // Check permissions
-    if (!ProductPolicies.canChangeCategoryTo(product, categoryUpdate.categoryId, userRole, isOwner)) {
+    if (
+      !ProductPolicies.canChangeCategoryTo(
+        product,
+        categoryUpdate.categoryId,
+        userRole,
+        isOwner,
+      )
+    ) {
       throw new ForbiddenException('Cannot change product category');
     }
 
     // Validate new category
-    await this.productIntegrationService.validateCategoryExists(categoryUpdate.categoryId);
+    await this.productIntegrationService.validateCategoryExists(
+      categoryUpdate.categoryId,
+    );
     await this.productIntegrationService.validateCategoryBrandCombination(
       categoryUpdate.categoryId,
-      product.brandId
+      product.brandId,
     );
 
     const oldCategoryId = product.categoryId;
@@ -495,12 +586,16 @@ export class ProductService {
       id,
       categoryUpdate.categoryId,
       updatedBy,
-      categoryUpdate.reason
+      categoryUpdate.reason,
     );
 
     // Handle attribute inheritance if requested
     if (categoryUpdate.inheritAttributes) {
-      await this.inheritAttributesFromCategory(id, categoryUpdate.categoryId, updatedBy);
+      await this.inheritAttributesFromCategory(
+        id,
+        categoryUpdate.categoryId,
+        updatedBy,
+      );
     }
 
     // Create audit log
@@ -510,7 +605,7 @@ export class ProductService {
       updatedBy,
       { categoryId: oldCategoryId },
       { categoryId: categoryUpdate.categoryId },
-      categoryUpdate.reason || 'Category changed'
+      categoryUpdate.reason || 'Category changed',
     );
 
     // Emit event
@@ -523,8 +618,8 @@ export class ProductService {
         categoryUpdate.categoryId,
         product.sellerId,
         updatedBy,
-        categoryUpdate.reason
-      )
+        categoryUpdate.reason,
+      ),
     );
 
     this.logger.log('Product category updated successfully', { productId: id });
@@ -535,27 +630,40 @@ export class ProductService {
     id: string,
     brandUpdate: ProductBrandUpdateDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
-    this.logger.log('ProductService.updateBrand', { id, brandUpdate, updatedBy });
+    this.logger.log('ProductService.updateBrand', {
+      id,
+      brandUpdate,
+      updatedBy,
+    });
 
     const product = await this.findById(id, {}, updatedBy, userRole);
     const isOwner = updatedBy === product.sellerId;
 
     // Check permissions
-    if (!ProductPolicies.canChangeBrandTo(product, brandUpdate.brandId, userRole, isOwner)) {
+    if (
+      !ProductPolicies.canChangeBrandTo(
+        product,
+        brandUpdate.brandId,
+        userRole,
+        isOwner,
+      )
+    ) {
       throw new ForbiddenException('Cannot change product brand');
     }
 
     // Validate new brand
-    await this.productIntegrationService.validateBrandExists(brandUpdate.brandId);
+    await this.productIntegrationService.validateBrandExists(
+      brandUpdate.brandId,
+    );
     await this.productIntegrationService.validateCategoryBrandCombination(
       product.categoryId,
-      brandUpdate.brandId
+      brandUpdate.brandId,
     );
     await this.productIntegrationService.validateSellerCanUseBrand(
       product.sellerId,
-      brandUpdate.brandId
+      brandUpdate.brandId,
     );
 
     const oldBrandId = product.brandId;
@@ -565,7 +673,7 @@ export class ProductService {
       id,
       brandUpdate.brandId,
       updatedBy,
-      brandUpdate.reason
+      brandUpdate.reason,
     );
 
     // Create audit log
@@ -575,7 +683,7 @@ export class ProductService {
       updatedBy,
       { brandId: oldBrandId },
       { brandId: brandUpdate.brandId },
-      brandUpdate.reason || 'Brand changed'
+      brandUpdate.reason || 'Brand changed',
     );
 
     // Emit event
@@ -588,8 +696,8 @@ export class ProductService {
         brandUpdate.brandId,
         product.sellerId,
         updatedBy,
-        brandUpdate.reason
-      )
+        brandUpdate.reason,
+      ),
     );
 
     this.logger.log('Product brand updated successfully', { productId: id });
@@ -604,7 +712,7 @@ export class ProductService {
     id: string,
     deletedBy: string,
     userRole: UserRole,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     this.logger.log('ProductService.delete', { id, deletedBy });
 
@@ -612,7 +720,9 @@ export class ProductService {
 
     // Check permissions
     if (!ProductPolicies.canUserDeleteProduct(product, deletedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to delete this product');
+      throw new ForbiddenException(
+        'Insufficient permissions to delete this product',
+      );
     }
 
     await this.productRepository.softDelete(id, deletedBy, reason);
@@ -624,7 +734,7 @@ export class ProductService {
       deletedBy,
       product,
       null,
-      reason || 'Product deleted'
+      reason || 'Product deleted',
     );
 
     // Emit event
@@ -635,8 +745,8 @@ export class ProductService {
         product.name,
         product.sellerId,
         deletedBy,
-        reason
-      )
+        reason,
+      ),
     );
 
     this.logger.log('Product deleted successfully', { productId: id });
@@ -651,7 +761,7 @@ export class ProductService {
     filters: ProductFilters = {},
     pagination: PaginationOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     const searchFilters = {
       ...this.applyVisibilityFilters(filters, userRole, userId),
@@ -669,18 +779,28 @@ export class ProductService {
     id: string,
     isFeatured: boolean,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
-    this.logger.log('ProductService.setFeatured', { id, isFeatured, updatedBy });
+    this.logger.log('ProductService.setFeatured', {
+      id,
+      isFeatured,
+      updatedBy,
+    });
 
     const product = await this.findById(id, {}, updatedBy, userRole);
 
     // Check permissions
     if (!ProductPolicies.canUserFeatureProduct(product, updatedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to feature this product');
+      throw new ForbiddenException(
+        'Insufficient permissions to feature this product',
+      );
     }
 
-    const updatedProduct = await this.productRepository.setFeatured(id, isFeatured, updatedBy);
+    const updatedProduct = await this.productRepository.setFeatured(
+      id,
+      isFeatured,
+      updatedBy,
+    );
 
     // Create audit log
     await this.productAuditService.logAction(
@@ -689,19 +809,24 @@ export class ProductService {
       updatedBy,
       { isFeatured: product.isFeatured },
       { isFeatured },
-      `Product ${isFeatured ? 'featured' : 'unfeatured'}`
+      `Product ${isFeatured ? 'featured' : 'unfeatured'}`,
     );
 
     // Emit event
     if (isFeatured) {
       this.eventEmitter.emit(
         ProductFeaturedEvent.eventName,
-        new ProductFeaturedEvent(id, product.name, product.sellerId, updatedBy)
+        new ProductFeaturedEvent(id, product.name, product.sellerId, updatedBy),
       );
     } else {
       this.eventEmitter.emit(
         ProductUnfeaturedEvent.eventName,
-        new ProductUnfeaturedEvent(id, product.name, product.sellerId, updatedBy)
+        new ProductUnfeaturedEvent(
+          id,
+          product.name,
+          product.sellerId,
+          updatedBy,
+        ),
       );
     }
 
@@ -715,16 +840,24 @@ export class ProductService {
   async bulkUpdate(
     bulkUpdate: BulkProductUpdateDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product[]> {
     this.logger.log('ProductService.bulkUpdate', { bulkUpdate, updatedBy });
 
     // Check permissions
-    if (!ProductPolicies.canPerformBulkOperation('bulk_update', bulkUpdate.productIds, userRole)) {
-      throw new ForbiddenException('Insufficient permissions for bulk operations');
+    if (
+      !ProductPolicies.canPerformBulkOperation(
+        'bulk_update',
+        bulkUpdate.productIds,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions for bulk operations',
+      );
     }
 
-    const updates: BulkUpdateData[] = bulkUpdate.productIds.map(id => ({
+    const updates: BulkUpdateData[] = bulkUpdate.productIds.map((id) => ({
       id,
       data: {
         status: bulkUpdate.status,
@@ -741,7 +874,7 @@ export class ProductService {
       bulkUpdate.productIds,
       'BULK_UPDATE',
       updatedBy,
-      bulkUpdate.reason || 'Bulk update operation'
+      bulkUpdate.reason || 'Bulk update operation',
     );
 
     // Emit event
@@ -750,11 +883,15 @@ export class ProductService {
       new ProductBulkOperationEvent(
         'bulk_update',
         bulkUpdate.productIds,
-        { status: bulkUpdate.status, tags: bulkUpdate.tags, isFeatured: bulkUpdate.isFeatured },
+        {
+          status: bulkUpdate.status,
+          tags: bulkUpdate.tags,
+          isFeatured: bulkUpdate.isFeatured,
+        },
         updatedBy,
         batchId,
-        bulkUpdate.reason
-      )
+        bulkUpdate.reason,
+      ),
     );
 
     this.logger.log('Bulk update completed', { count: updatedProducts.length });
@@ -769,14 +906,25 @@ export class ProductService {
     id: string,
     cloneDto: ProductCloneDto,
     clonedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<Product> {
     this.logger.log('ProductService.cloneProduct', { id, cloneDto, clonedBy });
 
-    const originalProduct = await this.findById(id, { includeAttributeValues: true }, clonedBy, userRole);
+    const originalProduct = await this.findById(
+      id,
+      { includeAttributeValues: true },
+      clonedBy,
+      userRole,
+    );
 
     // Check permissions
-    if (!ProductPolicies.canCloneProduct(originalProduct, userRole, clonedBy === originalProduct.sellerId)) {
+    if (
+      !ProductPolicies.canCloneProduct(
+        originalProduct,
+        userRole,
+        clonedBy === originalProduct.sellerId,
+      )
+    ) {
       throw new ForbiddenException('Cannot clone this product');
     }
 
@@ -803,17 +951,25 @@ export class ProductService {
     };
 
     // Create the cloned product
-    const clonedProduct = await this.create(cloneData as CreateProductDto, clonedBy, userRole);
+    const clonedProduct = await this.create(
+      cloneData as CreateProductDto,
+      clonedBy,
+      userRole,
+    );
 
     // Copy attribute values if requested
     if (cloneDto.copyAttributeValues && originalProduct.attributeValues) {
-      const attributeValues = originalProduct.attributeValues.map(av => ({
+      const attributeValues = originalProduct.attributeValues.map((av) => ({
         attributeId: av.attributeId,
         value: av.getValue(),
         locale: av.locale,
       }));
 
-      await this.setAttributeValues(clonedProduct.id, attributeValues, clonedBy);
+      await this.setAttributeValues(
+        clonedProduct.id,
+        attributeValues,
+        clonedBy,
+      );
     }
 
     // Emit event
@@ -825,13 +981,13 @@ export class ProductService {
         originalProduct.name,
         clonedProduct.name,
         originalProduct.sellerId,
-        clonedBy
-      )
+        clonedBy,
+      ),
     );
 
-    this.logger.log('Product cloned successfully', { 
-      originalId: id, 
-      clonedId: clonedProduct.id 
+    this.logger.log('Product cloned successfully', {
+      originalId: id,
+      clonedId: clonedProduct.id,
     });
 
     return clonedProduct;
@@ -855,8 +1011,12 @@ export class ProductService {
 
   private async setAttributeValues(
     productId: string,
-    attributeValues: Array<{ attributeId: string; value: any; locale?: string }>,
-    updatedBy: string
+    attributeValues: Array<{
+      attributeId: string;
+      value: any;
+      locale?: string;
+    }>,
+    updatedBy: string,
   ): Promise<void> {
     for (const attrValue of attributeValues) {
       await this.productAttributeValueRepository.upsert({
@@ -864,10 +1024,14 @@ export class ProductService {
         attributeId: attrValue.attributeId,
         locale: attrValue.locale || 'en',
         // Value will be set based on attribute type in the repository
-        stringValue: typeof attrValue.value === 'string' ? attrValue.value : undefined,
-        numberValue: typeof attrValue.value === 'number' ? attrValue.value : undefined,
-        booleanValue: typeof attrValue.value === 'boolean' ? attrValue.value : undefined,
-        jsonValue: typeof attrValue.value === 'object' ? attrValue.value : undefined,
+        stringValue:
+          typeof attrValue.value === 'string' ? attrValue.value : undefined,
+        numberValue:
+          typeof attrValue.value === 'number' ? attrValue.value : undefined,
+        booleanValue:
+          typeof attrValue.value === 'boolean' ? attrValue.value : undefined,
+        jsonValue:
+          typeof attrValue.value === 'object' ? attrValue.value : undefined,
       });
     }
   }
@@ -875,9 +1039,13 @@ export class ProductService {
   private async inheritAttributesFromCategory(
     productId: string,
     categoryId: string,
-    createdBy: string
+    createdBy: string,
   ): Promise<void> {
-    await this.productAttributeValueRepository.inheritFromCategory(productId, categoryId, createdBy);
+    await this.productAttributeValueRepository.inheritFromCategory(
+      productId,
+      categoryId,
+      createdBy,
+    );
   }
 
   // ============================================================================
@@ -887,7 +1055,7 @@ export class ProductService {
   private applyVisibilityFilters(
     filters: ProductFilters,
     userRole?: UserRole,
-    userId?: string
+    userId?: string,
   ): ProductFilters {
     const enhancedFilters = { ...filters };
 
@@ -915,7 +1083,7 @@ export class ProductService {
     product: Product,
     oldStatus: ProductStatus,
     changedBy: string,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
     // Emit general status change event
     this.eventEmitter.emit(
@@ -927,8 +1095,8 @@ export class ProductService {
         product.status,
         product.sellerId,
         changedBy,
-        reason
-      )
+        reason,
+      ),
     );
 
     // Emit specific status events
@@ -936,19 +1104,35 @@ export class ProductService {
       case ProductStatus.SUBMITTED:
         this.eventEmitter.emit(
           ProductSubmittedEvent.eventName,
-          new ProductSubmittedEvent(product.id, product.name, product.sellerId, changedBy)
+          new ProductSubmittedEvent(
+            product.id,
+            product.name,
+            product.sellerId,
+            changedBy,
+          ),
         );
         break;
       case ProductStatus.APPROVED:
         this.eventEmitter.emit(
           ProductApprovedEvent.eventName,
-          new ProductApprovedEvent(product.id, product.name, product.sellerId, changedBy)
+          new ProductApprovedEvent(
+            product.id,
+            product.name,
+            product.sellerId,
+            changedBy,
+          ),
         );
         break;
       case ProductStatus.REJECTED:
         this.eventEmitter.emit(
           ProductRejectedEvent.eventName,
-          new ProductRejectedEvent(product.id, product.name, product.sellerId, changedBy, reason)
+          new ProductRejectedEvent(
+            product.id,
+            product.name,
+            product.sellerId,
+            changedBy,
+            reason,
+          ),
         );
         break;
       case ProductStatus.PUBLISHED:
@@ -961,38 +1145,66 @@ export class ProductService {
             product.categoryId,
             product.brandId,
             product.sellerId,
-            changedBy
-          )
+            changedBy,
+          ),
         );
         break;
       case ProductStatus.SUSPENDED:
         this.eventEmitter.emit(
           ProductSuspendedEvent.eventName,
-          new ProductSuspendedEvent(product.id, product.name, product.sellerId, changedBy, reason)
+          new ProductSuspendedEvent(
+            product.id,
+            product.name,
+            product.sellerId,
+            changedBy,
+            reason,
+          ),
         );
         break;
       case ProductStatus.ARCHIVED:
         this.eventEmitter.emit(
           ProductArchivedEvent.eventName,
-          new ProductArchivedEvent(product.id, product.name, product.sellerId, changedBy, reason)
+          new ProductArchivedEvent(
+            product.id,
+            product.name,
+            product.sellerId,
+            changedBy,
+            reason,
+          ),
         );
         break;
     }
   }
 
-  private calculateChanges(oldProduct: Product, newProduct: Product): Record<string, { from: any; to: any }> {
+  private calculateChanges(
+    oldProduct: Product,
+    newProduct: Product,
+  ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     const fields = [
-      'name', 'description', 'shortDescription', 'status', 'visibility', 'moderationStatus',
-      'seoTitle', 'seoDescription', 'images', 'videos', 'documents', 'tags', 'isFeatured',
-      'hasVariants', 'variantAttributes', 'displayOrder'
+      'name',
+      'description',
+      'shortDescription',
+      'status',
+      'visibility',
+      'moderationStatus',
+      'seoTitle',
+      'seoDescription',
+      'images',
+      'videos',
+      'documents',
+      'tags',
+      'isFeatured',
+      'hasVariants',
+      'variantAttributes',
+      'displayOrder',
     ];
-    
+
     for (const field of fields) {
       const oldValue = (oldProduct as any)[field];
       const newValue = (newProduct as any)[field];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changes[field] = { from: oldValue, to: newValue };
       }

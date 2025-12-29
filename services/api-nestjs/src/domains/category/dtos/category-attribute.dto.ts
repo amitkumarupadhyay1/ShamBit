@@ -1,4 +1,14 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsEnum, IsInt, Min, Max, IsObject } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsObject,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { AttributeType } from '../enums/attribute-type.enum';
@@ -260,7 +270,8 @@ export class InheritAttributeDto {
   sourceCategoryId: string;
 
   @ApiPropertyOptional({
-    description: 'Specific attribute slugs to inherit (empty = all inheritable)',
+    description:
+      'Specific attribute slugs to inherit (empty = all inheritable)',
     example: ['color', 'size'],
     type: [String],
   })

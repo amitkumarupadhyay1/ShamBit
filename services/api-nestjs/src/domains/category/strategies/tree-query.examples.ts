@@ -18,7 +18,7 @@ export class CategoryTreeQueries {
         where: { id: categoryId },
         select: { depth: true },
       });
-      
+
       if (rootCategory) {
         where.depth = { lte: rootCategory.depth + maxDepth };
       }
@@ -26,10 +26,7 @@ export class CategoryTreeQueries {
 
     return this.prisma.category.findMany({
       where,
-      orderBy: [
-        { depth: 'asc' },
-        { displayOrder: 'asc' },
-      ],
+      orderBy: [{ depth: 'asc' }, { displayOrder: 'asc' }],
     });
   }
 
@@ -54,7 +51,11 @@ export class CategoryTreeQueries {
   }
 
   // 3. Get direct children with pagination
-  async getChildren(parentId: string | null, page: number = 1, limit: number = 20) {
+  async getChildren(
+    parentId: string | null,
+    page: number = 1,
+    limit: number = 20,
+  ) {
     const skip = (page - 1) * limit;
 
     const [children, total] = await Promise.all([
@@ -86,16 +87,13 @@ export class CategoryTreeQueries {
     };
 
     if (rootId) {
-      where.OR = [
-        { id: rootId },
-        { pathIds: { has: rootId } },
-      ];
-      
+      where.OR = [{ id: rootId }, { pathIds: { has: rootId } }];
+
       const rootCategory = await this.prisma.category.findUnique({
         where: { id: rootId },
         select: { depth: true },
       });
-      
+
       if (rootCategory) {
         where.depth = { lte: rootCategory.depth + maxDepth };
       }
@@ -105,10 +103,7 @@ export class CategoryTreeQueries {
 
     const categories = await this.prisma.category.findMany({
       where,
-      orderBy: [
-        { depth: 'asc' },
-        { displayOrder: 'asc' },
-      ],
+      orderBy: [{ depth: 'asc' }, { displayOrder: 'asc' }],
     });
 
     // Build nested structure
@@ -140,10 +135,7 @@ export class CategoryTreeQueries {
 
     return this.prisma.category.findMany({
       where,
-      orderBy: [
-        { depth: 'asc' },
-        { displayOrder: 'asc' },
-      ],
+      orderBy: [{ depth: 'asc' }, { displayOrder: 'asc' }],
     });
   }
 
@@ -182,10 +174,7 @@ export class CategoryTreeQueries {
 
     return this.prisma.category.findMany({
       where,
-      orderBy: [
-        { depth: 'asc' },
-        { displayOrder: 'asc' },
-      ],
+      orderBy: [{ depth: 'asc' }, { displayOrder: 'asc' }],
     });
   }
 
@@ -197,10 +186,7 @@ export class CategoryTreeQueries {
     };
 
     if (parentId) {
-      where.OR = [
-        { id: parentId },
-        { pathIds: { has: parentId } },
-      ];
+      where.OR = [{ id: parentId }, { pathIds: { has: parentId } }];
     }
 
     return this.prisma.category.findMany({
@@ -215,10 +201,7 @@ export class CategoryTreeQueries {
         childCount: true,
         descendantCount: true,
       },
-      orderBy: [
-        { depth: 'asc' },
-        { displayOrder: 'asc' },
-      ],
+      orderBy: [{ depth: 'asc' }, { displayOrder: 'asc' }],
     });
   }
 
@@ -234,7 +217,7 @@ export class CategoryTreeQueries {
     });
 
     // Get all ancestors of featured categories
-    const allPathIds = featuredCategories.flatMap(cat => cat.pathIds);
+    const allPathIds = featuredCategories.flatMap((cat) => cat.pathIds);
     const uniquePathIds = [...new Set(allPathIds)];
 
     const ancestors = await this.prisma.category.findMany({
@@ -296,10 +279,17 @@ export class CategoryTreeQueries {
   }
 
   // 12. Bulk tree operations
-  async bulkUpdatePaths(updates: Array<{ id: string; newPath: string; newPathIds: string[]; newDepth: number }>) {
+  async bulkUpdatePaths(
+    updates: Array<{
+      id: string;
+      newPath: string;
+      newPathIds: string[];
+      newDepth: number;
+    }>,
+  ) {
     return this.prisma.$transaction(async (tx) => {
       const results = [];
-      
+
       for (const update of updates) {
         const result = await tx.category.update({
           where: { id: update.id },
@@ -312,7 +302,7 @@ export class CategoryTreeQueries {
         });
         results.push(result);
       }
-      
+
       return results;
     });
   }
@@ -323,18 +313,22 @@ export class CategoryTreeQueries {
     const roots: any[] = [];
 
     // Create map for quick lookup
-    categories.forEach(category => {
+    categories.forEach((category) => {
       categoryMap.set(category.id, { ...category, children: [] });
     });
 
     // Build tree structure
-    categories.forEach(category => {
+    categories.forEach((category) => {
       const categoryNode = categoryMap.get(category.id);
-      
+
       if (category.parentId && categoryMap.has(category.parentId)) {
         const parent = categoryMap.get(category.parentId);
         parent.children.push(categoryNode);
-      } else if (!rootId || category.id === rootId || category.parentId === null) {
+      } else if (
+        !rootId ||
+        category.id === rootId ||
+        category.parentId === null
+      ) {
         roots.push(categoryNode);
       }
     });
@@ -347,10 +341,7 @@ export class CategoryTreeQueries {
     // This would use the CategoryTreeView table for high-performance queries
     return this.prisma.categoryTreeView.findMany({
       where: {
-        OR: [
-          { categoryId },
-          { ancestorId: categoryId },
-        ],
+        OR: [{ categoryId }, { ancestorId: categoryId }],
       },
       orderBy: { depth: 'asc' },
     });

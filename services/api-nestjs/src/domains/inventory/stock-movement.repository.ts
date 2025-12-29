@@ -54,7 +54,7 @@ export class StockMovementRepository {
       take: limit,
     });
 
-    return movements.map(movement => ({
+    return movements.map((movement) => ({
       id: movement.id,
       variantId: movement.variantId,
       sellerId: movement.sellerId,

@@ -1,11 +1,19 @@
-import { BrandStatus, BrandStatusTransitions, ADMIN_ONLY_TRANSITIONS, USABLE_BRAND_STATUSES } from './enums/brand-status.enum';
+import {
+  BrandStatus,
+  BrandStatusTransitions,
+  ADMIN_ONLY_TRANSITIONS,
+  USABLE_BRAND_STATUSES,
+} from './enums/brand-status.enum';
 import { BrandScope, BrandPermission } from './enums/brand-scope.enum';
 import { Brand } from './entities/brand.entity';
 import { UserRole } from '../../common/types';
 
 export class BrandPolicies {
   // State machine validation
-  static canTransitionTo(currentStatus: BrandStatus, newStatus: BrandStatus): boolean {
+  static canTransitionTo(
+    currentStatus: BrandStatus,
+    newStatus: BrandStatus,
+  ): boolean {
     const allowedTransitions = BrandStatusTransitions[currentStatus] || [];
     return allowedTransitions.includes(newStatus);
   }
@@ -19,7 +27,11 @@ export class BrandPolicies {
   }
 
   // Visibility and access policies
-  static canUserViewBrand(brand: Brand, userId: string, userRole: UserRole): boolean {
+  static canUserViewBrand(
+    brand: Brand,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Admins can view all brands
     if (userRole === UserRole.ADMIN) {
       return true;
@@ -45,7 +57,11 @@ export class BrandPolicies {
     return false;
   }
 
-  static canUserUseBrand(brand: Brand, userId: string, userRole: UserRole): boolean {
+  static canUserUseBrand(
+    brand: Brand,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Must be usable status first
     if (!this.isUsableInProducts(brand.status)) {
       return false;
@@ -74,7 +90,11 @@ export class BrandPolicies {
     return false;
   }
 
-  static canUserModifyBrand(brand: Brand, userId: string, userRole: UserRole): boolean {
+  static canUserModifyBrand(
+    brand: Brand,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Admins can modify any brand
     if (userRole === UserRole.ADMIN) {
       return true;
@@ -88,7 +108,11 @@ export class BrandPolicies {
     return false;
   }
 
-  static canUserDeleteBrand(brand: Brand, userId: string, userRole: UserRole): boolean {
+  static canUserDeleteBrand(
+    brand: Brand,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Only admins can delete brands
     return userRole === UserRole.ADMIN;
   }
@@ -118,7 +142,7 @@ export class BrandPolicies {
     granterId: string,
     granterRole: UserRole,
     targetSellerId: string,
-    permission: BrandPermission
+    permission: BrandPermission,
   ): boolean {
     // Admins can grant access to any brand
     if (granterRole === UserRole.ADMIN) {
@@ -126,12 +150,18 @@ export class BrandPolicies {
     }
 
     // Brand owner can grant access to their shared brands
-    if (brand.ownerId === granterId && brand.scope === BrandScope.SELLER_SHARED) {
+    if (
+      brand.ownerId === granterId &&
+      brand.scope === BrandScope.SELLER_SHARED
+    ) {
       return true;
     }
 
     // Cannot grant USE permission to private brands
-    if (brand.scope === BrandScope.SELLER_PRIVATE && permission === BrandPermission.USE) {
+    if (
+      brand.scope === BrandScope.SELLER_PRIVATE &&
+      permission === BrandPermission.USE
+    ) {
       return false;
     }
 

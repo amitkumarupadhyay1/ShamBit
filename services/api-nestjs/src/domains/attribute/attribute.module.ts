@@ -12,18 +12,8 @@ import { ObservabilityModule } from '../../infrastructure/observability/observab
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 
 @Module({
-  imports: [
-    EventEmitterModule,
-    ObservabilityModule,
-    PrismaModule,
-  ],
-  providers: [
-    AttributeService,
-    AttributeRepository,
-  ],
-  exports: [
-    AttributeService,
-    AttributeRepository,
-  ],
+  imports: [EventEmitterModule, ObservabilityModule, PrismaModule],
+  providers: [AttributeService, AttributeRepository],
+  exports: [AttributeService, AttributeRepository],
 })
 export class AttributeModule {}

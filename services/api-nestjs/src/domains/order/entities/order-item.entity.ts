@@ -88,7 +88,7 @@ export class OrderItem {
     createdBy: string;
   }): OrderItem {
     const totalPrice = data.quantity * data.unitPrice;
-    
+
     return new OrderItem({
       ...data,
       id: `item_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
@@ -103,7 +103,11 @@ export class OrderItem {
   }
 
   get canBeCancelled(): boolean {
-    return [OrderItemStatus.PENDING, OrderItemStatus.CONFIRMED, OrderItemStatus.PROCESSING].includes(this.status);
+    return [
+      OrderItemStatus.PENDING,
+      OrderItemStatus.CONFIRMED,
+      OrderItemStatus.PROCESSING,
+    ].includes(this.status);
   }
 
   get canBeRefunded(): boolean {
@@ -131,7 +135,8 @@ export class OrderItem {
   }
 
   calculateTotalPrice(): void {
-    this.totalPrice = (this.quantity * this.unitPrice) - this.discountAmount + this.taxAmount;
+    this.totalPrice =
+      this.quantity * this.unitPrice - this.discountAmount + this.taxAmount;
     this.updatedAt = new Date();
     this.version++;
   }
@@ -140,7 +145,7 @@ export class OrderItem {
     if (newQuantity <= 0) {
       throw new Error('Quantity must be greater than 0');
     }
-    
+
     this.quantity = newQuantity;
     this.calculateTotalPrice();
     this.updatedBy = updatedBy;
@@ -148,7 +153,11 @@ export class OrderItem {
     this.version++;
   }
 
-  updateStatus(newStatus: OrderItemStatus, updatedBy: string, reason?: string): void {
+  updateStatus(
+    newStatus: OrderItemStatus,
+    updatedBy: string,
+    reason?: string,
+  ): void {
     this.status = newStatus;
     this.updatedBy = updatedBy;
     this.updatedAt = new Date();

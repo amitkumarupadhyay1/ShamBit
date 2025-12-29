@@ -11,11 +11,12 @@ export interface OrderCreationResult {
 
 @Injectable()
 export class OrderOrchestrationService {
-  constructor(
-    private readonly logger: LoggerService
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
-  async createOrder(createOrderDto: CreateOrderDto, createdBy: string): Promise<OrderCreationResult> {
+  async createOrder(
+    createOrderDto: CreateOrderDto,
+    createdBy: string,
+  ): Promise<OrderCreationResult> {
     try {
       this.logger.log('OrderOrchestrationService.createOrder', {
         customerId: createOrderDto.customerId,

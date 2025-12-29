@@ -48,13 +48,15 @@ export class PaymentValidationService {
     }
   }
 
-  async validatePaymentMethod(paymentMethod: string): Promise<PaymentValidationResult> {
+  async validatePaymentMethod(
+    paymentMethod: string,
+  ): Promise<PaymentValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 
     try {
       const validMethods = ['CARD', 'UPI', 'NET_BANKING', 'WALLET'];
-      
+
       if (!paymentMethod) {
         errors.push('Payment method is required');
       } else if (!validMethods.includes(paymentMethod)) {
@@ -67,7 +69,9 @@ export class PaymentValidationService {
         warnings,
       };
     } catch (error) {
-      this.logger.error('Failed to validate payment method', error, { paymentMethod });
+      this.logger.error('Failed to validate payment method', error, {
+        paymentMethod,
+      });
       return {
         isValid: false,
         errors: ['Validation failed'],
@@ -76,7 +80,9 @@ export class PaymentValidationService {
     }
   }
 
-  async validateOrderForPayment(orderId: string): Promise<PaymentValidationResult> {
+  async validateOrderForPayment(
+    orderId: string,
+  ): Promise<PaymentValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -92,7 +98,9 @@ export class PaymentValidationService {
         warnings,
       };
     } catch (error) {
-      this.logger.error('Failed to validate order for payment', error, { orderId });
+      this.logger.error('Failed to validate order for payment', error, {
+        orderId,
+      });
       return {
         isValid: false,
         errors: ['Validation failed'],
@@ -130,7 +138,9 @@ export class PaymentValidationService {
     }
   }
 
-  async validatePaymentConfirmation(data: any): Promise<PaymentValidationResult> {
+  async validatePaymentConfirmation(
+    data: any,
+  ): Promise<PaymentValidationResult> {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -146,7 +156,9 @@ export class PaymentValidationService {
         warnings,
       };
     } catch (error) {
-      this.logger.error('Failed to validate payment confirmation', error, { data });
+      this.logger.error('Failed to validate payment confirmation', error, {
+        data,
+      });
       return {
         isValid: false,
         errors: ['Validation failed'],

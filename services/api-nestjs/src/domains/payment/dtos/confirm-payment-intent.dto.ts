@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject, IsEnum, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsEnum,
+  IsBoolean,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class ConfirmPaymentIntentDto {
@@ -25,24 +31,24 @@ export class ConfirmPaymentIntentDto {
     };
   };
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Return URL for redirect-based payment methods',
-    example: 'https://example.com/payment/success'
+    example: 'https://example.com/payment/success',
   })
   @IsOptional()
   @IsString()
   returnUrl?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Whether to save the payment method for future use',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
   savePaymentMethod?: boolean = false;
 
-  @ApiPropertyOptional({ 
-    description: 'Customer information for payment processing'
+  @ApiPropertyOptional({
+    description: 'Customer information for payment processing',
   })
   @IsOptional()
   @IsObject()
@@ -60,8 +66,8 @@ export class ConfirmPaymentIntentDto {
     };
   };
 
-  @ApiPropertyOptional({ 
-    description: 'Billing address (if different from customer address)'
+  @ApiPropertyOptional({
+    description: 'Billing address (if different from customer address)',
   })
   @IsOptional()
   @IsObject()
@@ -79,21 +85,25 @@ export class ConfirmPaymentIntentDto {
   @IsObject()
   metadata?: Record<string, any>;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Confirmation method',
     enum: ['automatic', 'manual'],
-    default: 'automatic'
+    default: 'automatic',
   })
   @IsOptional()
   @IsEnum(['automatic', 'manual'])
   confirmationMethod?: string = 'automatic';
 
-  @ApiPropertyOptional({ description: 'Client-side confirmation token (for some gateways)' })
+  @ApiPropertyOptional({
+    description: 'Client-side confirmation token (for some gateways)',
+  })
   @IsOptional()
   @IsString()
   clientSecret?: string;
 
-  @ApiPropertyOptional({ description: 'Device fingerprint for fraud detection' })
+  @ApiPropertyOptional({
+    description: 'Device fingerprint for fraud detection',
+  })
   @IsOptional()
   @IsString()
   deviceFingerprint?: string;

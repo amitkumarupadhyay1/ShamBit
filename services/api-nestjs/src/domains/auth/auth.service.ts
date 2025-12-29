@@ -9,7 +9,12 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 
 import { AuthRepository } from './auth.repository';
-import { LoginDto, RegisterDto, GoogleAuthDto, AuthResponseDto } from './dto/auth.dto';
+import {
+  LoginDto,
+  RegisterDto,
+  GoogleAuthDto,
+  AuthResponseDto,
+} from './dto/auth.dto';
 import { UserRole } from '../../common/types';
 
 @Injectable()
@@ -21,13 +26,15 @@ export class AuthService {
   ) {}
 
   async register(registerDto: RegisterDto): Promise<AuthResponseDto> {
-    const existingUser = await this.authRepository.findByEmail(registerDto.email);
+    const existingUser = await this.authRepository.findByEmail(
+      registerDto.email,
+    );
     if (existingUser) {
       throw new ConflictException('User already exists');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 12);
-    
+
     const user = await this.authRepository.create({
       ...registerDto,
       password: hashedPassword,
@@ -56,7 +63,10 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }

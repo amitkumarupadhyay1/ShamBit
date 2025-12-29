@@ -84,7 +84,11 @@ export class CommissionService {
     });
 
     // Get all applicable commission rules
-    const rules = await this.getApplicableRules(productId, sellerId, categoryId);
+    const rules = await this.getApplicableRules(
+      productId,
+      sellerId,
+      categoryId,
+    );
 
     // Sort rules by priority (higher priority first)
     const sortedRules = rules.sort((a, b) => b.priority - a.priority);
@@ -95,7 +99,7 @@ export class CommissionService {
     // Apply rules in priority order
     for (const rule of sortedRules) {
       const ruleCommission = this.calculateRuleCommission(rule, baseAmount);
-      
+
       if (ruleCommission > 0) {
         totalCommission += ruleCommission;
         appliedRules.push({
@@ -111,7 +115,8 @@ export class CommissionService {
       }
     }
 
-    const commissionRate = baseAmount > 0 ? (totalCommission / baseAmount) * 100 : 0;
+    const commissionRate =
+      baseAmount > 0 ? (totalCommission / baseAmount) * 100 : 0;
     const netAmount = baseAmount - totalCommission;
 
     const result: CommissionCalculation = {
@@ -131,7 +136,9 @@ export class CommissionService {
     return result;
   }
 
-  async createRule(createRuleDto: CreateCommissionRuleDto): Promise<CommissionRule> {
+  async createRule(
+    createRuleDto: CreateCommissionRuleDto,
+  ): Promise<CommissionRule> {
     this.logger.log('CommissionService.createRule', { createRuleDto });
 
     // Validate rule data
@@ -167,7 +174,7 @@ export class CommissionService {
 
     const updatedRule = await this.commissionRepository.update(id, updateData);
     this.logger.log('Commission rule updated', { ruleId: id });
-    
+
     return updatedRule;
   }
 
@@ -200,7 +207,7 @@ export class CommissionService {
     categoryId: string,
   ): Promise<CommissionRule[]> {
     const now = new Date();
-    
+
     // Get rules for product, seller, and category
     const [productRules, sellerRules, categoryRules] = await Promise.all([
       this.commissionRepository.findByEntity('PRODUCT', productId),
@@ -210,15 +217,19 @@ export class CommissionService {
 
     // Combine all rules and filter active ones within valid date range
     const allRules = [...productRules, ...sellerRules, ...categoryRules];
-    
-    return allRules.filter(rule => 
-      rule.isActive &&
-      rule.validFrom <= now &&
-      (!rule.validTo || rule.validTo >= now)
+
+    return allRules.filter(
+      (rule) =>
+        rule.isActive &&
+        rule.validFrom <= now &&
+        (!rule.validTo || rule.validTo >= now),
     );
   }
 
-  private calculateRuleCommission(rule: CommissionRule, baseAmount: number): number {
+  private calculateRuleCommission(
+    rule: CommissionRule,
+    baseAmount: number,
+  ): number {
     let commission = 0;
 
     if (rule.commissionType === 'PERCENTAGE') {
@@ -231,7 +242,7 @@ export class CommissionService {
     if (rule.minAmount && commission < rule.minAmount) {
       commission = rule.minAmount;
     }
-    
+
     if (rule.maxAmount && commission > rule.maxAmount) {
       commission = rule.maxAmount;
     }
@@ -243,7 +254,9 @@ export class CommissionService {
   private validateCommissionRule(rule: CreateCommissionRuleDto): void {
     if (rule.commissionType === 'PERCENTAGE') {
       if (rule.value < 0 || rule.value > 100) {
-        throw new BadRequestException('Percentage commission must be between 0 and 100');
+        throw new BadRequestException(
+          'Percentage commission must be between 0 and 100',
+        );
       }
     } else if (rule.commissionType === 'FIXED') {
       if (rule.value < 0) {
@@ -252,11 +265,15 @@ export class CommissionService {
     }
 
     if (rule.minAmount && rule.maxAmount && rule.minAmount > rule.maxAmount) {
-      throw new BadRequestException('Minimum amount cannot be greater than maximum amount');
+      throw new BadRequestException(
+        'Minimum amount cannot be greater than maximum amount',
+      );
     }
 
     if (rule.validTo && rule.validFrom >= rule.validTo) {
-      throw new BadRequestException('Valid from date must be before valid to date');
+      throw new BadRequestException(
+        'Valid from date must be before valid to date',
+      );
     }
 
     if (rule.priority < 0) {

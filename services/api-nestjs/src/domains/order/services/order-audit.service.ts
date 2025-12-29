@@ -16,7 +16,7 @@ export interface OrderAuditLogData {
 export class OrderAuditService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
   ) {}
 
   async logAction(data: OrderAuditLogData): Promise<void> {
@@ -40,7 +40,7 @@ export class OrderAuditService {
       //     metadata: data.metadata,
       //   }
       // });
-      
+
       this.logger.log('Order audit log created', {
         orderId: data.orderId,
         action: data.action,
@@ -57,7 +57,7 @@ export class OrderAuditService {
   async getOrderAuditHistory(orderId: string): Promise<any[]> {
     try {
       this.logger.log('OrderAuditService.getOrderAuditHistory', { orderId });
-      
+
       // TODO: Implement audit history retrieval from database
       // Example implementation would be:
       // const auditLogs = await this.prisma.orderAuditLog.findMany({
@@ -65,7 +65,7 @@ export class OrderAuditService {
       //   orderBy: { createdAt: 'desc' }
       // });
       // return auditLogs;
-      
+
       return [];
     } catch (error) {
       this.logger.error('Failed to retrieve order audit history', error.stack, {

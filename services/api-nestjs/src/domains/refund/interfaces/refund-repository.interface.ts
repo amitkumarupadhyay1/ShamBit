@@ -1,5 +1,15 @@
-import { Refund, RefundItem, RefundLedgerEntry, RefundAuditLog } from '../entities/refund.entity';
-import { RefundStatus, RefundType, RefundCategory, RefundReason } from '../enums/refund-status.enum';
+import {
+  Refund,
+  RefundItem,
+  RefundLedgerEntry,
+  RefundAuditLog,
+} from '../entities/refund.entity';
+import {
+  RefundStatus,
+  RefundType,
+  RefundCategory,
+  RefundReason,
+} from '../enums/refund-status.enum';
 
 export interface RefundFilters {
   orderId?: string;
@@ -156,12 +166,15 @@ export interface RefundRepository {
   findAll(
     filters?: RefundFilters,
     pagination?: PaginationOptions,
-    includes?: RefundIncludeOptions
+    includes?: RefundIncludeOptions,
   ): Promise<{ refunds: Refund[]; total: number; hasMore: boolean }>;
 
   findById(id: string, includes?: RefundIncludeOptions): Promise<Refund | null>;
 
-  findByRefundNumber(refundNumber: string, includes?: RefundIncludeOptions): Promise<Refund | null>;
+  findByRefundNumber(
+    refundNumber: string,
+    includes?: RefundIncludeOptions,
+  ): Promise<Refund | null>;
 
   findByIdempotencyKey(idempotencyKey: string): Promise<Refund | null>;
 
@@ -173,19 +186,31 @@ export interface RefundRepository {
 
   update(id: string, data: UpdateRefundData, tx?: any): Promise<Refund>;
 
-  updateStatus(id: string, status: RefundStatus, updatedBy: string, tx?: any): Promise<Refund>;
+  updateStatus(
+    id: string,
+    status: RefundStatus,
+    updatedBy: string,
+    tx?: any,
+  ): Promise<Refund>;
 
   delete(id: string, deletedBy: string, tx?: any): Promise<void>;
 
   // Refund items
   createItem(data: CreateRefundItemData, tx?: any): Promise<RefundItem>;
 
-  updateItem(id: string, data: UpdateRefundItemData, tx?: any): Promise<RefundItem>;
+  updateItem(
+    id: string,
+    data: UpdateRefundItemData,
+    tx?: any,
+  ): Promise<RefundItem>;
 
   findItemsByRefundId(refundId: string): Promise<RefundItem[]>;
 
   // Ledger entries
-  createLedgerEntry(data: CreateRefundLedgerEntryData, tx?: any): Promise<RefundLedgerEntry>;
+  createLedgerEntry(
+    data: CreateRefundLedgerEntryData,
+    tx?: any,
+  ): Promise<RefundLedgerEntry>;
 
   findLedgerEntriesByRefundId(refundId: string): Promise<RefundLedgerEntry[]>;
 
@@ -202,19 +227,19 @@ export interface RefundRepository {
   findRefundsByCustomer(
     customerId: string,
     filters?: RefundFilters,
-    pagination?: PaginationOptions
+    pagination?: PaginationOptions,
   ): Promise<{ refunds: Refund[]; total: number }>;
 
   findRefundsBySeller(
     sellerId: string,
     filters?: RefundFilters,
-    pagination?: PaginationOptions
+    pagination?: PaginationOptions,
   ): Promise<{ refunds: Refund[]; total: number }>;
 
   // Statistics and analytics
   getRefundStatistics(
     filters?: RefundFilters,
-    groupBy?: 'day' | 'week' | 'month' | 'year'
+    groupBy?: 'day' | 'week' | 'month' | 'year',
   ): Promise<RefundStatistics>;
 
   getRefundCountForYear(year: number): Promise<number>;
@@ -222,7 +247,7 @@ export interface RefundRepository {
   getRefundAmountByPeriod(
     startDate: Date,
     endDate: Date,
-    groupBy?: 'day' | 'week' | 'month'
+    groupBy?: 'day' | 'week' | 'month',
   ): Promise<Array<{ period: string; amount: number; count: number }>>;
 
   // Bulk operations
@@ -230,7 +255,7 @@ export interface RefundRepository {
     refundIds: string[],
     status: RefundStatus,
     updatedBy: string,
-    tx?: any
+    tx?: any,
   ): Promise<number>;
 
   bulkDelete(refundIds: string[], deletedBy: string, tx?: any): Promise<number>;
@@ -239,7 +264,7 @@ export interface RefundRepository {
   searchRefunds(
     query: string,
     filters?: RefundFilters,
-    pagination?: PaginationOptions
+    pagination?: PaginationOptions,
   ): Promise<{ refunds: Refund[]; total: number }>;
 
   // Concurrency and locking

@@ -10,7 +10,11 @@ export class PaymentPolicies {
   /**
    * Check if user can view a payment intent
    */
-  static canViewPaymentIntent(userId: string, userRole: string, paymentIntent: any): boolean {
+  static canViewPaymentIntent(
+    userId: string,
+    userRole: string,
+    paymentIntent: any,
+  ): boolean {
     // Users can view payment intents for their own orders
     if (paymentIntent.order?.customerId === userId) {
       return true;
@@ -22,7 +26,10 @@ export class PaymentPolicies {
     }
 
     // Sellers can view payment intents for orders containing their products
-    if (userRole === 'SELLER' && paymentIntent.order?.items?.some((item: any) => item.sellerId === userId)) {
+    if (
+      userRole === 'SELLER' &&
+      paymentIntent.order?.items?.some((item: any) => item.sellerId === userId)
+    ) {
       return true;
     }
 
@@ -32,7 +39,11 @@ export class PaymentPolicies {
   /**
    * Check if user can confirm a payment intent
    */
-  static canConfirmPaymentIntent(userId: string, userRole: string, paymentIntent: any): boolean {
+  static canConfirmPaymentIntent(
+    userId: string,
+    userRole: string,
+    paymentIntent: any,
+  ): boolean {
     // Only the customer who created the order can confirm payment
     if (paymentIntent.order?.customerId === userId) {
       return true;
@@ -49,9 +60,18 @@ export class PaymentPolicies {
   /**
    * Check if user can cancel a payment intent
    */
-  static canCancelPaymentIntent(userId: string, userRole: string, paymentIntent: any): boolean {
+  static canCancelPaymentIntent(
+    userId: string,
+    userRole: string,
+    paymentIntent: any,
+  ): boolean {
     // Customers can cancel their own payment intents if not yet processed
-    if (paymentIntent.order?.customerId === userId && ['CREATED', 'REQUIRES_PAYMENT_METHOD', 'REQUIRES_CONFIRMATION'].includes(paymentIntent.status)) {
+    if (
+      paymentIntent.order?.customerId === userId &&
+      ['CREATED', 'REQUIRES_PAYMENT_METHOD', 'REQUIRES_CONFIRMATION'].includes(
+        paymentIntent.status,
+      )
+    ) {
       return true;
     }
 
@@ -66,14 +86,23 @@ export class PaymentPolicies {
   /**
    * Check if user can create a refund
    */
-  static canCreateRefund(userId: string, userRole: string, transaction: any): boolean {
+  static canCreateRefund(
+    userId: string,
+    userRole: string,
+    transaction: any,
+  ): boolean {
     // Only admins, merchants, and sellers can create refunds
     if (['ADMIN', 'MERCHANT'].includes(userRole)) {
       return true;
     }
 
     // Sellers can create refunds for transactions related to their products
-    if (userRole === 'SELLER' && transaction.paymentIntent?.order?.items?.some((item: any) => item.sellerId === userId)) {
+    if (
+      userRole === 'SELLER' &&
+      transaction.paymentIntent?.order?.items?.some(
+        (item: any) => item.sellerId === userId,
+      )
+    ) {
       return true;
     }
 
@@ -84,7 +113,11 @@ export class PaymentPolicies {
    * Check if payment intent can be modified based on its current status
    */
   static canModifyPaymentIntent(status: string): boolean {
-    const modifiableStatuses = ['CREATED', 'REQUIRES_PAYMENT_METHOD', 'REQUIRES_CONFIRMATION'];
+    const modifiableStatuses = [
+      'CREATED',
+      'REQUIRES_PAYMENT_METHOD',
+      'REQUIRES_CONFIRMATION',
+    ];
     return modifiableStatuses.includes(status);
   }
 
@@ -92,7 +125,12 @@ export class PaymentPolicies {
    * Check if payment intent can be cancelled based on its current status
    */
   static canCancelPaymentIntentByStatus(status: string): boolean {
-    const cancellableStatuses = ['CREATED', 'REQUIRES_PAYMENT_METHOD', 'REQUIRES_CONFIRMATION', 'REQUIRES_ACTION'];
+    const cancellableStatuses = [
+      'CREATED',
+      'REQUIRES_PAYMENT_METHOD',
+      'REQUIRES_CONFIRMATION',
+      'REQUIRES_ACTION',
+    ];
     return cancellableStatuses.includes(status);
   }
 
@@ -118,8 +156,8 @@ export class PaymentPolicies {
     const windowDays = this.getRefundWindowDays();
     const windowMs = windowDays * 24 * 60 * 60 * 1000;
     const now = new Date();
-    
-    return (now.getTime() - transactionDate.getTime()) <= windowMs;
+
+    return now.getTime() - transactionDate.getTime() <= windowMs;
   }
 
   /**
@@ -140,7 +178,10 @@ export class PaymentPolicies {
    * Check if payment amount is within limits
    */
   static isValidPaymentAmount(amount: number): boolean {
-    return amount >= this.getMinimumPaymentAmount() && amount <= this.getMaximumPaymentAmount();
+    return (
+      amount >= this.getMinimumPaymentAmount() &&
+      amount <= this.getMaximumPaymentAmount()
+    );
   }
 
   /**
@@ -158,7 +199,10 @@ export class PaymentPolicies {
       return false;
     }
 
-    const retryableStatuses = ['REQUIRES_PAYMENT_METHOD', 'REQUIRES_CONFIRMATION'];
+    const retryableStatuses = [
+      'REQUIRES_PAYMENT_METHOD',
+      'REQUIRES_CONFIRMATION',
+    ];
     return retryableStatuses.includes(status);
   }
 

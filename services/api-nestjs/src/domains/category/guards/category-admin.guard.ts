@@ -31,6 +31,8 @@ export class CategoryAdminGuard implements CanActivate {
 
     // For category operations, only admins are allowed
     // This is different from brands where sellers can manage their own brands
-    throw new ForbiddenException('Admin access required for category operations');
+    throw new ForbiddenException(
+      'Admin access required for category operations',
+    );
   }
 }

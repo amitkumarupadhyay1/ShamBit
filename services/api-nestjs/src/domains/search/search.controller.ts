@@ -7,7 +7,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { SearchService } from './search.service';
 import { FilterService } from './filter.service';
@@ -29,18 +34,21 @@ export class SearchController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Search products' })
-  async searchProducts(@Query() query: {
-    q?: string;
-    category?: string;
-    brand?: string;
-    minPrice?: number;
-    maxPrice?: number;
-    rating?: number;
-    page?: number;
-    limit?: number;
-    sortBy?: string;
-    sortOrder?: 'asc' | 'desc';
-  }) {
+  async searchProducts(
+    @Query()
+    query: {
+      q?: string;
+      category?: string;
+      brand?: string;
+      minPrice?: number;
+      maxPrice?: number;
+      rating?: number;
+      page?: number;
+      limit?: number;
+      sortBy?: string;
+      sortOrder?: 'asc' | 'desc';
+    },
+  ) {
     return this.searchService.searchProducts(query);
   }
 
@@ -71,7 +79,9 @@ export class SearchController {
   @Public()
   @Get('trending')
   @ApiOperation({ summary: 'Get trending products' })
-  async getTrendingProducts(@Query() query: { category?: string; limit?: number }) {
+  async getTrendingProducts(
+    @Query() query: { category?: string; limit?: number },
+  ) {
     return this.searchService.getTrendingProducts(query);
   }
 
@@ -79,7 +89,9 @@ export class SearchController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get product recommendations' })
-  async getRecommendations(@Query() query: { userId?: string; productId?: string; limit?: number }) {
+  async getRecommendations(
+    @Query() query: { userId?: string; productId?: string; limit?: number },
+  ) {
     return this.searchService.getRecommendations(query);
   }
 

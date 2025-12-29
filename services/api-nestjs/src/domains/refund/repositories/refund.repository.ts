@@ -10,7 +10,11 @@ export class RefundRepository {
     return null;
   }
 
-  async findAll(filters: any = {}, pagination: any = {}, includes: any = {}): Promise<any> {
+  async findAll(
+    filters: any = {},
+    pagination: any = {},
+    includes: any = {},
+  ): Promise<any> {
     // TODO: Implement refund listing
     return { data: [], total: 0 };
   }
@@ -35,11 +39,18 @@ export class RefundRepository {
     return { id: 'temp_webhook_id', ...webhookData };
   }
 
-  async updateWebhook(webhookId: string, updateData: any, tx?: any): Promise<void> {
+  async updateWebhook(
+    webhookId: string,
+    updateData: any,
+    tx?: any,
+  ): Promise<void> {
     // TODO: Implement webhook update
   }
 
-  async findWebhookByIdAndEventType(webhookId: string, eventType: string): Promise<any | null> {
+  async findWebhookByIdAndEventType(
+    webhookId: string,
+    eventType: string,
+  ): Promise<any | null> {
     // TODO: Implement webhook lookup
     return null;
   }
@@ -84,7 +95,12 @@ export class RefundRepository {
     return 0;
   }
 
-  async findByOrderId(orderId: string, filters: any = {}, pagination: any = {}, includes: any = {}): Promise<any[]> {
+  async findByOrderId(
+    orderId: string,
+    filters: any = {},
+    pagination: any = {},
+    includes: any = {},
+  ): Promise<any[]> {
     // TODO: Implement refund lookup by order ID
     return [];
   }

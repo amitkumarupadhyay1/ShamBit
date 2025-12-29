@@ -1,7 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { BrandRequest } from '../entities/brand-request.entity';
-import { BrandRequestStatus, BrandRequestType } from '../enums/request-status.enum';
+import {
+  BrandRequestStatus,
+  BrandRequestType,
+} from '../enums/request-status.enum';
 import { CreateBrandRequestDto } from '../dtos/brand-request.dto';
 
 export interface BrandRequestFilters {
@@ -26,7 +29,7 @@ export class BrandRequestRepository {
 
   async findAll(
     filters: BrandRequestFilters = {},
-    pagination: BrandRequestPaginationOptions = {}
+    pagination: BrandRequestPaginationOptions = {},
   ): Promise<{ data: BrandRequest[]; total: number }> {
     const {
       page = 1,
@@ -140,7 +143,9 @@ export class BrandRequestRepository {
     return request ? this.mapToDomain(request) : null;
   }
 
-  async create(data: CreateBrandRequestDto & { requesterId: string }): Promise<BrandRequest> {
+  async create(
+    data: CreateBrandRequestDto & { requesterId: string },
+  ): Promise<BrandRequest> {
     const request = await this.prisma.brandRequest.create({
       data: {
         ...data,
@@ -160,10 +165,7 @@ export class BrandRequestRepository {
     return this.mapToDomain(request);
   }
 
-  async update(
-    id: string,
-    data: Partial<BrandRequest>
-  ): Promise<BrandRequest> {
+  async update(id: string, data: Partial<BrandRequest>): Promise<BrandRequest> {
     const request = await this.prisma.brandRequest.update({
       where: { id },
       data,
@@ -201,7 +203,7 @@ export class BrandRequestRepository {
     status: BrandRequestStatus.APPROVED | BrandRequestStatus.REJECTED,
     handledBy: string,
     adminNotes?: string,
-    rejectionReason?: string
+    rejectionReason?: string,
   ): Promise<BrandRequest> {
     const updateData: any = {
       status,
@@ -296,9 +298,11 @@ export class BrandRequestRepository {
     return requests.map(this.mapToDomain);
   }
 
-  async countByStatus(requesterId?: string): Promise<Record<BrandRequestStatus, number>> {
+  async countByStatus(
+    requesterId?: string,
+  ): Promise<Record<BrandRequestStatus, number>> {
     const where: any = {};
-    
+
     if (requesterId) {
       where.requesterId = requesterId;
     }
@@ -309,10 +313,13 @@ export class BrandRequestRepository {
       _count: true,
     });
 
-    const result = Object.values(BrandRequestStatus).reduce((acc, status) => {
-      acc[status] = 0;
-      return acc;
-    }, {} as Record<BrandRequestStatus, number>);
+    const result = Object.values(BrandRequestStatus).reduce(
+      (acc, status) => {
+        acc[status] = 0;
+        return acc;
+      },
+      {} as Record<BrandRequestStatus, number>,
+    );
 
     counts.forEach(({ status, _count }) => {
       result[status] = _count;
@@ -324,7 +331,7 @@ export class BrandRequestRepository {
   async findDuplicateRequests(
     brandName: string,
     brandSlug: string,
-    requesterId: string
+    requesterId: string,
   ): Promise<BrandRequest[]> {
     const requests = await this.prisma.brandRequest.findMany({
       where: {

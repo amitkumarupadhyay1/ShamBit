@@ -28,7 +28,7 @@ export class ReservationService {
     expiresAt: Date;
   }): Promise<Reservation> {
     this.logger.log('ReservationService.createReservation', data);
-    
+
     return this.reservationRepository.create({
       ...data,
       status: 'ACTIVE',
@@ -41,7 +41,7 @@ export class ReservationService {
 
   async releaseReservation(id: string, reason: string): Promise<void> {
     this.logger.log('ReservationService.releaseReservation', { id, reason });
-    
+
     await this.reservationRepository.update(id, {
       status: 'RELEASED',
       releasedAt: new Date(),
@@ -51,7 +51,7 @@ export class ReservationService {
 
   async confirmReservation(id: string, reason: string): Promise<void> {
     this.logger.log('ReservationService.confirmReservation', { id, reason });
-    
+
     await this.reservationRepository.update(id, {
       status: 'CONFIRMED',
       confirmedAt: new Date(),

@@ -1,5 +1,9 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { SagaStep, SagaContext, SagaStepResult } from '../../../infrastructure/saga/saga.types';
+import {
+  SagaStep,
+  SagaContext,
+  SagaStepResult,
+} from '../../../infrastructure/saga/saga.types';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { DomainEventService } from '../../../infrastructure/domain/domain-event.service';
 
@@ -7,7 +11,7 @@ import { DomainEventService } from '../../../infrastructure/domain/domain-event.
 export class ReserveInventoryStep implements SagaStep {
   stepId = 'reserve-inventory';
   stepName = 'Reserve Inventory';
-  
+
   private readonly logger = new Logger(ReserveInventoryStep.name);
 
   constructor(
@@ -50,7 +54,7 @@ export class ReserveInventoryStep implements SagaStep {
       return {
         success: true,
         data: { reservations },
-        compensationData: { reservationIds: reservations.map(r => r.id) },
+        compensationData: { reservationIds: reservations.map((r) => r.id) },
       };
     } catch (error) {
       this.logger.error('Failed to reserve inventory', error);
@@ -95,7 +99,7 @@ export class ReserveInventoryStep implements SagaStep {
 export class ProcessPaymentStep implements SagaStep {
   stepId = 'process-payment';
   stepName = 'Process Payment';
-  
+
   private readonly logger = new Logger(ProcessPaymentStep.name);
 
   constructor(
@@ -181,7 +185,7 @@ export class ProcessPaymentStep implements SagaStep {
 export class ConfirmOrderStep implements SagaStep {
   stepId = 'confirm-order';
   stepName = 'Confirm Order';
-  
+
   private readonly logger = new Logger(ConfirmOrderStep.name);
 
   constructor(
@@ -228,7 +232,7 @@ export class ConfirmOrderStep implements SagaStep {
   async compensate(context: SagaContext): Promise<void> {
     try {
       const { orderId } = context.data;
-      
+
       await this.prisma.order.update({
         where: { id: orderId },
         data: { status: 'CANCELLED' },

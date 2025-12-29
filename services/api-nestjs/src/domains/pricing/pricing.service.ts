@@ -43,11 +43,16 @@ export class PricingService {
     return this.pricingRepository.create(data);
   }
 
-  async updatePricing(id: string, data: UpdatePricingDto): Promise<PricingResponseDto> {
+  async updatePricing(
+    id: string,
+    data: UpdatePricingDto,
+  ): Promise<PricingResponseDto> {
     return this.pricingRepository.update(id, data);
   }
 
-  async getPricingByVariant(variantId: string): Promise<PricingResponseDto | null> {
+  async getPricingByVariant(
+    variantId: string,
+  ): Promise<PricingResponseDto | null> {
     return this.pricingRepository.findByVariant(variantId);
   }
 
@@ -55,7 +60,9 @@ export class PricingService {
     await this.pricingRepository.delete(id);
   }
 
-  async bulkUpdatePricing(updates: Array<{ id: string; data: UpdatePricingDto }>): Promise<void> {
+  async bulkUpdatePricing(
+    updates: Array<{ id: string; data: UpdatePricingDto }>,
+  ): Promise<void> {
     await this.pricingRepository.bulkUpdate(updates);
   }
 }

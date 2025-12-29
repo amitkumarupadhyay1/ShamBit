@@ -14,7 +14,9 @@ export interface PushNotificationOptions {
 export class PushNotificationService {
   constructor(private readonly logger: LoggerService) {}
 
-  async sendPushNotification(options: PushNotificationOptions): Promise<boolean> {
+  async sendPushNotification(
+    options: PushNotificationOptions,
+  ): Promise<boolean> {
     try {
       this.logger.log('PushNotificationService.sendPushNotification', {
         userId: options.userId,
@@ -23,7 +25,7 @@ export class PushNotificationService {
 
       // TODO: Implement actual push notification logic
       // This could use Firebase Cloud Messaging (FCM), Apple Push Notification Service (APNS), etc.
-      
+
       // For now, just log the notification
       this.logger.log('Push notification sent successfully', {
         userId: options.userId,
@@ -41,7 +43,9 @@ export class PushNotificationService {
     }
   }
 
-  async sendBulkPushNotifications(notifications: PushNotificationOptions[]): Promise<{ sent: number; failed: number }> {
+  async sendBulkPushNotifications(
+    notifications: PushNotificationOptions[],
+  ): Promise<{ sent: number; failed: number }> {
     let sent = 0;
     let failed = 0;
 
@@ -57,7 +61,11 @@ export class PushNotificationService {
     return { sent, failed };
   }
 
-  async registerDeviceToken(userId: string, deviceToken: string, platform: 'ios' | 'android'): Promise<void> {
+  async registerDeviceToken(
+    userId: string,
+    deviceToken: string,
+    platform: 'ios' | 'android',
+  ): Promise<void> {
     this.logger.log('PushNotificationService.registerDeviceToken', {
       userId,
       platform,
@@ -66,7 +74,10 @@ export class PushNotificationService {
     // TODO: Store device token in database for future push notifications
   }
 
-  async unregisterDeviceToken(userId: string, deviceToken: string): Promise<void> {
+  async unregisterDeviceToken(
+    userId: string,
+    deviceToken: string,
+  ): Promise<void> {
     this.logger.log('PushNotificationService.unregisterDeviceToken', {
       userId,
     });

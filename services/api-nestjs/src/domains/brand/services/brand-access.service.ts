@@ -10,7 +10,10 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 import { BrandService } from '../brand.service';
 import { BrandPolicies } from '../brand.policies';
 import { BrandPermission } from '../enums/brand-scope.enum';
-import { BrandAccessGrantedEvent, BrandAccessRevokedEvent } from '../events/brand.events';
+import {
+  BrandAccessGrantedEvent,
+  BrandAccessRevokedEvent,
+} from '../events/brand.events';
 import { UserRole } from '../../../common/types';
 
 export interface BrandAccessEntry {
@@ -43,21 +46,29 @@ export class BrandAccessService {
     brandId: string,
     grantDto: GrantBrandAccessDto,
     grantedBy: string,
-    granterRole: UserRole
+    granterRole: UserRole,
   ): Promise<BrandAccessEntry> {
-    this.logger.log('BrandAccessService.grantAccess', { brandId, grantDto, grantedBy });
+    this.logger.log('BrandAccessService.grantAccess', {
+      brandId,
+      grantDto,
+      grantedBy,
+    });
 
     const brand = await this.brandService.findById(brandId);
 
     // Check if granter has permission to grant access
-    if (!BrandPolicies.canGrantBrandAccess(
-      brand,
-      grantedBy,
-      granterRole,
-      grantDto.sellerId,
-      grantDto.permission
-    )) {
-      throw new ForbiddenException('Insufficient permissions to grant brand access');
+    if (
+      !BrandPolicies.canGrantBrandAccess(
+        brand,
+        grantedBy,
+        granterRole,
+        grantDto.sellerId,
+        grantDto.permission,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to grant brand access',
+      );
     }
 
     // Check if access already exists
@@ -71,7 +82,9 @@ export class BrandAccessService {
     });
 
     if (existingAccess && !existingAccess.revokedAt) {
-      throw new ConflictException('Brand access already granted to this seller');
+      throw new ConflictException(
+        'Brand access already granted to this seller',
+      );
     }
 
     // Create or restore access
@@ -105,14 +118,14 @@ export class BrandAccessService {
         brand.name,
         grantDto.sellerId,
         grantDto.permission,
-        grantedBy
-      )
+        grantedBy,
+      ),
     );
 
-    this.logger.log('Brand access granted successfully', { 
-      brandId, 
+    this.logger.log('Brand access granted successfully', {
+      brandId,
       sellerId: grantDto.sellerId,
-      permission: grantDto.permission 
+      permission: grantDto.permission,
     });
 
     return this.mapToAccessEntry(access);
@@ -123,15 +136,29 @@ export class BrandAccessService {
     sellerId: string,
     revokedBy: string,
     revokerRole: UserRole,
-    reason?: string
+    reason?: string,
   ): Promise<void> {
-    this.logger.log('BrandAccessService.revokeAccess', { brandId, sellerId, revokedBy });
+    this.logger.log('BrandAccessService.revokeAccess', {
+      brandId,
+      sellerId,
+      revokedBy,
+    });
 
     const brand = await this.brandService.findById(brandId);
 
     // Check if revoker has permission
-    if (!BrandPolicies.canGrantBrandAccess(brand, revokedBy, revokerRole, sellerId, BrandPermission.USE)) {
-      throw new ForbiddenException('Insufficient permissions to revoke brand access');
+    if (
+      !BrandPolicies.canGrantBrandAccess(
+        brand,
+        revokedBy,
+        revokerRole,
+        sellerId,
+        BrandPermission.USE,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to revoke brand access',
+      );
     }
 
     const access = await this.prisma.brandAccess.findUnique({
@@ -169,8 +196,8 @@ export class BrandAccessService {
         brand.name,
         sellerId,
         revokedBy,
-        reason
-      )
+        reason,
+      ),
     );
 
     this.logger.log('Brand access revoked successfully', { brandId, sellerId });
@@ -240,7 +267,7 @@ export class BrandAccessService {
   async hasAccess(
     brandId: string,
     sellerId: string,
-    permission: BrandPermission
+    permission: BrandPermission,
   ): Promise<boolean> {
     const access = await this.prisma.brandAccess.findUnique({
       where: {
@@ -269,20 +296,30 @@ export class BrandAccessService {
     sellerIds: string[],
     permission: BrandPermission,
     grantedBy: string,
-    granterRole: UserRole
+    granterRole: UserRole,
   ): Promise<BrandAccessEntry[]> {
-    this.logger.log('BrandAccessService.bulkGrantAccess', { 
-      brandId, 
-      sellerCount: sellerIds.length, 
-      permission 
+    this.logger.log('BrandAccessService.bulkGrantAccess', {
+      brandId,
+      sellerCount: sellerIds.length,
+      permission,
     });
 
     const brand = await this.brandService.findById(brandId);
 
     // Validate permissions for each seller
     for (const sellerId of sellerIds) {
-      if (!BrandPolicies.canGrantBrandAccess(brand, grantedBy, granterRole, sellerId, permission)) {
-        throw new ForbiddenException(`Insufficient permissions to grant access to seller ${sellerId}`);
+      if (
+        !BrandPolicies.canGrantBrandAccess(
+          brand,
+          grantedBy,
+          granterRole,
+          sellerId,
+          permission,
+        )
+      ) {
+        throw new ForbiddenException(
+          `Insufficient permissions to grant access to seller ${sellerId}`,
+        );
       }
     }
 
@@ -295,14 +332,14 @@ export class BrandAccessService {
           brandId,
           { sellerId, permission },
           grantedBy,
-          granterRole
+          granterRole,
         );
         results.push(access);
       } catch (error) {
-        this.logger.warn('Failed to grant access to seller', { 
-          brandId, 
-          sellerId, 
-          error: error.message 
+        this.logger.warn('Failed to grant access to seller', {
+          brandId,
+          sellerId,
+          error: error.message,
         });
         // Continue with other sellers
       }
@@ -313,7 +350,7 @@ export class BrandAccessService {
 
   async getAccessHistory(
     brandId: string,
-    sellerId?: string
+    sellerId?: string,
   ): Promise<BrandAccessEntry[]> {
     const where: any = { brandId };
     if (sellerId) {

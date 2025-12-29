@@ -85,7 +85,9 @@ export class ProductResponseDto {
   @ApiProperty({ example: 'iphone-15-pro' })
   slug: string;
 
-  @ApiPropertyOptional({ example: 'The latest iPhone with advanced camera system and A17 Pro chip.' })
+  @ApiPropertyOptional({
+    example: 'The latest iPhone with advanced camera system and A17 Pro chip.',
+  })
   description?: string;
 
   @ApiPropertyOptional({ example: 'Latest iPhone with advanced features' })
@@ -106,7 +108,10 @@ export class ProductResponseDto {
   @ApiProperty({ enum: ProductVisibility, example: ProductVisibility.PUBLIC })
   visibility: ProductVisibility;
 
-  @ApiProperty({ enum: ProductModerationStatus, example: ProductModerationStatus.APPROVED })
+  @ApiProperty({
+    enum: ProductModerationStatus,
+    example: ProductModerationStatus.APPROVED,
+  })
   moderationStatus: ProductModerationStatus;
 
   @ApiPropertyOptional({ example: 'Product meets all quality standards' })
@@ -127,7 +132,10 @@ export class ProductResponseDto {
   @ApiPropertyOptional({ example: 'iPhone 15 Pro - Best Price' })
   seoTitle?: string;
 
-  @ApiPropertyOptional({ example: 'Buy the latest iPhone 15 Pro with advanced camera and A17 Pro chip.' })
+  @ApiPropertyOptional({
+    example:
+      'Buy the latest iPhone 15 Pro with advanced camera and A17 Pro chip.',
+  })
   seoDescription?: string;
 
   @ApiProperty({ example: ['iphone', 'smartphone', 'apple'] })
@@ -136,7 +144,12 @@ export class ProductResponseDto {
   @ApiPropertyOptional({ type: 'object', additionalProperties: true })
   metaData?: ProductMetadata;
 
-  @ApiProperty({ example: ['https://example.com/image1.jpg', 'https://example.com/image2.jpg'] })
+  @ApiProperty({
+    example: [
+      'https://example.com/image1.jpg',
+      'https://example.com/image2.jpg',
+    ],
+  })
   images: string[];
 
   @ApiProperty({ example: ['https://example.com/video1.mp4'] })
@@ -280,24 +293,24 @@ export class ProductStatisticsDto {
   @ApiProperty({ example: 450 })
   productsWithVariants: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     type: 'object',
     additionalProperties: true,
-    example: { 'cat_electronics': 450, 'cat_clothing': 320 }
+    example: { cat_electronics: 450, cat_clothing: 320 },
   })
   productsByCategory: Record<string, number>;
 
-  @ApiProperty({ 
+  @ApiProperty({
     type: 'object',
     additionalProperties: true,
-    example: { 'brand_apple': 125, 'brand_samsung': 98 }
+    example: { brand_apple: 125, brand_samsung: 98 },
   })
   productsByBrand: Record<string, number>;
 
-  @ApiProperty({ 
+  @ApiProperty({
     type: 'object',
     additionalProperties: true,
-    example: { 'seller_123': 45, 'seller_456': 32 }
+    example: { seller_123: 45, seller_456: 32 },
   })
   productsBySeller: Record<string, number>;
 
@@ -318,7 +331,9 @@ export class ProductValidationResultDto {
   @ApiProperty({ example: [] })
   warnings: string[];
 
-  @ApiProperty({ example: ['Add more product images', 'Improve SEO description'] })
+  @ApiProperty({
+    example: ['Add more product images', 'Improve SEO description'],
+  })
   recommendations: string[];
 
   @ApiPropertyOptional({ example: 'Product meets quality standards' })

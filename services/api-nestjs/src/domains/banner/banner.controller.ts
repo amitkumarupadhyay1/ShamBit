@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { BannerService } from './banner.service';
 import { CampaignService } from './campaign.service';
@@ -71,10 +76,7 @@ export class BannerController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update banner' })
-  async updateBanner(
-    @Param('id') id: string,
-    @Body() updateBannerDto: any,
-  ) {
+  async updateBanner(@Param('id') id: string, @Body() updateBannerDto: any) {
     return this.bannerService.updateBanner(id, updateBannerDto);
   }
 

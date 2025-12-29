@@ -14,9 +14,11 @@ export interface NotificationTemplate {
 export class NotificationTemplateService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async getTemplate(type: NotificationType): Promise<NotificationTemplate | null> {
+  async getTemplate(
+    type: NotificationType,
+  ): Promise<NotificationTemplate | null> {
     const template = await this.prisma.notificationTemplate.findFirst({
-      where: { 
+      where: {
         type,
         isActive: true,
       },
@@ -31,22 +33,27 @@ export class NotificationTemplateService {
       type: template.type as NotificationType,
       title: template.title,
       message: template.message,
-      variables: template.variables as string[],
+      variables: template.variables,
     };
   }
 
   private getDefaultTemplate(type: NotificationType): NotificationTemplate {
-    const templates: Record<NotificationType, Omit<NotificationTemplate, 'id'>> = {
+    const templates: Record<
+      NotificationType,
+      Omit<NotificationTemplate, 'id'>
+    > = {
       [NotificationType.ORDER_CONFIRMATION]: {
         type: NotificationType.ORDER_CONFIRMATION,
         title: 'Order Confirmed',
-        message: 'Your order {{orderNumber}} has been confirmed and is being processed.',
+        message:
+          'Your order {{orderNumber}} has been confirmed and is being processed.',
         variables: ['orderNumber', 'customerName', 'totalAmount'],
       },
       [NotificationType.ORDER_SHIPPED]: {
         type: NotificationType.ORDER_SHIPPED,
         title: 'Order Shipped',
-        message: 'Your order {{orderNumber}} has been shipped. Track your package with {{trackingNumber}}.',
+        message:
+          'Your order {{orderNumber}} has been shipped. Track your package with {{trackingNumber}}.',
         variables: ['orderNumber', 'trackingNumber', 'customerName'],
       },
       [NotificationType.ORDER_DELIVERED]: {
@@ -64,7 +71,8 @@ export class NotificationTemplateService {
       [NotificationType.PAYMENT_SUCCESS]: {
         type: NotificationType.PAYMENT_SUCCESS,
         title: 'Payment Successful',
-        message: 'Payment of {{amount}} for order {{orderNumber}} was successful.',
+        message:
+          'Payment of {{amount}} for order {{orderNumber}} was successful.',
         variables: ['amount', 'orderNumber', 'customerName'],
       },
       [NotificationType.PAYMENT_FAILED]: {
@@ -76,7 +84,8 @@ export class NotificationTemplateService {
       [NotificationType.PRODUCT_APPROVED]: {
         type: NotificationType.PRODUCT_APPROVED,
         title: 'Product Approved',
-        message: 'Your product "{{productName}}" has been approved and is now live.',
+        message:
+          'Your product "{{productName}}" has been approved and is now live.',
         variables: ['productName', 'sellerName'],
       },
       [NotificationType.PRODUCT_REJECTED]: {
@@ -88,7 +97,8 @@ export class NotificationTemplateService {
       [NotificationType.LOW_STOCK_ALERT]: {
         type: NotificationType.LOW_STOCK_ALERT,
         title: 'Low Stock Alert',
-        message: 'Product "{{productName}}" is running low on stock ({{currentStock}} remaining).',
+        message:
+          'Product "{{productName}}" is running low on stock ({{currentStock}} remaining).',
         variables: ['productName', 'currentStock', 'sellerName'],
       },
       [NotificationType.SELLER_APPLICATION_APPROVED]: {
@@ -112,7 +122,8 @@ export class NotificationTemplateService {
       [NotificationType.SYSTEM_MAINTENANCE]: {
         type: NotificationType.SYSTEM_MAINTENANCE,
         title: 'System Maintenance',
-        message: 'System maintenance scheduled from {{startTime}} to {{endTime}}.',
+        message:
+          'System maintenance scheduled from {{startTime}} to {{endTime}}.',
         variables: ['startTime', 'endTime', 'description'],
       },
     };
@@ -123,7 +134,10 @@ export class NotificationTemplateService {
     };
   }
 
-  renderTemplate(template: NotificationTemplate, variables: Record<string, any>): { title: string; message: string } {
+  renderTemplate(
+    template: NotificationTemplate,
+    variables: Record<string, any>,
+  ): { title: string; message: string } {
     let title = template.title;
     let message = template.message;
 

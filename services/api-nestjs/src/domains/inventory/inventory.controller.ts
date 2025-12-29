@@ -9,9 +9,18 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
-import { InventoryService, StockUpdateDto, StockReservationDto } from './inventory.service';
+import {
+  InventoryService,
+  StockUpdateDto,
+  StockReservationDto,
+} from './inventory.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../../common/decorators';
@@ -37,7 +46,7 @@ export class InventoryController {
     if (!userRoles.includes(UserRole.ADMIN) && userId !== sellerId) {
       throw new Error('Access denied');
     }
-    
+
     return this.inventoryService.getInventory(variantId, sellerId);
   }
 
@@ -48,7 +57,13 @@ export class InventoryController {
   async updateStock(
     @Param('variantId') variantId: string,
     @Param('sellerId') sellerId: string,
-    @Body() body: { quantity: number; reason: string; referenceId?: string; referenceType?: string },
+    @Body()
+    body: {
+      quantity: number;
+      reason: string;
+      referenceId?: string;
+      referenceType?: string;
+    },
     @CurrentUser('id') userId: string,
     @CurrentUser('roles') userRoles: UserRole[],
   ) {

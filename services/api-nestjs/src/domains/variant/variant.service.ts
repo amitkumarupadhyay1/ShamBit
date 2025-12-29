@@ -19,7 +19,10 @@ import { VariantPolicies } from './variant.policies.js';
 import { VariantValidators } from './variant.validators';
 
 import { CreateVariantDto } from './dtos/create-variant.dto';
-import { UpdateVariantDto, VariantStatusUpdateDto } from './dtos/update-variant.dto.js';
+import {
+  UpdateVariantDto,
+  VariantStatusUpdateDto,
+} from './dtos/update-variant.dto.js';
 import { GenerateVariantsDto } from './dtos/generate-variants.dto.js';
 
 import {
@@ -62,21 +65,29 @@ export class VariantService {
     pagination: PaginationOptions = {},
     includes: VariantIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     this.logger.log('VariantService.findAll', { filters, pagination, userId });
 
     // Apply access control filters
-    const enhancedFilters = await this.applyAccessFilters(filters, userId, userRole);
+    const enhancedFilters = await this.applyAccessFilters(
+      filters,
+      userId,
+      userRole,
+    );
 
-    return this.variantRepository.findAll(enhancedFilters, pagination, includes);
+    return this.variantRepository.findAll(
+      enhancedFilters,
+      pagination,
+      includes,
+    );
   }
 
   async findById(
     id: string,
     includes: VariantIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<ProductVariant> {
     const variant = await this.variantRepository.findById(id, includes);
     if (!variant) {
@@ -89,7 +100,10 @@ export class VariantService {
     return variant;
   }
 
-  async findBySku(sku: string, includes: VariantIncludeOptions = {}): Promise<ProductVariant> {
+  async findBySku(
+    sku: string,
+    includes: VariantIncludeOptions = {},
+  ): Promise<ProductVariant> {
     const variant = await this.variantRepository.findBySku(sku, includes);
     if (!variant) {
       throw new NotFoundException('Variant not found');
@@ -101,16 +115,24 @@ export class VariantService {
     productId: string,
     filters: VariantFilters = {},
     pagination: PaginationOptions = {},
-    includes: VariantIncludeOptions = {}
+    includes: VariantIncludeOptions = {},
   ) {
-    return this.variantRepository.findByProduct(productId, filters, pagination, includes);
+    return this.variantRepository.findByProduct(
+      productId,
+      filters,
+      pagination,
+      includes,
+    );
   }
 
   // ============================================================================
   // VARIANT CREATION
   // ============================================================================
 
-  async create(createVariantDto: CreateVariantDto, createdBy: string): Promise<ProductVariant> {
+  async create(
+    createVariantDto: CreateVariantDto,
+    createdBy: string,
+  ): Promise<ProductVariant> {
     this.logger.log('VariantService.create', { createVariantDto, createdBy });
 
     // Validate product exists and user has access
@@ -119,15 +141,17 @@ export class VariantService {
     // Validate attribute combination
     await this.validateAttributeCombination(
       createVariantDto.productId,
-      createVariantDto.attributeValues
+      createVariantDto.attributeValues,
     );
 
     // Generate SKU if not provided
-    const sku = createVariantDto.sku || await this.skuGeneratorService.generateSku({
-      sellerId: createdBy, // Assuming createdBy is sellerId
-      productId: createVariantDto.productId,
-      attributeValues: createVariantDto.attributeValues,
-    });
+    const sku =
+      createVariantDto.sku ||
+      (await this.skuGeneratorService.generateSku({
+        sellerId: createdBy, // Assuming createdBy is sellerId
+        productId: createVariantDto.productId,
+        attributeValues: createVariantDto.attributeValues,
+      }));
 
     // Create variant
     const variant = await this.variantRepository.create({
@@ -144,18 +168,24 @@ export class VariantService {
       createdBy,
       null,
       variant,
-      'Variant created'
+      'Variant created',
     );
 
     // Emit event
-    this.eventEmitter.emit('variant.created', new VariantCreatedEvent(
-      variant.id,
-      variant.sku,
-      variant.productId,
-      createdBy
-    ));
+    this.eventEmitter.emit(
+      'variant.created',
+      new VariantCreatedEvent(
+        variant.id,
+        variant.sku,
+        variant.productId,
+        createdBy,
+      ),
+    );
 
-    this.logger.log('Variant created successfully', { variantId: variant.id, sku: variant.sku });
+    this.logger.log('Variant created successfully', {
+      variantId: variant.id,
+      sku: variant.sku,
+    });
     return variant;
   }
 
@@ -165,9 +195,17 @@ export class VariantService {
 
   async generateVariants(
     generateVariantsDto: GenerateVariantsDto,
-    createdBy: string
-  ): Promise<{ created: number; updated: number; skipped: number; errors: string[] }> {
-    this.logger.log('VariantService.generateVariants', { generateVariantsDto, createdBy });
+    createdBy: string,
+  ): Promise<{
+    created: number;
+    updated: number;
+    skipped: number;
+    errors: string[];
+  }> {
+    this.logger.log('VariantService.generateVariants', {
+      generateVariantsDto,
+      createdBy,
+    });
 
     const { productId, attributeOptions, options = {} } = generateVariantsDto;
 
@@ -175,7 +213,7 @@ export class VariantService {
     await this.validateProductAccess(productId, createdBy);
 
     // Ensure attributeOptions include `attributeName` required by the combinator
-    const combinatorAttributeOptions = attributeOptions.map(a => ({
+    const combinatorAttributeOptions = attributeOptions.map((a) => ({
       attributeId: a.attributeId,
       attributeName: (a as any).attributeName || a.attributeId,
       values: a.values,
@@ -184,7 +222,7 @@ export class VariantService {
     // Generate combinations
     const combinations = this.variantCombinatorService.generateCombinations(
       combinatorAttributeOptions,
-      options
+      options,
     );
 
     if (combinations.length === 0) {
@@ -195,18 +233,21 @@ export class VariantService {
     const maxVariants = options.maxCombinations || 1000;
     if (combinations.length > maxVariants) {
       throw new BadRequestException(
-        `Too many combinations (${combinations.length}). Maximum allowed: ${maxVariants}`
+        `Too many combinations (${combinations.length}). Maximum allowed: ${maxVariants}`,
       );
     }
 
     // Get existing variants for this product
-    const existingVariants = await this.variantRepository.findByProduct(productId);
+    const existingVariants =
+      await this.variantRepository.findByProduct(productId);
     const existingCombinations = new Set(
-      existingVariants.data.map(v => 
+      existingVariants.data.map((v) =>
         this.variantCombinatorService.generateCombinationHash(
-          v.getAttributeValuesByType(attributeOptions.map(a => a.attributeId))
-        )
-      )
+          v.getAttributeValuesByType(
+            attributeOptions.map((a) => a.attributeId),
+          ),
+        ),
+      ),
     );
 
     const results = {
@@ -242,7 +283,9 @@ export class VariantService {
 
         results.created++;
       } catch (error) {
-        results.errors.push(`Combination ${combination.hash}: ${error.message}`);
+        results.errors.push(
+          `Combination ${combination.hash}: ${error.message}`,
+        );
       }
     }
 
@@ -253,17 +296,20 @@ export class VariantService {
       createdBy,
       null,
       results,
-      `Generated ${results.created} variants`
+      `Generated ${results.created} variants`,
     );
 
     // Emit event
-    this.eventEmitter.emit('variant.bulk.generated', new VariantBulkGeneratedEvent(
-      productId,
-      results.created,
-      results.updated,
-      results.skipped,
-      createdBy
-    ));
+    this.eventEmitter.emit(
+      'variant.bulk.generated',
+      new VariantBulkGeneratedEvent(
+        productId,
+        results.created,
+        results.updated,
+        results.skipped,
+        createdBy,
+      ),
+    );
 
     this.logger.log('Variant generation completed', { productId, results });
     return results;
@@ -276,9 +322,13 @@ export class VariantService {
   async update(
     id: string,
     updateVariantDto: UpdateVariantDto,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<ProductVariant> {
-    this.logger.log('VariantService.update', { id, updateVariantDto, updatedBy });
+    this.logger.log('VariantService.update', {
+      id,
+      updateVariantDto,
+      updatedBy,
+    });
 
     const existingVariant = await this.findById(id);
 
@@ -290,7 +340,9 @@ export class VariantService {
 
     // Handle SKU changes
     if (updateVariantDto.sku && updateVariantDto.sku !== existingVariant.sku) {
-      await this.skuGeneratorService.validateSkuUniqueness(updateVariantDto.sku);
+      await this.skuGeneratorService.validateSkuUniqueness(
+        updateVariantDto.sku,
+      );
     }
 
     // Update variant
@@ -306,17 +358,20 @@ export class VariantService {
       updatedBy,
       existingVariant,
       updatedVariant,
-      'Variant updated'
+      'Variant updated',
     );
 
     // Emit event
-    this.eventEmitter.emit('variant.updated', new VariantUpdatedEvent(
-      id,
-      updatedVariant.sku,
-      updatedVariant.productId,
-      this.calculateChanges(existingVariant, updatedVariant),
-      updatedBy
-    ));
+    this.eventEmitter.emit(
+      'variant.updated',
+      new VariantUpdatedEvent(
+        id,
+        updatedVariant.sku,
+        updatedVariant.productId,
+        this.calculateChanges(existingVariant, updatedVariant),
+        updatedBy,
+      ),
+    );
 
     this.logger.log('Variant updated successfully', { variantId: id });
     return updatedVariant;
@@ -329,9 +384,13 @@ export class VariantService {
   async updateStatus(
     id: string,
     statusUpdate: VariantStatusUpdateDto,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<ProductVariant> {
-    this.logger.log('VariantService.updateStatus', { id, statusUpdate, updatedBy });
+    this.logger.log('VariantService.updateStatus', {
+      id,
+      statusUpdate,
+      updatedBy,
+    });
 
     const variant = await this.findById(id);
 
@@ -339,7 +398,10 @@ export class VariantService {
     await this.checkVariantAccess(variant, updatedBy);
 
     // Validate status transition
-    VariantValidators.validateStatusTransition(variant.status, statusUpdate.status);
+    VariantValidators.validateStatusTransition(
+      variant.status,
+      statusUpdate.status,
+    );
 
     // Apply business rules for status changes
     await this.validateStatusChange(variant, statusUpdate.status);
@@ -348,7 +410,7 @@ export class VariantService {
     const updatedVariant = await this.variantRepository.updateStatus(
       id,
       statusUpdate.status,
-      updatedBy
+      updatedBy,
     );
 
     // Create audit log
@@ -358,7 +420,7 @@ export class VariantService {
       updatedBy,
       { status: variant.status },
       { status: statusUpdate.status },
-      statusUpdate.reason || 'Status changed'
+      statusUpdate.reason || 'Status changed',
     );
 
     // Emit status-specific events
@@ -377,12 +439,28 @@ export class VariantService {
     return this.updateStatus(id, { status: VariantStatus.ACTIVE }, activatedBy);
   }
 
-  async disable(id: string, disabledBy: string, reason?: string): Promise<ProductVariant> {
-    return this.updateStatus(id, { status: VariantStatus.DISABLED, reason }, disabledBy);
+  async disable(
+    id: string,
+    disabledBy: string,
+    reason?: string,
+  ): Promise<ProductVariant> {
+    return this.updateStatus(
+      id,
+      { status: VariantStatus.DISABLED, reason },
+      disabledBy,
+    );
   }
 
-  async archive(id: string, archivedBy: string, reason?: string): Promise<ProductVariant> {
-    return this.updateStatus(id, { status: VariantStatus.ARCHIVED, reason }, archivedBy);
+  async archive(
+    id: string,
+    archivedBy: string,
+    reason?: string,
+  ): Promise<ProductVariant> {
+    return this.updateStatus(
+      id,
+      { status: VariantStatus.ARCHIVED, reason },
+      archivedBy,
+    );
   }
 
   // ============================================================================
@@ -410,17 +488,20 @@ export class VariantService {
       deletedBy,
       variant,
       null,
-      reason || 'Variant deleted'
+      reason || 'Variant deleted',
     );
 
     // Emit event
-    this.eventEmitter.emit('variant.deleted', new VariantDeletedEvent(
-      id,
-      variant.sku,
-      variant.productId,
-      deletedBy,
-      reason
-    ));
+    this.eventEmitter.emit(
+      'variant.deleted',
+      new VariantDeletedEvent(
+        id,
+        variant.sku,
+        variant.productId,
+        deletedBy,
+        reason,
+      ),
+    );
 
     this.logger.log('Variant deleted successfully', { variantId: id });
   }
@@ -431,7 +512,7 @@ export class VariantService {
 
   async bulkUpdate(
     operation: BulkVariantOperation,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<{ updated: number; errors: string[] }> {
     this.logger.log('VariantService.bulkUpdate', { operation, updatedBy });
 
@@ -457,7 +538,7 @@ export class VariantService {
   private async applyAccessFilters(
     filters: VariantFilters,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<VariantFilters> {
     // Apply role-based filtering
     if (userRole === UserRole.SELLER) {
@@ -471,36 +552,42 @@ export class VariantService {
   private async checkVariantAccess(
     variant: ProductVariant,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<void> {
     if (!VariantPolicies.canAccess(variant, userId, userRole)) {
       throw new ForbiddenException('Access denied to this variant');
     }
   }
 
-  private async validateProductAccess(productId: string, userId: string): Promise<void> {
+  private async validateProductAccess(
+    productId: string,
+    userId: string,
+  ): Promise<void> {
     // This would typically check if the user owns the product or has permission
     // Implementation depends on your product access control logic
   }
 
   private async validateAttributeCombination(
     productId: string,
-    attributeValues: Record<string, string>
+    attributeValues: Record<string, string>,
   ): Promise<void> {
     // Check if combination already exists
-    const existingVariant = await this.variantRepository.findByAttributeCombination(
-      productId,
-      attributeValues
-    );
+    const existingVariant =
+      await this.variantRepository.findByAttributeCombination(
+        productId,
+        attributeValues,
+      );
 
     if (existingVariant) {
-      throw new ConflictException('Variant with this attribute combination already exists');
+      throw new ConflictException(
+        'Variant with this attribute combination already exists',
+      );
     }
   }
 
   private async validateVariantUpdate(
     existingVariant: ProductVariant,
-    updateDto: UpdateVariantDto
+    updateDto: UpdateVariantDto,
   ): Promise<void> {
     // Validate business rules for updates
     if (existingVariant.status === VariantStatus.ARCHIVED) {
@@ -510,7 +597,7 @@ export class VariantService {
 
   private async validateStatusChange(
     variant: ProductVariant,
-    newStatus: VariantStatus
+    newStatus: VariantStatus,
   ): Promise<void> {
     // Additional business rule validations for status changes
     if (newStatus === VariantStatus.ACTIVE) {
@@ -519,7 +606,9 @@ export class VariantService {
     }
   }
 
-  private async validateVariantDeletion(variant: ProductVariant): Promise<void> {
+  private async validateVariantDeletion(
+    variant: ProductVariant,
+  ): Promise<void> {
     // Check if variant has inventory
     // Check if variant has pending orders
     // Check if variant can be deleted based on business rules
@@ -527,12 +616,18 @@ export class VariantService {
 
   private calculateChanges(
     oldVariant: ProductVariant,
-    newVariant: ProductVariant
+    newVariant: ProductVariant,
   ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     // Compare relevant fields
-    const fieldsToCompare = ['sku', 'status', 'priceOverride', 'images', 'metadata'];
+    const fieldsToCompare = [
+      'sku',
+      'status',
+      'priceOverride',
+      'images',
+      'metadata',
+    ];
 
     for (const field of fieldsToCompare) {
       const oldValue = (oldVariant as any)[field];
@@ -549,45 +644,57 @@ export class VariantService {
   private emitStatusChangeEvent(
     variant: ProductVariant,
     oldStatus: VariantStatus,
-    updatedBy: string
+    updatedBy: string,
   ): void {
     // Emit generic status change event
-    this.eventEmitter.emit('variant.status.changed', new VariantStatusChangedEvent(
-      variant.id,
-      variant.sku,
-      variant.productId,
-      oldStatus,
-      variant.status,
-      updatedBy
-    ));
+    this.eventEmitter.emit(
+      'variant.status.changed',
+      new VariantStatusChangedEvent(
+        variant.id,
+        variant.sku,
+        variant.productId,
+        oldStatus,
+        variant.status,
+        updatedBy,
+      ),
+    );
 
     // Emit specific status events
     switch (variant.status) {
       case VariantStatus.ACTIVE:
-        this.eventEmitter.emit('variant.activated', new VariantActivatedEvent(
-          variant.id,
-          variant.sku,
-          variant.productId,
-          updatedBy
-        ));
+        this.eventEmitter.emit(
+          'variant.activated',
+          new VariantActivatedEvent(
+            variant.id,
+            variant.sku,
+            variant.productId,
+            updatedBy,
+          ),
+        );
         break;
 
       case VariantStatus.DISABLED:
-        this.eventEmitter.emit('variant.disabled', new VariantDisabledEvent(
-          variant.id,
-          variant.sku,
-          variant.productId,
-          updatedBy
-        ));
+        this.eventEmitter.emit(
+          'variant.disabled',
+          new VariantDisabledEvent(
+            variant.id,
+            variant.sku,
+            variant.productId,
+            updatedBy,
+          ),
+        );
         break;
 
       case VariantStatus.ARCHIVED:
-        this.eventEmitter.emit('variant.archived', new VariantArchivedEvent(
-          variant.id,
-          variant.sku,
-          variant.productId,
-          updatedBy
-        ));
+        this.eventEmitter.emit(
+          'variant.archived',
+          new VariantArchivedEvent(
+            variant.id,
+            variant.sku,
+            variant.productId,
+            updatedBy,
+          ),
+        );
         break;
     }
   }

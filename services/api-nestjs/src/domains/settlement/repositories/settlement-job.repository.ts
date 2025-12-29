@@ -23,7 +23,10 @@ export class SettlementJobRepository {
     } as SettlementJob;
   }
 
-  async update(id: string, data: Partial<SettlementJob>): Promise<SettlementJob> {
+  async update(
+    id: string,
+    data: Partial<SettlementJob>,
+  ): Promise<SettlementJob> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return {
@@ -45,19 +48,29 @@ export class SettlementJobRepository {
     return [];
   }
 
-  async findByGatewaySettlementId(gatewaySettlementId: string): Promise<SettlementJob | null> {
+  async findByGatewaySettlementId(
+    gatewaySettlementId: string,
+  ): Promise<SettlementJob | null> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return null;
   }
 
-  async findByType(type: string, status?: string, limit: number = 50): Promise<SettlementJob[]> {
+  async findByType(
+    type: string,
+    status?: string,
+    limit: number = 50,
+  ): Promise<SettlementJob[]> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return [];
   }
 
-  async findBySeller(sellerId: string, status?: string, limit: number = 50): Promise<SettlementJob[]> {
+  async findBySeller(
+    sellerId: string,
+    status?: string,
+    limit: number = 50,
+  ): Promise<SettlementJob[]> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return [];

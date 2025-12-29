@@ -47,7 +47,9 @@ export class BrandOwnershipGuard implements CanActivate {
         }
       }
 
-      throw new ForbiddenException('Insufficient permissions to access this brand');
+      throw new ForbiddenException(
+        'Insufficient permissions to access this brand',
+      );
     } catch (error) {
       if (error instanceof NotFoundException) {
         throw error;

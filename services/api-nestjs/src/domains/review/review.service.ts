@@ -64,7 +64,10 @@ export class ReviewService {
     private readonly logger: LoggerService,
   ) {}
 
-  async createReview(createReviewDto: CreateReviewDto, userId: string): Promise<Review> {
+  async createReview(
+    createReviewDto: CreateReviewDto,
+    userId: string,
+  ): Promise<Review> {
     this.logger.log('ReviewService.createReview', { createReviewDto, userId });
 
     // Validate rating
@@ -143,7 +146,7 @@ export class ReviewService {
   async findById(id: string): Promise<Review | null> {
     const review = await this.reviewRepository.findById(id);
     if (!review) return null;
-    
+
     return {
       ...review,
       type: review.type as ReviewType,
@@ -175,8 +178,18 @@ export class ReviewService {
     return this.moderationService.getPendingReviews(query);
   }
 
-  async moderateReview(reviewId: string, status: string, moderatorId: string, reason?: string) {
-    return this.moderationService.moderateReview(reviewId, status, moderatorId, reason);
+  async moderateReview(
+    reviewId: string,
+    status: string,
+    moderatorId: string,
+    reason?: string,
+  ) {
+    return this.moderationService.moderateReview(
+      reviewId,
+      status,
+      moderatorId,
+      reason,
+    );
   }
 
   private async verifyPurchase(

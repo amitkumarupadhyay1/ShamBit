@@ -1,4 +1,7 @@
-import { PaymentMethod, PaymentGatewayProvider } from '../enums/payment-status.enum';
+import {
+  PaymentMethod,
+  PaymentGatewayProvider,
+} from '../enums/payment-status.enum';
 
 // Gateway Response Types
 export interface GatewayResponse<T = any> {
@@ -24,7 +27,7 @@ export interface CreatePaymentIntentRequest {
   captureMethod?: 'AUTOMATIC' | 'MANUAL';
   description?: string;
   metadata?: Record<string, any>;
-  
+
   // Multi-seller support
   applicationFee?: number;
   transferGroup?: string;
@@ -112,7 +115,7 @@ export interface GatewayConfig {
   webhookSecret: string;
   environment: 'SANDBOX' | 'PRODUCTION';
   apiVersion?: string;
-  
+
   // Gateway-specific configuration
   additionalConfig?: Record<string, any>;
 }
@@ -120,34 +123,43 @@ export interface GatewayConfig {
 // Main Gateway Interface
 export interface IPaymentGateway {
   readonly provider: PaymentGatewayProvider;
-  
+
   // Configuration
   configure(config: GatewayConfig): Promise<void>;
   isConfigured(): boolean;
-  
+
   // Payment Intent Operations
-  createPaymentIntent(request: CreatePaymentIntentRequest): Promise<GatewayResponse<CreatePaymentIntentResponse>>;
+  createPaymentIntent(
+    request: CreatePaymentIntentRequest,
+  ): Promise<GatewayResponse<CreatePaymentIntentResponse>>;
   retrievePaymentIntent(intentId: string): Promise<GatewayResponse<any>>;
-  confirmPaymentIntent(request: ConfirmPaymentIntentRequest): Promise<GatewayResponse<ConfirmPaymentIntentResponse>>;
+  confirmPaymentIntent(
+    request: ConfirmPaymentIntentRequest,
+  ): Promise<GatewayResponse<ConfirmPaymentIntentResponse>>;
   cancelPaymentIntent(intentId: string): Promise<GatewayResponse<any>>;
-  
+
   // Transaction Operations
-  capturePayment(intentId: string, amount?: number): Promise<GatewayResponse<any>>;
-  
+  capturePayment(
+    intentId: string,
+    amount?: number,
+  ): Promise<GatewayResponse<any>>;
+
   // Refund Operations
-  createRefund(request: CreateRefundRequest): Promise<GatewayResponse<CreateRefundResponse>>;
+  createRefund(
+    request: CreateRefundRequest,
+  ): Promise<GatewayResponse<CreateRefundResponse>>;
   retrieveRefund(refundId: string): Promise<GatewayResponse<any>>;
-  
+
   // Webhook Operations
   verifyWebhook(request: WebhookVerificationRequest): Promise<boolean>;
   parseWebhook(payload: string): Promise<WebhookEvent>;
-  
+
   // Utility Methods
   getSupportedPaymentMethods(): PaymentMethod[];
   getSupportedCurrencies(): string[];
   getMinimumAmount(currency: string): number;
   getMaximumAmount(currency: string): number;
-  
+
   // Error Handling
   mapError(error: any): {
     code: string;

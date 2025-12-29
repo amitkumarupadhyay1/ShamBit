@@ -33,7 +33,9 @@ export class PaymentAuditService {
       // TODO: Implement audit trail retrieval once PaymentAuditLog model is available
       return [];
     } catch (error) {
-      this.logger.error('Failed to get payment audit trail', error, { paymentIntentId });
+      this.logger.error('Failed to get payment audit trail', error, {
+        paymentIntentId,
+      });
       return [];
     }
   }

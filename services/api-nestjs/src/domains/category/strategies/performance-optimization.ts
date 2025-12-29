@@ -2,36 +2,49 @@
 // Enterprise-grade performance patterns and caching strategies
 
 export class CategoryPerformanceOptimization {
-  
   // 1. Database Index Recommendations
   static readonly RECOMMENDED_INDEXES = {
     // Primary indexes for tree operations
-    categories_parent_id: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_parent_id ON categories(parent_id) WHERE deleted_at IS NULL;',
-    categories_path: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path ON categories USING btree(path) WHERE deleted_at IS NULL;',
-    categories_path_ids: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path_ids ON categories USING gin(path_ids) WHERE deleted_at IS NULL;',
-    
+    categories_parent_id:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_parent_id ON categories(parent_id) WHERE deleted_at IS NULL;',
+    categories_path:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path ON categories USING btree(path) WHERE deleted_at IS NULL;',
+    categories_path_ids:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path_ids ON categories USING gin(path_ids) WHERE deleted_at IS NULL;',
+
     // Status and visibility indexes
-    categories_status_visibility: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_status_visibility ON categories(status, visibility) WHERE deleted_at IS NULL;',
-    categories_active_leaf: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_active_leaf ON categories(is_leaf) WHERE status = \'ACTIVE\' AND deleted_at IS NULL;',
-    
+    categories_status_visibility:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_status_visibility ON categories(status, visibility) WHERE deleted_at IS NULL;',
+    categories_active_leaf:
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_active_leaf ON categories(is_leaf) WHERE status = 'ACTIVE' AND deleted_at IS NULL;",
+
     // Performance indexes for common queries
-    categories_depth_status: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_depth_status ON categories(depth, status) WHERE deleted_at IS NULL;',
-    categories_featured: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_featured ON categories(is_featured, display_order) WHERE status = \'ACTIVE\' AND deleted_at IS NULL;',
-    
+    categories_depth_status:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_depth_status ON categories(depth, status) WHERE deleted_at IS NULL;',
+    categories_featured:
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_featured ON categories(is_featured, display_order) WHERE status = 'ACTIVE' AND deleted_at IS NULL;",
+
     // Composite indexes for complex queries
-    categories_parent_order: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_parent_order ON categories(parent_id, display_order) WHERE deleted_at IS NULL;',
-    categories_path_status: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path_status ON categories(path, status) WHERE deleted_at IS NULL;',
-    
+    categories_parent_order:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_parent_order ON categories(parent_id, display_order) WHERE deleted_at IS NULL;',
+    categories_path_status:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_path_status ON categories(path, status) WHERE deleted_at IS NULL;',
+
     // Multi-tenant indexes (if using tenancy)
-    categories_tenant_status: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_tenant_status ON categories(tenant_id, status, visibility) WHERE deleted_at IS NULL;',
-    
+    categories_tenant_status:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_tenant_status ON categories(tenant_id, status, visibility) WHERE deleted_at IS NULL;',
+
     // Audit and versioning indexes
-    categories_version: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_version ON categories(version);',
-    audit_logs_category_action: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_category_action ON category_audit_logs(category_id, action, created_at);',
-    audit_logs_batch: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_batch ON category_audit_logs(batch_id) WHERE batch_id IS NOT NULL;',
-    
+    categories_version:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_categories_version ON categories(version);',
+    audit_logs_category_action:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_category_action ON category_audit_logs(category_id, action, created_at);',
+    audit_logs_batch:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_audit_logs_batch ON category_audit_logs(batch_id) WHERE batch_id IS NOT NULL;',
+
     // Product relationship indexes
-    products_category_path: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_category_path ON products USING gin(category_path_ids) WHERE deleted_at IS NULL;',
+    products_category_path:
+      'CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_products_category_path ON products USING gin(category_path_ids) WHERE deleted_at IS NULL;',
   };
 
   // 2. Materialized View for High-Performance Queries
@@ -153,7 +166,7 @@ export class CategoryPerformanceOptimization {
         AND depth <= $2
       ORDER BY depth, display_order;
     `,
-    
+
     // Get leaf categories for product assignment
     GET_LEAF_CATEGORIES: `
       SELECT id, name, slug, path
@@ -164,7 +177,7 @@ export class CategoryPerformanceOptimization {
         AND ($1::uuid IS NULL OR $1 = ANY(path_ids))
       ORDER BY path;
     `,
-    
+
     // Get category with ancestors (breadcrumb)
     GET_WITH_ANCESTORS: `
       WITH category_data AS (
@@ -178,7 +191,7 @@ export class CategoryPerformanceOptimization {
         AND c.deleted_at IS NULL
       ORDER BY c.depth;
     `,
-    
+
     // Efficient subtree query with product counts
     GET_SUBTREE_WITH_COUNTS: `
       SELECT 
@@ -225,7 +238,7 @@ export class CategoryPerformanceOptimization {
       FROM category_stats
       WHERE categories.id = category_stats.id;
     `,
-    
+
     // Batch path updates for reparenting
     UPDATE_PATHS_BATCH: `
       UPDATE categories 
@@ -267,7 +280,7 @@ export class CategoryPerformanceOptimization {
       ORDER BY mean_time DESC 
       LIMIT 10;
     `,
-    
+
     // Monitor tree depth distribution
     TREE_DEPTH_DISTRIBUTION: `
       SELECT depth, COUNT(*) as category_count
@@ -276,7 +289,7 @@ export class CategoryPerformanceOptimization {
       GROUP BY depth 
       ORDER BY depth;
     `,
-    
+
     // Monitor large subtrees
     LARGE_SUBTREES: `
       SELECT id, name, path, descendant_count
@@ -285,7 +298,7 @@ export class CategoryPerformanceOptimization {
         AND deleted_at IS NULL
       ORDER BY descendant_count DESC;
     `,
-    
+
     // Monitor orphaned categories
     ORPHANED_CATEGORIES: `
       SELECT c.id, c.name, c.path
@@ -300,11 +313,14 @@ export class CategoryPerformanceOptimization {
   // 9. Migration Scripts for Performance Optimization
   static readonly MIGRATION_SCRIPTS = {
     // Add missing indexes
-    ADD_PERFORMANCE_INDEXES: Object.values(CategoryPerformanceOptimization.RECOMMENDED_INDEXES).join('\n'),
-    
+    ADD_PERFORMANCE_INDEXES: Object.values(
+      CategoryPerformanceOptimization.RECOMMENDED_INDEXES,
+    ).join('\n'),
+
     // Create materialized view
-    CREATE_MATERIALIZED_VIEW: CategoryPerformanceOptimization.MATERIALIZED_VIEW_SQL,
-    
+    CREATE_MATERIALIZED_VIEW:
+      CategoryPerformanceOptimization.MATERIALIZED_VIEW_SQL,
+
     // Update existing data for performance
     UPDATE_EXISTING_DATA: `
       -- Update path_ids for existing categories
@@ -340,7 +356,7 @@ export class CategoryPerformanceOptimization {
         AND deleted_at IS NULL
       ORDER BY depth, display_order;
     `,
-    
+
     // Test ancestor lookup performance
     ANCESTOR_LOOKUP_TEST: `
       EXPLAIN (ANALYZE, BUFFERS)
@@ -350,7 +366,7 @@ export class CategoryPerformanceOptimization {
       ))
       ORDER BY depth;
     `,
-    
+
     // Test search performance
     SEARCH_PERFORMANCE_TEST: `
       EXPLAIN (ANALYZE, BUFFERS)

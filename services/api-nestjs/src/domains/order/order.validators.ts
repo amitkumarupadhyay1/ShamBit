@@ -3,11 +3,11 @@ export class OrderValidators {
     if (value < 0) {
       throw new Error(`${fieldName} cannot be negative`);
     }
-    
+
     if (!Number.isFinite(value)) {
       throw new Error(`${fieldName} must be a valid number`);
     }
-    
+
     // Check for reasonable precision (2 decimal places for currency)
     const decimalPlaces = (value.toString().split('.')[1] || '').length;
     if (decimalPlaces > 2) {
@@ -19,16 +19,22 @@ export class OrderValidators {
     // Prevent changes to critical fields after order is confirmed
     if (existingOrder.status !== 'PENDING') {
       const immutableFields = ['customerId', 'items', 'totalAmount'];
-      
+
       for (const field of immutableFields) {
-        if (updateData[field] !== undefined && updateData[field] !== existingOrder[field]) {
+        if (
+          updateData[field] !== undefined &&
+          updateData[field] !== existingOrder[field]
+        ) {
           throw new Error(`Cannot modify ${field} after order is confirmed`);
         }
       }
     }
   }
 
-  static validateCurrencyImmutability(existingOrder: any, newCurrency?: string): void {
+  static validateCurrencyImmutability(
+    existingOrder: any,
+    newCurrency?: string,
+  ): void {
     if (newCurrency && newCurrency !== existingOrder.currency) {
       throw new Error('Cannot change order currency after creation');
     }
@@ -36,22 +42,27 @@ export class OrderValidators {
 
   static validateOrderStatus(currentStatus: string, newStatus: string): void {
     const validTransitions: Record<string, string[]> = {
-      'PENDING': ['CONFIRMED', 'CANCELLED'],
-      'CONFIRMED': ['PROCESSING', 'CANCELLED'],
-      'PROCESSING': ['SHIPPED', 'CANCELLED'],
-      'SHIPPED': ['DELIVERED'],
-      'DELIVERED': ['REFUNDED'],
-      'CANCELLED': [],
-      'REFUNDED': [],
+      PENDING: ['CONFIRMED', 'CANCELLED'],
+      CONFIRMED: ['PROCESSING', 'CANCELLED'],
+      PROCESSING: ['SHIPPED', 'CANCELLED'],
+      SHIPPED: ['DELIVERED'],
+      DELIVERED: ['REFUNDED'],
+      CANCELLED: [],
+      REFUNDED: [],
     };
 
     const allowedStatuses = validTransitions[currentStatus] || [];
     if (!allowedStatuses.includes(newStatus)) {
-      throw new Error(`Cannot transition from ${currentStatus} to ${newStatus}`);
+      throw new Error(
+        `Cannot transition from ${currentStatus} to ${newStatus}`,
+      );
     }
   }
 
-  static validateStatusTransition(currentStatus: string, newStatus: string): void {
+  static validateStatusTransition(
+    currentStatus: string,
+    newStatus: string,
+  ): void {
     // Alias for validateOrderStatus to match the method name used in the service
     this.validateOrderStatus(currentStatus, newStatus);
   }

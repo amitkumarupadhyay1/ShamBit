@@ -6,7 +6,10 @@ import { SettlementAuditLog } from '../entities/settlement-audit-log.entity';
 export class SettlementAuditRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: Partial<SettlementAuditLog>, tx?: any): Promise<SettlementAuditLog> {
+  async create(
+    data: Partial<SettlementAuditLog>,
+    tx?: any,
+  ): Promise<SettlementAuditLog> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return {
@@ -17,7 +20,9 @@ export class SettlementAuditRepository {
     } as SettlementAuditLog;
   }
 
-  async findBySettlementId(settlementId: string): Promise<SettlementAuditLog[]> {
+  async findBySettlementId(
+    settlementId: string,
+  ): Promise<SettlementAuditLog[]> {
     // Implementation would depend on your Prisma schema
     // This is a placeholder
     return [];
@@ -27,7 +32,7 @@ export class SettlementAuditRepository {
     filters: any = {},
     options: any = {},
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{
     auditLogs: SettlementAuditLog[];
     total: number;

@@ -31,7 +31,7 @@ export interface AuditStatistics {
 export class ProductAuditService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly logger: LoggerService
+    private readonly logger: LoggerService,
   ) {}
 
   async logAction(
@@ -45,7 +45,7 @@ export class ProductAuditService {
     userAgent?: string,
     userRole: string = 'UNKNOWN',
     metadata?: any,
-    batchId?: string
+    batchId?: string,
   ): Promise<void> {
     const changes = this.calculateChanges(oldValues, newValues);
 
@@ -70,7 +70,7 @@ export class ProductAuditService {
     userId: string,
     reason?: string,
     metadata?: any,
-    userRole: string = 'ADMIN'
+    userRole: string = 'ADMIN',
   ): Promise<string> {
     const batchId = this.generateBatchId();
 
@@ -87,7 +87,7 @@ export class ProductAuditService {
         undefined,
         userRole,
         metadata,
-        batchId
+        batchId,
       );
     }
 
@@ -97,7 +97,7 @@ export class ProductAuditService {
   async getProductAuditHistory(
     productId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     // TODO: Implement actual audit history retrieval
     // For now, return empty results
@@ -116,7 +116,7 @@ export class ProductAuditService {
   async getUserAuditHistory(
     userId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     // TODO: Implement actual user audit history retrieval
     this.logger.log('ProductAuditService.getUserAuditHistory', {
@@ -141,7 +141,7 @@ export class ProductAuditService {
   async getAuditStatistics(
     dateFrom?: Date,
     dateTo?: Date,
-    productId?: string
+    productId?: string,
   ): Promise<AuditStatistics> {
     // TODO: Implement actual audit statistics
     this.logger.log('ProductAuditService.getAuditStatistics', {
@@ -163,7 +163,7 @@ export class ProductAuditService {
     productId?: string,
     dateFrom?: Date,
     dateTo?: Date,
-    format: 'json' | 'csv' = 'json'
+    format: 'json' | 'csv' = 'json',
   ): Promise<string> {
     // TODO: Implement actual audit log export
     this.logger.log('ProductAuditService.exportAuditLog', {
@@ -182,7 +182,7 @@ export class ProductAuditService {
 
   async cleanupOldAuditLogs(
     retentionDays: number = 365,
-    dryRun: boolean = true
+    dryRun: boolean = true,
   ): Promise<{ deletedCount: number; oldestRetainedDate: Date }> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
@@ -207,7 +207,10 @@ export class ProductAuditService {
     }
 
     const changes: any = {};
-    const allKeys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)]);
+    const allKeys = new Set([
+      ...Object.keys(oldValues),
+      ...Object.keys(newValues),
+    ]);
 
     for (const key of allKeys) {
       const oldValue = oldValues[key];
@@ -263,7 +266,7 @@ export class ProductAuditService {
       'Batch ID',
     ];
 
-    const rows = auditEntries.map(entry => [
+    const rows = auditEntries.map((entry) => [
       entry.id,
       entry.productId,
       entry.action,
@@ -276,7 +279,7 @@ export class ProductAuditService {
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n');
 
     return csvContent;

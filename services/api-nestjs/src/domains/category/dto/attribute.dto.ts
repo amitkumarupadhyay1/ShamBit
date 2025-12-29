@@ -1,4 +1,12 @@
-import { IsString, IsEnum, IsOptional, IsBoolean, IsArray, ValidateNested, IsNumber } from 'class-validator';
+import {
+  IsString,
+  IsEnum,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  ValidateNested,
+  IsNumber,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
@@ -96,7 +104,10 @@ export class CreateAttributeDto {
   @IsString()
   placeholder?: string;
 
-  @ApiProperty({ example: 'Brand helps customers identify products', required: false })
+  @ApiProperty({
+    example: 'Brand helps customers identify products',
+    required: false,
+  })
   @IsOptional()
   @IsString()
   helpText?: string;

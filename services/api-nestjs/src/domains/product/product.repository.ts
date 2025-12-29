@@ -9,7 +9,12 @@ export class ProductRepository {
   constructor(private readonly prisma: PrismaService) {}
 
   async findAll(query: PaginationQuery, sellerId?: string) {
-    const { page = 1, limit = 20, sortBy = 'createdAt', sortOrder = 'desc' } = query;
+    const {
+      page = 1,
+      limit = 20,
+      sortBy = 'createdAt',
+      sortOrder = 'desc',
+    } = query;
     const skip = (page - 1) * limit;
 
     const where = sellerId ? { sellerId } : {};
@@ -77,20 +82,24 @@ export class ProductRepository {
     });
   }
 
-  async create(data: CreateProductDto & { sellerId: string; status: ProductStatus }) {
+  async create(
+    data: CreateProductDto & { sellerId: string; status: ProductStatus },
+  ) {
     const { images, ...productData } = data;
-    
+
     return this.prisma.product.create({
       data: {
         ...productData,
         attributeValues: productData.attributeValues || {},
-        images: images ? {
-          create: images.map((url: string, index: number) => ({
-            url,
-            displayOrder: index,
-            isActive: true,
-          }))
-        } : undefined,
+        images: images
+          ? {
+              create: images.map((url: string, index: number) => ({
+                url,
+                displayOrder: index,
+                isActive: true,
+              })),
+            }
+          : undefined,
       },
       include: {
         category: true,
@@ -128,7 +137,12 @@ export class ProductRepository {
         },
         order: {
           status: {
-            in: ['PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'PROCESSING', 'SHIPPED'],
+            in: [
+              'PENDING_PAYMENT',
+              'PAYMENT_CONFIRMED',
+              'PROCESSING',
+              'SHIPPED',
+            ],
           },
         },
       },

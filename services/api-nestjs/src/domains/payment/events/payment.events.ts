@@ -2,7 +2,7 @@
 
 export class PaymentIntentCreatedEvent {
   static readonly eventName = 'payment.intent.created';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -16,7 +16,7 @@ export class PaymentIntentCreatedEvent {
 
 export class PaymentIntentUpdatedEvent {
   static readonly eventName = 'payment.intent.updated';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -29,7 +29,7 @@ export class PaymentIntentUpdatedEvent {
 
 export class PaymentIntentConfirmedEvent {
   static readonly eventName = 'payment.intent.confirmed';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -43,7 +43,7 @@ export class PaymentIntentConfirmedEvent {
 
 export class PaymentIntentSucceededEvent {
   static readonly eventName = 'payment.intent.succeeded';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -57,7 +57,7 @@ export class PaymentIntentSucceededEvent {
 
 export class PaymentIntentFailedEvent {
   static readonly eventName = 'payment.intent.failed';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -71,7 +71,7 @@ export class PaymentIntentFailedEvent {
 
 export class PaymentIntentCanceledEvent {
   static readonly eventName = 'payment.intent.canceled';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -83,7 +83,7 @@ export class PaymentIntentCanceledEvent {
 
 export class PaymentIntentExpiredEvent {
   static readonly eventName = 'payment.intent.expired';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -94,7 +94,7 @@ export class PaymentIntentExpiredEvent {
 
 export class PaymentTransactionCreatedEvent {
   static readonly eventName = 'payment.transaction.created';
-  
+
   constructor(
     public readonly transactionId: string,
     public readonly paymentIntentId: string,
@@ -110,7 +110,7 @@ export class PaymentTransactionCreatedEvent {
 
 export class PaymentTransactionSucceededEvent {
   static readonly eventName = 'payment.transaction.succeeded';
-  
+
   constructor(
     public readonly transactionId: string,
     public readonly paymentIntentId: string,
@@ -125,7 +125,7 @@ export class PaymentTransactionSucceededEvent {
 
 export class PaymentTransactionFailedEvent {
   static readonly eventName = 'payment.transaction.failed';
-  
+
   constructor(
     public readonly transactionId: string,
     public readonly paymentIntentId: string,
@@ -139,7 +139,7 @@ export class PaymentTransactionFailedEvent {
 
 export class PaymentRefundCreatedEvent {
   static readonly eventName = 'payment.refund.created';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly paymentIntentId: string,
@@ -153,7 +153,7 @@ export class PaymentRefundCreatedEvent {
 
 export class PaymentRefundSucceededEvent {
   static readonly eventName = 'payment.refund.succeeded';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly paymentIntentId: string,
@@ -167,7 +167,7 @@ export class PaymentRefundSucceededEvent {
 
 export class PaymentRefundFailedEvent {
   static readonly eventName = 'payment.refund.failed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly paymentIntentId: string,
@@ -181,7 +181,7 @@ export class PaymentRefundFailedEvent {
 
 export class PaymentDisputeCreatedEvent {
   static readonly eventName = 'payment.dispute.created';
-  
+
   constructor(
     public readonly disputeId: string,
     public readonly transactionId: string,
@@ -196,7 +196,7 @@ export class PaymentDisputeCreatedEvent {
 
 export class PaymentMethodAttachedEvent {
   static readonly eventName = 'payment.method.attached';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -209,7 +209,7 @@ export class PaymentMethodAttachedEvent {
 
 export class PaymentRetryInitiatedEvent {
   static readonly eventName = 'payment.retry.initiated';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -223,7 +223,7 @@ export class PaymentRetryInitiatedEvent {
 
 export class PaymentRetrySucceededEvent {
   static readonly eventName = 'payment.retry.succeeded';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -236,7 +236,7 @@ export class PaymentRetrySucceededEvent {
 
 export class PaymentRetryFailedEvent {
   static readonly eventName = 'payment.retry.failed';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -251,7 +251,7 @@ export class PaymentRetryFailedEvent {
 
 export class PaymentWebhookReceivedEvent {
   static readonly eventName = 'payment.webhook.received';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -264,7 +264,7 @@ export class PaymentWebhookReceivedEvent {
 
 export class PaymentWebhookProcessedEvent {
   static readonly eventName = 'payment.webhook.processed';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -278,7 +278,7 @@ export class PaymentWebhookProcessedEvent {
 
 export class PaymentReconciliationEvent {
   static readonly eventName = 'payment.reconciliation';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -297,7 +297,7 @@ export class PaymentReconciliationEvent {
 
 export class PaymentGatewayErrorEvent {
   static readonly eventName = 'payment.gateway.error';
-  
+
   constructor(
     public readonly gatewayProvider: string,
     public readonly errorType: string,
@@ -312,7 +312,7 @@ export class PaymentGatewayErrorEvent {
 
 export class PaymentFraudDetectedEvent {
   static readonly eventName = 'payment.fraud.detected';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,
@@ -326,7 +326,7 @@ export class PaymentFraudDetectedEvent {
 
 export class PaymentLimitExceededEvent {
   static readonly eventName = 'payment.limit.exceeded';
-  
+
   constructor(
     public readonly paymentIntentId: string,
     public readonly orderId: string,

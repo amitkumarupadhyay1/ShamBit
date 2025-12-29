@@ -9,10 +9,22 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
-import { CommissionService, type CreateCommissionRuleDto } from './commission.service';
-import { PromotionService, type CreatePromotionDto, type PromotionEligibilityCheck } from './promotion.service';
+import {
+  CommissionService,
+  type CreateCommissionRuleDto,
+} from './commission.service';
+import {
+  PromotionService,
+  type CreatePromotionDto,
+  type PromotionEligibilityCheck,
+} from './promotion.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
 import { RolesGuard } from '../../common/guards/roles.guard';
 import { Roles, CurrentUser } from '../../common/decorators';
@@ -107,7 +119,7 @@ export class PricingController {
   ) {
     // Ensure the user ID matches the request
     eligibilityCheck.userId = userId;
-    
+
     return this.promotionService.applyPromotions(eligibilityCheck);
   }
 
@@ -122,7 +134,7 @@ export class PricingController {
   ) {
     // Ensure the user ID matches the request
     eligibilityCheck.userId = userId;
-    
+
     return this.promotionService.getEligiblePromotions(eligibilityCheck);
   }
 }

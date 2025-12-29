@@ -7,7 +7,12 @@ export class ReviewModerationService {
     return { status: 'PENDING' };
   }
 
-  async moderateReview(reviewId: string, status: string, moderatorId: string, reason?: string) {
+  async moderateReview(
+    reviewId: string,
+    status: string,
+    moderatorId: string,
+    reason?: string,
+  ) {
     // TODO: Implement review moderation
     return { success: true };
   }

@@ -36,8 +36,13 @@ export class ProductOwnershipGuard implements CanActivate {
 
     try {
       // Get the product to check ownership
-      const product = await this.productService.findById(productId, {}, user.id, user.role);
-      
+      const product = await this.productService.findById(
+        productId,
+        {},
+        user.id,
+        user.role,
+      );
+
       // Check if user is the owner
       if (product.sellerId === user.id) {
         return true;

@@ -11,7 +11,11 @@ import { PaymentGatewayService } from '../../payment/services/payment-gateway.se
 import { RefundWebhook } from '../entities/refund-webhook.entity';
 import { ProcessWebhookDto } from '../dtos/process-webhook.dto';
 
-import { RefundStatus, RefundAuditAction, WebhookProcessingStatus } from '../enums/refund-status.enum';
+import {
+  RefundStatus,
+  RefundAuditAction,
+  WebhookProcessingStatus,
+} from '../enums/refund-status.enum';
 
 import {
   RefundWebhookReceivedEvent,
@@ -46,7 +50,7 @@ export class RefundWebhookService {
 
   async processWebhook(
     processWebhookDto: ProcessWebhookDto,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Promise<WebhookProcessingResult> {
     return this.prisma.$transaction(async (tx) => {
       this.logger.log('RefundWebhookService.processWebhook', {
@@ -59,24 +63,27 @@ export class RefundWebhookService {
         // Step 1: Verify webhook signature
         const isVerified = await this.verifyWebhookSignature(
           processWebhookDto,
-          headers
+          headers,
         );
 
         // Step 2: Create webhook record
         const webhook = await this.createWebhookRecord(
           processWebhookDto,
           headers,
-          isVerified
+          isVerified,
         );
 
         // Step 3: Emit webhook received event
-        this.eventEmitter.emit('refund.webhook.received', new RefundWebhookReceivedEvent(
-          webhook.id,
-          webhook.eventType,
-          webhook.gatewayProvider,
-          webhook.refundId,
-          webhook.verified
-        ));
+        this.eventEmitter.emit(
+          'refund.webhook.received',
+          new RefundWebhookReceivedEvent(
+            webhook.id,
+            webhook.eventType,
+            webhook.gatewayProvider,
+            webhook.refundId,
+            webhook.verified,
+          ),
+        );
 
         // Step 4: Check for duplicate processing
         if (await this.isDuplicateWebhook(webhook)) {
@@ -86,7 +93,7 @@ export class RefundWebhookService {
           });
 
           await this.updateWebhookStatus(webhook.id, 'IGNORED');
-          
+
           return {
             success: true,
             processed: false,
@@ -97,7 +104,7 @@ export class RefundWebhookService {
         // Step 5: Process webhook if verified
         if (!isVerified) {
           await this.updateWebhookStatus(webhook.id, 'FAILED');
-          
+
           return {
             success: false,
             processed: false,
@@ -119,14 +126,14 @@ export class RefundWebhookService {
         } else {
           eventStatus = WebhookProcessingStatus.FAILURE;
         }
-        
+
         const webhookEvent = new RefundWebhookProcessedEvent(
           webhook.id,
           webhook.eventType,
           webhook.gatewayProvider,
           eventStatus,
           webhook.refundId || '',
-          processingResult.error
+          processingResult.error,
         );
         this.eventEmitter.emit('refund.webhook.processed', webhookEvent);
 
@@ -144,7 +151,6 @@ export class RefundWebhookService {
           action: processingResult.action,
           error: processingResult.error,
         };
-
       } catch (error) {
         this.logger.error('Webhook processing failed', error, {
           eventType: processWebhookDto.eventType,
@@ -165,9 +171,7 @@ export class RefundWebhookService {
   // WEBHOOK EVENT TYPE PROCESSING
   // ============================================================================
 
-  private async processWebhookByEventType(
-    webhook: RefundWebhook
-  ): Promise<{
+  private async processWebhookByEventType(webhook: RefundWebhook): Promise<{
     success: boolean;
     refundId?: string;
     action?: string;
@@ -199,16 +203,14 @@ export class RefundWebhookService {
     }
   }
 
-  private async processRefundProcessedWebhook(
-    webhook: RefundWebhook
-  ): Promise<{
+  private async processRefundProcessedWebhook(webhook: RefundWebhook): Promise<{
     success: boolean;
     refundId?: string;
     action?: string;
     error?: string;
   }> {
     try {
-      const payload = webhook.payload as any;
+      const payload = webhook.payload;
       const gatewayRefundId = payload.refund?.id;
 
       if (!gatewayRefundId) {
@@ -216,7 +218,8 @@ export class RefundWebhookService {
       }
 
       // Find refund by gateway ID
-      const refund = await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
+      const refund =
+        await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
       if (!refund) {
         throw new Error(`Refund not found for gateway ID: ${gatewayRefundId}`);
       }
@@ -227,7 +230,7 @@ export class RefundWebhookService {
           refund.id,
           RefundStatus.COMPLETED,
           'SYSTEM',
-          'Refund completed via gateway webhook'
+          'Refund completed via gateway webhook',
         );
 
         // Update gateway response data
@@ -247,17 +250,20 @@ export class RefundWebhookService {
             webhookId: webhook.id,
             gatewayRefundId,
             webhookEventType: webhook.eventType,
-          }
+          },
         );
 
         // Emit status change event
-        this.eventEmitter.emit('refund.status.changed', new RefundStatusChangedEvent(
-          refund.id,
-          refund.orderId,
-          refund.status,
-          RefundStatus.COMPLETED,
-          'SYSTEM'
-        ));
+        this.eventEmitter.emit(
+          'refund.status.changed',
+          new RefundStatusChangedEvent(
+            refund.id,
+            refund.orderId,
+            refund.status,
+            RefundStatus.COMPLETED,
+            'SYSTEM',
+          ),
+        );
       }
 
       return {
@@ -265,7 +271,6 @@ export class RefundWebhookService {
         refundId: refund.id,
         action: 'COMPLETED',
       };
-
     } catch (error) {
       this.logger.error('Failed to process refund.processed webhook', error, {
         webhookId: webhook.id,
@@ -278,25 +283,25 @@ export class RefundWebhookService {
     }
   }
 
-  private async processRefundFailedWebhook(
-    webhook: RefundWebhook
-  ): Promise<{
+  private async processRefundFailedWebhook(webhook: RefundWebhook): Promise<{
     success: boolean;
     refundId?: string;
     action?: string;
     error?: string;
   }> {
     try {
-      const payload = webhook.payload as any;
+      const payload = webhook.payload;
       const gatewayRefundId = payload.refund?.id;
-      const failureReason = payload.refund?.failure_reason || 'Gateway refund failed';
+      const failureReason =
+        payload.refund?.failure_reason || 'Gateway refund failed';
 
       if (!gatewayRefundId) {
         throw new Error('Gateway refund ID not found in webhook payload');
       }
 
       // Find refund by gateway ID
-      const refund = await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
+      const refund =
+        await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
       if (!refund) {
         throw new Error(`Refund not found for gateway ID: ${gatewayRefundId}`);
       }
@@ -320,24 +325,26 @@ export class RefundWebhookService {
           gatewayRefundId,
           failureReason,
           webhookEventType: webhook.eventType,
-        }
+        },
       );
 
       // Emit status change event
-      this.eventEmitter.emit('refund.status.changed', new RefundStatusChangedEvent(
-        refund.id,
-        refund.orderId,
-        refund.status,
-        RefundStatus.FAILED,
-        'SYSTEM'
-      ));
+      this.eventEmitter.emit(
+        'refund.status.changed',
+        new RefundStatusChangedEvent(
+          refund.id,
+          refund.orderId,
+          refund.status,
+          RefundStatus.FAILED,
+          'SYSTEM',
+        ),
+      );
 
       return {
         success: true,
         refundId: refund.id,
         action: 'FAILED',
       };
-
     } catch (error) {
       this.logger.error('Failed to process refund.failed webhook', error, {
         webhookId: webhook.id,
@@ -351,7 +358,7 @@ export class RefundWebhookService {
   }
 
   private async processRefundSpeedChangedWebhook(
-    webhook: RefundWebhook
+    webhook: RefundWebhook,
   ): Promise<{
     success: boolean;
     refundId?: string;
@@ -359,7 +366,7 @@ export class RefundWebhookService {
     error?: string;
   }> {
     try {
-      const payload = webhook.payload as any;
+      const payload = webhook.payload;
       const gatewayRefundId = payload.refund?.id;
       const speed = payload.refund?.speed;
 
@@ -368,7 +375,8 @@ export class RefundWebhookService {
       }
 
       // Find refund by gateway ID
-      const refund = await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
+      const refund =
+        await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
       if (!refund) {
         throw new Error(`Refund not found for gateway ID: ${gatewayRefundId}`);
       }
@@ -381,7 +389,7 @@ export class RefundWebhookService {
           speedChangedAt: new Date(),
         },
         gatewayResponse: payload.refund,
-      } );
+      });
 
       // Create audit log
       await this.refundAuditService.logSystemAction(
@@ -393,7 +401,7 @@ export class RefundWebhookService {
           gatewayRefundId,
           speedChange: speed,
           webhookEventType: webhook.eventType,
-        }
+        },
       );
 
       return {
@@ -401,11 +409,14 @@ export class RefundWebhookService {
         refundId: refund.id,
         action: 'SPEED_UPDATED',
       };
-
     } catch (error) {
-      this.logger.error('Failed to process refund.speed_changed webhook', error, {
-        webhookId: webhook.id,
-      });
+      this.logger.error(
+        'Failed to process refund.speed_changed webhook',
+        error,
+        {
+          webhookId: webhook.id,
+        },
+      );
 
       return {
         success: false,
@@ -415,7 +426,7 @@ export class RefundWebhookService {
   }
 
   private async processRefundArnUpdatedWebhook(
-    webhook: RefundWebhook
+    webhook: RefundWebhook,
   ): Promise<{
     success: boolean;
     refundId?: string;
@@ -423,7 +434,7 @@ export class RefundWebhookService {
     error?: string;
   }> {
     try {
-      const payload = webhook.payload as any;
+      const payload = webhook.payload;
       const gatewayRefundId = payload.refund?.id;
       const arn = payload.refund?.acquirer_data?.arn;
 
@@ -432,7 +443,8 @@ export class RefundWebhookService {
       }
 
       // Find refund by gateway ID
-      const refund = await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
+      const refund =
+        await this.refundRepository.findByGatewayRefundId(gatewayRefundId);
       if (!refund) {
         throw new Error(`Refund not found for gateway ID: ${gatewayRefundId}`);
       }
@@ -457,7 +469,7 @@ export class RefundWebhookService {
           gatewayRefundId,
           arn,
           webhookEventType: webhook.eventType,
-        }
+        },
       );
 
       return {
@@ -465,7 +477,6 @@ export class RefundWebhookService {
         refundId: refund.id,
         action: 'ARN_UPDATED',
       };
-
     } catch (error) {
       this.logger.error('Failed to process refund.arn_updated webhook', error, {
         webhookId: webhook.id,
@@ -484,11 +495,13 @@ export class RefundWebhookService {
 
   private async verifyWebhookSignature(
     webhookDto: ProcessWebhookDto,
-    headers: Record<string, string>
+    headers: Record<string, string>,
   ): Promise<boolean> {
     try {
-      const gateway = await this.paymentGatewayService.getGateway(webhookDto.gatewayProvider);
-      
+      const gateway = await this.paymentGatewayService.getGateway(
+        webhookDto.gatewayProvider,
+      );
+
       if (!gateway) {
         this.logger.warn('Payment gateway not found', {
           provider: webhookDto.gatewayProvider,
@@ -496,10 +509,11 @@ export class RefundWebhookService {
         });
         return false;
       }
-      
+
       // Get signature from headers
-      const signature = headers['x-razorpay-signature'] || headers['X-Razorpay-Signature'];
-      
+      const signature =
+        headers['x-razorpay-signature'] || headers['X-Razorpay-Signature'];
+
       if (!signature) {
         this.logger.warn('Webhook signature not found in headers', {
           webhookId: webhookDto.webhookId,
@@ -523,7 +537,6 @@ export class RefundWebhookService {
       }
 
       return isValid;
-
     } catch (error) {
       this.logger.error('Webhook signature verification error', error, {
         webhookId: webhookDto.webhookId,
@@ -539,7 +552,7 @@ export class RefundWebhookService {
   private async createWebhookRecord(
     webhookDto: ProcessWebhookDto,
     headers: Record<string, string>,
-    verified: boolean
+    verified: boolean,
   ): Promise<RefundWebhook> {
     // Extract refund ID from payload if available
     const refundId = this.extractRefundIdFromPayload(webhookDto.payload);
@@ -550,7 +563,8 @@ export class RefundWebhookService {
       gatewayProvider: webhookDto.gatewayProvider,
       refundId,
       status: 'RECEIVED',
-      signature: headers['x-razorpay-signature'] || headers['X-Razorpay-Signature'],
+      signature:
+        headers['x-razorpay-signature'] || headers['X-Razorpay-Signature'],
       verified,
       payload: webhookDto.payload,
       headers: this.sanitizeHeaders(headers),
@@ -563,7 +577,7 @@ export class RefundWebhookService {
 
   private async updateWebhookStatus(
     webhookId: string,
-    status: string
+    status: string,
   ): Promise<void> {
     const updateData: any = {
       status,
@@ -580,10 +594,11 @@ export class RefundWebhookService {
 
   private async isDuplicateWebhook(webhook: RefundWebhook): Promise<boolean> {
     // Check for existing processed webhook with same ID and event type
-    const existingWebhook = await this.refundRepository.findWebhookByIdAndEventType(
-      webhook.webhookId,
-      webhook.eventType,
-    );
+    const existingWebhook =
+      await this.refundRepository.findWebhookByIdAndEventType(
+        webhook.webhookId,
+        webhook.eventType,
+      );
 
     return existingWebhook && existingWebhook.processed;
   }
@@ -602,12 +617,17 @@ export class RefundWebhookService {
 
   async getFailedWebhooks(
     limit: number = 100,
-    olderThan?: Date
+    olderThan?: Date,
   ): Promise<RefundWebhook[]> {
-    return this.refundRepository.findFailedWebhooks(limit, olderThan || new Date());
+    return this.refundRepository.findFailedWebhooks(
+      limit,
+      olderThan || new Date(),
+    );
   }
 
-  async retryFailedWebhook(webhookId: string): Promise<WebhookProcessingResult> {
+  async retryFailedWebhook(
+    webhookId: string,
+  ): Promise<WebhookProcessingResult> {
     this.logger.log('RefundWebhookService.retryFailedWebhook', { webhookId });
 
     const webhook = await this.refundRepository.findWebhookById(webhookId);
@@ -634,7 +654,10 @@ export class RefundWebhookService {
       payload: webhook.payload,
     };
 
-    return this.processWebhook(processDto, webhook.headers as Record<string, string>);
+    return this.processWebhook(
+      processDto,
+      webhook.headers as Record<string, string>,
+    );
   }
 
   // ============================================================================
@@ -642,14 +665,17 @@ export class RefundWebhookService {
   // ============================================================================
 
   async cleanupOldWebhooks(
-    retentionDays: number = 90
+    retentionDays: number = 90,
   ): Promise<{ deletedCount: number }> {
-    this.logger.log('RefundWebhookService.cleanupOldWebhooks', { retentionDays });
+    this.logger.log('RefundWebhookService.cleanupOldWebhooks', {
+      retentionDays,
+    });
 
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
-    const deletedCount = await this.refundRepository.deleteOldWebhooks(cutoffDate);
+    const deletedCount =
+      await this.refundRepository.deleteOldWebhooks(cutoffDate);
 
     this.logger.log('Old webhooks cleaned up', {
       deletedCount,
@@ -661,7 +687,7 @@ export class RefundWebhookService {
 
   async getWebhookStatistics(
     dateFrom: Date,
-    dateTo: Date
+    dateTo: Date,
   ): Promise<{
     totalWebhooks: number;
     processedWebhooks: number;
@@ -670,19 +696,24 @@ export class RefundWebhookService {
     eventTypeBreakdown: Record<string, number>;
     processingRate: number;
   }> {
-    const webhooks = await this.refundRepository.findWebhooksByDateRange(dateFrom, dateTo);
+    const webhooks = await this.refundRepository.findWebhooksByDateRange(
+      dateFrom,
+      dateTo,
+    );
 
     const totalWebhooks = webhooks.length;
-    const processedWebhooks = webhooks.filter(w => w.processed).length;
-    const failedWebhooks = webhooks.filter(w => w.status === 'FAILED').length;
-    const verifiedWebhooks = webhooks.filter(w => w.verified).length;
+    const processedWebhooks = webhooks.filter((w) => w.processed).length;
+    const failedWebhooks = webhooks.filter((w) => w.status === 'FAILED').length;
+    const verifiedWebhooks = webhooks.filter((w) => w.verified).length;
 
     const eventTypeBreakdown: Record<string, number> = {};
     for (const webhook of webhooks) {
-      eventTypeBreakdown[webhook.eventType] = (eventTypeBreakdown[webhook.eventType] || 0) + 1;
+      eventTypeBreakdown[webhook.eventType] =
+        (eventTypeBreakdown[webhook.eventType] || 0) + 1;
     }
 
-    const processingRate = totalWebhooks > 0 ? (processedWebhooks / totalWebhooks) * 100 : 0;
+    const processingRate =
+      totalWebhooks > 0 ? (processedWebhooks / totalWebhooks) * 100 : 0;
 
     return {
       totalWebhooks,
@@ -715,12 +746,14 @@ export class RefundWebhookService {
     return undefined;
   }
 
-  private sanitizeHeaders(headers: Record<string, string>): Record<string, string> {
+  private sanitizeHeaders(
+    headers: Record<string, string>,
+  ): Record<string, string> {
     const sanitized = { ...headers };
-    
+
     // Remove sensitive headers
     const sensitiveHeaders = ['authorization', 'x-api-key', 'cookie'];
-    
+
     for (const header of sensitiveHeaders) {
       if (sanitized[header.toLowerCase()]) {
         sanitized[header.toLowerCase()] = '[REDACTED]';
@@ -739,8 +772,8 @@ export class RefundWebhookService {
       'service unavailable',
     ];
 
-    return retryableErrors.some(keyword => 
-      error.message?.toLowerCase().includes(keyword)
+    return retryableErrors.some((keyword) =>
+      error.message?.toLowerCase().includes(keyword),
     );
   }
 }

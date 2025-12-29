@@ -59,7 +59,7 @@ export class SettlementCalculationService {
   // ============================================================================
 
   async calculateSettlement(
-    request: CalculateSettlementRequest
+    request: CalculateSettlementRequest,
   ): Promise<SettlementCalculationResult> {
     this.logger.log('SettlementCalculationService.calculateSettlement', {
       sellerId: request.sellerId,
@@ -93,15 +93,16 @@ export class SettlementCalculationService {
   // ============================================================================
 
   private async getSettlementTransactions(
-    request: CalculateSettlementRequest
+    request: CalculateSettlementRequest,
   ): Promise<any[]> {
     // Get successful payment transactions for the seller in the period
-    const transactions = await this.paymentRepository.findSuccessfulTransactionsForSettlement({
-      sellerId: request.sellerId,
-      periodStart: request.periodStart,
-      periodEnd: request.periodEnd,
-      currency: request.currency,
-    });
+    const transactions =
+      await this.paymentRepository.findSuccessfulTransactionsForSettlement({
+        sellerId: request.sellerId,
+        periodStart: request.periodStart,
+        periodEnd: request.periodEnd,
+        currency: request.currency,
+      });
 
     this.logger.log('Retrieved settlement transactions', {
       sellerId: request.sellerId,
@@ -117,7 +118,7 @@ export class SettlementCalculationService {
 
   private async calculateAmounts(
     request: CalculateSettlementRequest,
-    paymentTransactions: any[]
+    paymentTransactions: any[],
   ): Promise<SettlementCalculationResult> {
     let grossAmount = 0;
     let totalPlatformFees = 0;
@@ -130,8 +131,9 @@ export class SettlementCalculationService {
 
     // Process each payment transaction
     for (const transaction of paymentTransactions) {
-      const calculatedTransaction = await this.calculateTransactionAmounts(transaction);
-      
+      const calculatedTransaction =
+        await this.calculateTransactionAmounts(transaction);
+
       grossAmount += calculatedTransaction.transactionAmount;
       totalPlatformFees += calculatedTransaction.platformFee;
       totalGatewayFees += calculatedTransaction.gatewayFee;
@@ -150,7 +152,8 @@ export class SettlementCalculationService {
 
     // Calculate net settlement amount
     const totalFees = totalPlatformFees + totalGatewayFees;
-    const netAmount = grossAmount - totalFees - totalTaxes - totalRefunds + totalAdjustments;
+    const netAmount =
+      grossAmount - totalFees - totalTaxes - totalRefunds + totalAdjustments;
 
     return {
       sellerId: request.sellerId,
@@ -173,16 +176,21 @@ export class SettlementCalculationService {
     };
   }
 
-  private async calculateTransactionAmounts(transaction: any): Promise<SettlementTransactionData> {
+  private async calculateTransactionAmounts(
+    transaction: any,
+  ): Promise<SettlementTransactionData> {
     // Get order details for fee calculation
     const order = await this.orderRepository.findById(transaction.orderId);
-    
+
     // Calculate platform fee (e.g., 2.5% of transaction amount)
     const platformFeeRate = this.getPlatformFeeRate(order);
     const platformFee = Math.round(transaction.amount * platformFeeRate);
 
     // Calculate gateway fee (e.g., 2% + ₹3 for Razorpay)
-    const gatewayFee = this.calculateGatewayFee(transaction.amount, transaction.paymentMethod);
+    const gatewayFee = this.calculateGatewayFee(
+      transaction.amount,
+      transaction.paymentMethod,
+    );
 
     // Calculate tax on fees (e.g., 18% GST on platform fee)
     const taxRate = this.getTaxRate();
@@ -215,14 +223,22 @@ export class SettlementCalculationService {
   private getPlatformFeeRate(order: any): number {
     // Platform fee rate based on order category, seller tier, etc.
     // This could be configurable per seller or category
-    
+
     // Default platform fee: 2.5%
     let feeRate = 0.025;
 
     // Apply category-specific rates
-    if (order.items?.some((item: any) => item.product?.category?.name === 'Electronics')) {
+    if (
+      order.items?.some(
+        (item: any) => item.product?.category?.name === 'Electronics',
+      )
+    ) {
       feeRate = 0.02; // 2% for electronics
-    } else if (order.items?.some((item: any) => item.product?.category?.name === 'Fashion')) {
+    } else if (
+      order.items?.some(
+        (item: any) => item.product?.category?.name === 'Fashion',
+      )
+    ) {
       feeRate = 0.03; // 3% for fashion
     }
 
@@ -264,7 +280,7 @@ export class SettlementCalculationService {
 
     const structure = feeStructures[paymentMethod] || feeStructures.CARD;
     const percentageFee = Math.round(amount * structure.rate);
-    
+
     return percentageFee + structure.fixed;
   }
 
@@ -277,7 +293,9 @@ export class SettlementCalculationService {
   // REFUND & ADJUSTMENT CALCULATIONS
   // ============================================================================
 
-  private async calculateRefunds(request: CalculateSettlementRequest): Promise<number> {
+  private async calculateRefunds(
+    request: CalculateSettlementRequest,
+  ): Promise<number> {
     // Get all refunds for the seller in the period
     const refunds = await this.paymentRepository.findRefundsForSettlement({
       sellerId: request.sellerId,
@@ -286,7 +304,10 @@ export class SettlementCalculationService {
       currency: request.currency,
     });
 
-    const totalRefundAmount = refunds.reduce((sum, refund) => sum + refund.amount, 0);
+    const totalRefundAmount = refunds.reduce(
+      (sum, refund) => sum + refund.amount,
+      0,
+    );
 
     this.logger.log('Calculated refunds for settlement', {
       sellerId: request.sellerId,
@@ -297,10 +318,12 @@ export class SettlementCalculationService {
     return totalRefundAmount;
   }
 
-  private async calculateAdjustments(request: CalculateSettlementRequest): Promise<number> {
+  private async calculateAdjustments(
+    request: CalculateSettlementRequest,
+  ): Promise<number> {
     // Get any manual adjustments for the seller in the period
     // This could include promotional credits, penalty deductions, etc.
-    
+
     // For now, return 0 - this would be implemented based on business requirements
     return 0;
   }
@@ -309,7 +332,9 @@ export class SettlementCalculationService {
   // UTILITY METHODS
   // ============================================================================
 
-  private createEmptyResult(request: CalculateSettlementRequest): SettlementCalculationResult {
+  private createEmptyResult(
+    request: CalculateSettlementRequest,
+  ): SettlementCalculationResult {
     return {
       sellerId: request.sellerId,
       periodStart: request.periodStart,
@@ -342,15 +367,16 @@ export class SettlementCalculationService {
     }
 
     return {
-      items: order.items?.map((item: any) => ({
-        productId: item.productId,
-        variantId: item.variantId,
-        sku: item.sku,
-        name: item.name,
-        quantity: item.quantity,
-        price: item.price,
-        category: item.product?.category?.name,
-      })) || [],
+      items:
+        order.items?.map((item: any) => ({
+          productId: item.productId,
+          variantId: item.variantId,
+          sku: item.sku,
+          name: item.name,
+          quantity: item.quantity,
+          price: item.price,
+          category: item.product?.category?.name,
+        })) || [],
       totalItems: order.totalItems || 0,
       totalAmount: order.totalAmount || 0,
     };
@@ -363,7 +389,7 @@ export class SettlementCalculationService {
   async validateSettlementPeriod(
     sellerId: string,
     periodStart: Date,
-    periodEnd: Date
+    periodEnd: Date,
   ): Promise<{ isValid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
@@ -376,9 +402,11 @@ export class SettlementCalculationService {
     const maxHistoryDays = 365; // 1 year
     const maxHistoryDate = new Date();
     maxHistoryDate.setDate(maxHistoryDate.getDate() - maxHistoryDays);
-    
+
     if (periodStart < maxHistoryDate) {
-      errors.push(`Period start cannot be more than ${maxHistoryDays} days in the past`);
+      errors.push(
+        `Period start cannot be more than ${maxHistoryDays} days in the past`,
+      );
     }
 
     // Check if period is in the future
@@ -388,7 +416,9 @@ export class SettlementCalculationService {
     }
 
     // Check for minimum settlement period (e.g., at least 1 day)
-    const periodDays = Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24));
+    const periodDays = Math.ceil(
+      (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
+    );
     if (periodDays < 1) {
       errors.push('Settlement period must be at least 1 day');
     }
@@ -412,7 +442,7 @@ export class SettlementCalculationService {
   async generateSettlementSummary(
     sellerId: string,
     periodStart: Date,
-    periodEnd: Date
+    periodEnd: Date,
   ): Promise<{
     summary: any;
     transactions: SettlementTransactionData[];
@@ -429,7 +459,9 @@ export class SettlementCalculationService {
       period: {
         start: periodStart,
         end: periodEnd,
-        days: Math.ceil((periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24)),
+        days: Math.ceil(
+          (periodEnd.getTime() - periodStart.getTime()) / (1000 * 60 * 60 * 24),
+        ),
       },
       amounts: {
         gross: calculation.grossAmount,
@@ -440,12 +472,16 @@ export class SettlementCalculationService {
       breakdown: calculation.breakdown,
       statistics: {
         transactionCount: calculation.transactionCount,
-        averageTransactionAmount: calculation.transactionCount > 0 
-          ? Math.round(calculation.grossAmount / calculation.transactionCount)
-          : 0,
-        feePercentage: calculation.grossAmount > 0
-          ? ((calculation.totalFees / calculation.grossAmount) * 100).toFixed(2)
-          : '0.00',
+        averageTransactionAmount:
+          calculation.transactionCount > 0
+            ? Math.round(calculation.grossAmount / calculation.transactionCount)
+            : 0,
+        feePercentage:
+          calculation.grossAmount > 0
+            ? ((calculation.totalFees / calculation.grossAmount) * 100).toFixed(
+                2,
+              )
+            : '0.00',
       },
     };
 

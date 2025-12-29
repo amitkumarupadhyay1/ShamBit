@@ -1,6 +1,20 @@
-import { IsString, IsOptional, IsArray, IsEnum, IsDateString, IsNumber, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsEnum,
+  IsDateString,
+  IsNumber,
+  Min,
+  Max,
+} from 'class-validator';
 import { Transform, Type } from 'class-transformer';
-import { RefundStatus, RefundType, RefundCategory, RefundReason } from '../enums/refund-status.enum';
+import {
+  RefundStatus,
+  RefundType,
+  RefundCategory,
+  RefundReason,
+} from '../enums/refund-status.enum';
 
 export class RefundQueryDto {
   @IsOptional()
@@ -22,7 +36,7 @@ export class RefundQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(RefundStatus, { each: true })
-  @Transform(({ value }) => Array.isArray(value) ? value : [value])
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   statuses?: RefundStatus[];
 
   @IsOptional()
@@ -78,7 +92,7 @@ export class RefundQueryDto {
   @IsOptional()
   @IsArray()
   @IsString({ each: true })
-  @Transform(({ value }) => Array.isArray(value) ? value : [value])
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   tags?: string[];
 
   // Pagination
@@ -150,12 +164,12 @@ export class RefundStatsQueryDto {
   @IsOptional()
   @IsArray()
   @IsEnum(RefundStatus, { each: true })
-  @Transform(({ value }) => Array.isArray(value) ? value : [value])
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   statuses?: RefundStatus[];
 
   @IsOptional()
   @IsArray()
   @IsEnum(RefundReason, { each: true })
-  @Transform(({ value }) => Array.isArray(value) ? value : [value])
+  @Transform(({ value }) => (Array.isArray(value) ? value : [value]))
   reasons?: RefundReason[];
 }

@@ -1,5 +1,9 @@
 export class RefundValidators {
-  static validateRefundCreation(createRefundDto: any, order: any, existingRefunds: any[]): void {
+  static validateRefundCreation(
+    createRefundDto: any,
+    order: any,
+    existingRefunds: any[],
+  ): void {
     // Check if order can be refunded
     if (!order.canBeRefunded) {
       throw new Error('Order cannot be refunded in current status');
@@ -11,7 +15,10 @@ export class RefundValidators {
     }
 
     // Check if refund amount exceeds order total
-    const totalRefunded = existingRefunds.reduce((sum, refund) => sum + refund.amount, 0);
+    const totalRefunded = existingRefunds.reduce(
+      (sum, refund) => sum + refund.amount,
+      0,
+    );
     if (totalRefunded + createRefundDto.amount > order.totalAmount) {
       throw new Error('Refund amount exceeds remaining refundable amount');
     }
@@ -24,18 +31,24 @@ export class RefundValidators {
 
   static validateRefundItems(refundItems: any[], orderItems: any[]): void {
     for (const refundItem of refundItems) {
-      const orderItem = orderItems.find(item => item.id === refundItem.orderItemId);
-      
+      const orderItem = orderItems.find(
+        (item) => item.id === refundItem.orderItemId,
+      );
+
       if (!orderItem) {
         throw new Error(`Order item ${refundItem.orderItemId} not found`);
       }
 
       if (refundItem.quantity > orderItem.quantity) {
-        throw new Error(`Refund quantity cannot exceed order quantity for item ${refundItem.orderItemId}`);
+        throw new Error(
+          `Refund quantity cannot exceed order quantity for item ${refundItem.orderItemId}`,
+        );
       }
 
       if (refundItem.amount > orderItem.totalPrice) {
-        throw new Error(`Refund amount cannot exceed item total for item ${refundItem.orderItemId}`);
+        throw new Error(
+          `Refund amount cannot exceed item total for item ${refundItem.orderItemId}`,
+        );
       }
     }
   }
@@ -60,45 +73,84 @@ export class RefundValidators {
     }
   }
 
-  static validateBusinessRules(createRefundDto: any, order: any, refundPolicy: any): void {
+  static validateBusinessRules(
+    createRefundDto: any,
+    order: any,
+    refundPolicy: any,
+  ): void {
     // Validate refund timing
     if (refundPolicy?.refundWindow) {
       const orderDate = new Date(order.createdAt);
-      const daysSinceOrder = Math.floor((Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24));
-      
+      const daysSinceOrder = Math.floor(
+        (Date.now() - orderDate.getTime()) / (1000 * 60 * 60 * 24),
+      );
+
       if (daysSinceOrder > refundPolicy.refundWindow) {
-        throw new Error(`Refund window of ${refundPolicy.refundWindow} days has expired`);
+        throw new Error(
+          `Refund window of ${refundPolicy.refundWindow} days has expired`,
+        );
       }
     }
 
     // Validate minimum refund amount
-    if (refundPolicy?.minimumRefundAmount && createRefundDto.amount < refundPolicy.minimumRefundAmount) {
-      throw new Error(`Refund amount must be at least ${refundPolicy.minimumRefundAmount}`);
+    if (
+      refundPolicy?.minimumRefundAmount &&
+      createRefundDto.amount < refundPolicy.minimumRefundAmount
+    ) {
+      throw new Error(
+        `Refund amount must be at least ${refundPolicy.minimumRefundAmount}`,
+      );
     }
 
     // Validate maximum refund amount
-    if (refundPolicy?.maximumRefundAmount && createRefundDto.amount > refundPolicy.maximumRefundAmount) {
-      throw new Error(`Refund amount cannot exceed ${refundPolicy.maximumRefundAmount}`);
+    if (
+      refundPolicy?.maximumRefundAmount &&
+      createRefundDto.amount > refundPolicy.maximumRefundAmount
+    ) {
+      throw new Error(
+        `Refund amount cannot exceed ${refundPolicy.maximumRefundAmount}`,
+      );
     }
 
     // Validate refund type restrictions
-    if (refundPolicy?.allowedRefundTypes && !refundPolicy.allowedRefundTypes.includes(createRefundDto.refundType)) {
-      throw new Error(`Refund type ${createRefundDto.refundType} is not allowed`);
+    if (
+      refundPolicy?.allowedRefundTypes &&
+      !refundPolicy.allowedRefundTypes.includes(createRefundDto.refundType)
+    ) {
+      throw new Error(
+        `Refund type ${createRefundDto.refundType} is not allowed`,
+      );
     }
 
     // Validate reason code restrictions
-    if (refundPolicy?.allowedReasonCodes && createRefundDto.reasonCode && !refundPolicy.allowedReasonCodes.includes(createRefundDto.reasonCode)) {
-      throw new Error(`Reason code ${createRefundDto.reasonCode} is not allowed`);
+    if (
+      refundPolicy?.allowedReasonCodes &&
+      createRefundDto.reasonCode &&
+      !refundPolicy.allowedReasonCodes.includes(createRefundDto.reasonCode)
+    ) {
+      throw new Error(
+        `Reason code ${createRefundDto.reasonCode} is not allowed`,
+      );
     }
 
     // Validate order status for refunds
-    const allowedOrderStatuses = refundPolicy?.allowedOrderStatuses || ['DELIVERED', 'COMPLETED'];
+    const allowedOrderStatuses = refundPolicy?.allowedOrderStatuses || [
+      'DELIVERED',
+      'COMPLETED',
+    ];
     if (!allowedOrderStatuses.includes(order.status)) {
-      throw new Error(`Cannot create refund for order in ${order.status} status`);
+      throw new Error(
+        `Cannot create refund for order in ${order.status} status`,
+      );
     }
   }
 
-  static validateRefundPermissions(refund: any, userId: string, userRole: string, action: string): void {
+  static validateRefundPermissions(
+    refund: any,
+    userId: string,
+    userRole: string,
+    action: string,
+  ): void {
     // Customer can only view their own refunds
     if (userRole === 'CUSTOMER' && refund.createdBy !== userId) {
       throw new Error('Access denied to this refund');
@@ -123,7 +175,11 @@ export class RefundValidators {
     }
   }
 
-  static validateRefundApproval(refund: any, approvalData: any, approvedBy: string): void {
+  static validateRefundApproval(
+    refund: any,
+    approvalData: any,
+    approvedBy: string,
+  ): void {
     if (refund.status !== 'PENDING') {
       throw new Error('Only pending refunds can be approved');
     }

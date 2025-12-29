@@ -6,11 +6,13 @@ import { PromotionRule, CreatePromotionDto } from './promotion.service';
 export class PromotionRepository {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreatePromotionDto & { 
-    status: string; 
-    currentUsage: number; 
-    createdBy: string; 
-  }): Promise<PromotionRule> {
+  async create(
+    data: CreatePromotionDto & {
+      status: string;
+      currentUsage: number;
+      createdBy: string;
+    },
+  ): Promise<PromotionRule> {
     const promotion = await this.prisma.promotion.create({
       data: {
         ...data,
@@ -62,10 +64,7 @@ export class PromotionRepository {
       where: {
         status: 'ACTIVE',
         validFrom: { lte: date },
-        OR: [
-          { validTo: null },
-          { validTo: { gte: date } },
-        ],
+        OR: [{ validTo: null }, { validTo: { gte: date } }],
       },
       orderBy: { priority: 'desc' },
     });
@@ -73,7 +72,10 @@ export class PromotionRepository {
     return promotions.map(this.mapToPromotionRule);
   }
 
-  async getUserUsageCount(promotionId: string, userId: string): Promise<number> {
+  async getUserUsageCount(
+    promotionId: string,
+    userId: string,
+  ): Promise<number> {
     return this.prisma.promotionUsage.count({
       where: {
         promotionId,

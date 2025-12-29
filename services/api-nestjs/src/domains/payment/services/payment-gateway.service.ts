@@ -1,11 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { LoggerService } from '../../../infrastructure/observability/logger.service';
-import { 
-  IPaymentGateway, 
-  CreatePaymentIntentRequest, 
-  ConfirmPaymentIntentRequest, 
-  CreateRefundRequest, 
-  WebhookVerificationRequest 
+import {
+  IPaymentGateway,
+  CreatePaymentIntentRequest,
+  ConfirmPaymentIntentRequest,
+  CreateRefundRequest,
+  WebhookVerificationRequest,
 } from '../interfaces/payment-gateway.interface';
 
 export interface PaymentGatewayConfig {
@@ -20,9 +20,7 @@ export interface PaymentGatewayConfig {
 export class PaymentGatewayService {
   private gateways: Map<string, IPaymentGateway> = new Map();
 
-  constructor(
-    private readonly logger: LoggerService,
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
   registerGateway(provider: string, gateway: IPaymentGateway): void {
     this.gateways.set(provider, gateway);
@@ -33,7 +31,10 @@ export class PaymentGatewayService {
     return this.gateways.get(provider);
   }
 
-  async createPaymentIntent(provider: string, data: CreatePaymentIntentRequest): Promise<any> {
+  async createPaymentIntent(
+    provider: string,
+    data: CreatePaymentIntentRequest,
+  ): Promise<any> {
     const gateway = this.getGateway(provider);
     if (!gateway) {
       throw new Error(`Payment gateway not found: ${provider}`);
@@ -42,12 +43,19 @@ export class PaymentGatewayService {
     try {
       return await gateway.createPaymentIntent(data);
     } catch (error) {
-      this.logger.error(`Failed to create payment intent with ${provider}`, error, { data });
+      this.logger.error(
+        `Failed to create payment intent with ${provider}`,
+        error,
+        { data },
+      );
       throw error;
     }
   }
 
-  async confirmPaymentIntent(provider: string, request: ConfirmPaymentIntentRequest): Promise<any> {
+  async confirmPaymentIntent(
+    provider: string,
+    request: ConfirmPaymentIntentRequest,
+  ): Promise<any> {
     const gateway = this.getGateway(provider);
     if (!gateway) {
       throw new Error(`Payment gateway not found: ${provider}`);
@@ -56,7 +64,11 @@ export class PaymentGatewayService {
     try {
       return await gateway.confirmPaymentIntent(request);
     } catch (error) {
-      this.logger.error(`Failed to confirm payment intent with ${provider}`, error, { request });
+      this.logger.error(
+        `Failed to confirm payment intent with ${provider}`,
+        error,
+        { request },
+      );
       throw error;
     }
   }
@@ -70,12 +82,19 @@ export class PaymentGatewayService {
     try {
       return await gateway.cancelPaymentIntent(intentId);
     } catch (error) {
-      this.logger.error(`Failed to cancel payment intent with ${provider}`, error, { intentId });
+      this.logger.error(
+        `Failed to cancel payment intent with ${provider}`,
+        error,
+        { intentId },
+      );
       throw error;
     }
   }
 
-  async createRefund(provider: string, request: CreateRefundRequest): Promise<any> {
+  async createRefund(
+    provider: string,
+    request: CreateRefundRequest,
+  ): Promise<any> {
     const gateway = this.getGateway(provider);
     if (!gateway) {
       throw new Error(`Payment gateway not found: ${provider}`);
@@ -84,7 +103,9 @@ export class PaymentGatewayService {
     try {
       return await gateway.createRefund(request);
     } catch (error) {
-      this.logger.error(`Failed to create refund with ${provider}`, error, { request });
+      this.logger.error(`Failed to create refund with ${provider}`, error, {
+        request,
+      });
       throw error;
     }
   }
@@ -98,12 +119,19 @@ export class PaymentGatewayService {
     try {
       return await gateway.retrievePaymentIntent(intentId);
     } catch (error) {
-      this.logger.error(`Failed to get payment status from ${provider}`, error, { intentId });
+      this.logger.error(
+        `Failed to get payment status from ${provider}`,
+        error,
+        { intentId },
+      );
       throw error;
     }
   }
 
-  async verifyWebhook(provider: string, request: WebhookVerificationRequest): Promise<boolean> {
+  async verifyWebhook(
+    provider: string,
+    request: WebhookVerificationRequest,
+  ): Promise<boolean> {
     const gateway = this.getGateway(provider);
     if (!gateway) {
       throw new Error(`Payment gateway not found: ${provider}`);
@@ -112,7 +140,9 @@ export class PaymentGatewayService {
     try {
       return await gateway.verifyWebhook(request);
     } catch (error) {
-      this.logger.error(`Failed to verify webhook from ${provider}`, error, { request });
+      this.logger.error(`Failed to verify webhook from ${provider}`, error, {
+        request,
+      });
       return false;
     }
   }

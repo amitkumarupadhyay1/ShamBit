@@ -14,11 +14,19 @@ export class VariantRepository {
     return null;
   }
 
-  async findByProduct(productId: string, filters?: any, pagination?: any, includes?: any): Promise<any> {
+  async findByProduct(
+    productId: string,
+    filters?: any,
+    pagination?: any,
+    includes?: any,
+  ): Promise<any> {
     return { data: [] };
   }
 
-  async findByAttributeCombination(productId: string, attributeValues: Record<string, string>): Promise<any | null> {
+  async findByAttributeCombination(
+    productId: string,
+    attributeValues: Record<string, string>,
+  ): Promise<any | null> {
     return null;
   }
 

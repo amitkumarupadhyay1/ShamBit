@@ -117,7 +117,9 @@ export class CategoryRepository {
     return count > 0;
   }
 
-  async create(createCategoryDto: CreateCategoryDto): Promise<CategoryResponseDto> {
+  async create(
+    createCategoryDto: CreateCategoryDto,
+  ): Promise<CategoryResponseDto> {
     // Calculate level and path
     let level = 0;
     let path = createCategoryDto.slug;
@@ -159,7 +161,8 @@ export class CategoryRepository {
 
     if (updateCategoryDto.parentId !== undefined) {
       let level = 0;
-      let path = updateCategoryDto.slug || (await this.findById(id))?.slug || '';
+      let path =
+        updateCategoryDto.slug || (await this.findById(id))?.slug || '';
 
       if (updateCategoryDto.parentId) {
         const parent = await this.findById(updateCategoryDto.parentId);

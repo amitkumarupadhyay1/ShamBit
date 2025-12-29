@@ -9,7 +9,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { OrderService, CreateOrderDto } from './order.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -38,7 +43,7 @@ export class OrderController {
       // For admin, you might want to implement a different endpoint
       // or add query parameters to filter by user
     }
-    
+
     return this.orderService.findByUser(userId, page, limit);
   }
 
@@ -51,7 +56,9 @@ export class OrderController {
     @CurrentUser('id') userId: string,
     @CurrentUser('roles') userRoles: UserRole[],
   ) {
-    const userRole = userRoles.includes(UserRole.ADMIN) ? UserRole.ADMIN : undefined;
+    const userRole = userRoles.includes(UserRole.ADMIN)
+      ? UserRole.ADMIN
+      : undefined;
     return this.orderService.findById(id, userId, userRole);
   }
 
@@ -101,7 +108,14 @@ export class OrderController {
     @CurrentUser('id') userId: string,
     @CurrentUser('roles') userRoles: UserRole[],
   ) {
-    const userRole = userRoles.includes(UserRole.ADMIN) ? UserRole.ADMIN : undefined;
-    return this.orderService.cancelOrder(orderId, userId, body.reason, userRole);
+    const userRole = userRoles.includes(UserRole.ADMIN)
+      ? UserRole.ADMIN
+      : undefined;
+    return this.orderService.cancelOrder(
+      orderId,
+      userId,
+      body.reason,
+      userRole,
+    );
   }
 }

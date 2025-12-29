@@ -14,40 +14,40 @@ export class Category {
   name: string;
   slug: string;
   description?: string;
-  
+
   // Tree structure
   parentId?: string;
   path: string;
   pathIds: string[];
   depth: number;
-  
+
   // Tree statistics
   childCount: number;
   descendantCount: number;
   productCount: number;
-  
+
   // Category properties
   status: CategoryStatus;
   visibility: CategoryVisibility;
-  
+
   // SEO and metadata
   seoTitle?: string;
   seoDescription?: string;
   seoKeywords: string[];
   metadata?: CategoryMetadata;
-  
+
   // Display properties
   iconUrl?: string;
   bannerUrl?: string;
   displayOrder: number;
   isLeaf: boolean;
   isFeatured: boolean;
-  
+
   // Brand constraints
   allowedBrands: string[];
   restrictedBrands: string[];
   requiresBrand: boolean;
-  
+
   // Audit fields
   createdBy: string;
   updatedBy?: string;
@@ -66,7 +66,10 @@ export class Category {
   }
 
   isVisible(): boolean {
-    return [CategoryStatus.ACTIVE, CategoryStatus.INACTIVE].includes(this.status) && !this.deletedAt;
+    return (
+      [CategoryStatus.ACTIVE, CategoryStatus.INACTIVE].includes(this.status) &&
+      !this.deletedAt
+    );
   }
 
   canHaveProducts(): boolean {
@@ -153,7 +156,11 @@ export class Category {
     this.depth = newDepth;
   }
 
-  updateTreeStatistics(childCount: number, descendantCount: number, productCount: number): void {
+  updateTreeStatistics(
+    childCount: number,
+    descendantCount: number,
+    productCount: number,
+  ): void {
     this.childCount = childCount;
     this.descendantCount = descendantCount;
     this.productCount = productCount;

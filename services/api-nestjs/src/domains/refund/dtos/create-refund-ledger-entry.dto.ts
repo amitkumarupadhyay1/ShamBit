@@ -1,5 +1,8 @@
 import { IsString, IsNumber, IsOptional } from 'class-validator';
-import { RefundLedgerEntryType, RefundAccountType } from '../enums/refund-status.enum';
+import {
+  RefundLedgerEntryType,
+  RefundAccountType,
+} from '../enums/refund-status.enum';
 
 export class CreateRefundLedgerEntryDto {
   @IsString()

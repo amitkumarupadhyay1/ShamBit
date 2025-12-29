@@ -70,7 +70,11 @@ export class OrderPayment {
     return this.status === PaymentStatus.COMPLETED && !this.refundedAt;
   }
 
-  updateStatus(newStatus: PaymentStatus, updatedBy: string, reason?: string): void {
+  updateStatus(
+    newStatus: PaymentStatus,
+    updatedBy: string,
+    reason?: string,
+  ): void {
     this.status = newStatus;
     this.updatedBy = updatedBy;
     this.updatedAt = new Date();

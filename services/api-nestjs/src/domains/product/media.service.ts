@@ -9,9 +9,13 @@ export class MediaService {
     private readonly logger: LoggerService,
   ) {}
 
-  async uploadProductImage(productId: string, imageUrl: string, altText?: string) {
+  async uploadProductImage(
+    productId: string,
+    imageUrl: string,
+    altText?: string,
+  ) {
     this.logger.log('MediaService.uploadProductImage', { productId, imageUrl });
-    
+
     return this.mediaRepository.createProductImage({
       productId,
       url: imageUrl,

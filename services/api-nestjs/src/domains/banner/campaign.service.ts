@@ -4,7 +4,12 @@ import { Injectable } from '@nestjs/common';
 export class CampaignService {
   async findAll(query: any) {
     // TODO: implement pagination and filtering
-    return { data: [], total: 0, page: query?.page ?? 1, limit: query?.limit ?? 20 };
+    return {
+      data: [],
+      total: 0,
+      page: query?.page ?? 1,
+      limit: query?.limit ?? 20,
+    };
   }
 
   async createCampaign(data: any, createdBy: string) {

@@ -1,7 +1,7 @@
 // Brand Domain Events - Following strict naming convention
 export class BrandCreatedEvent {
   static readonly eventName = 'brand.created';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -14,7 +14,7 @@ export class BrandCreatedEvent {
 
 export class BrandUpdatedEvent {
   static readonly eventName = 'brand.updated';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -26,7 +26,7 @@ export class BrandUpdatedEvent {
 
 export class BrandApprovedEvent {
   static readonly eventName = 'brand.approved';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -38,7 +38,7 @@ export class BrandApprovedEvent {
 
 export class BrandRejectedEvent {
   static readonly eventName = 'brand.rejected';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -51,7 +51,7 @@ export class BrandRejectedEvent {
 
 export class BrandActivatedEvent {
   static readonly eventName = 'brand.activated';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -63,7 +63,7 @@ export class BrandActivatedEvent {
 
 export class BrandDeactivatedEvent {
   static readonly eventName = 'brand.deactivated';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -76,7 +76,7 @@ export class BrandDeactivatedEvent {
 
 export class BrandSuspendedEvent {
   static readonly eventName = 'brand.suspended';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -89,7 +89,7 @@ export class BrandSuspendedEvent {
 
 export class BrandDeletedEvent {
   static readonly eventName = 'brand.deleted';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -101,7 +101,7 @@ export class BrandDeletedEvent {
 
 export class BrandRequestedEvent {
   static readonly eventName = 'brand.requested';
-  
+
   constructor(
     public readonly requestId: string,
     public readonly requesterId: string,
@@ -113,7 +113,7 @@ export class BrandRequestedEvent {
 
 export class BrandAccessGrantedEvent {
   static readonly eventName = 'brand.access.granted';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -126,7 +126,7 @@ export class BrandAccessGrantedEvent {
 
 export class BrandAccessRevokedEvent {
   static readonly eventName = 'brand.access.revoked';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -140,7 +140,7 @@ export class BrandAccessRevokedEvent {
 // Legacy events for backward compatibility
 export class BrandStatusChangedEvent {
   static readonly eventName = 'brand.status.changed';
-  
+
   constructor(
     public readonly brandId: string,
     public readonly brandName: string,
@@ -154,7 +154,7 @@ export class BrandStatusChangedEvent {
 
 export class BrandRequestCreatedEvent {
   static readonly eventName = 'brand.request.created';
-  
+
   constructor(
     public readonly requestId: string,
     public readonly requesterId: string,
@@ -166,7 +166,7 @@ export class BrandRequestCreatedEvent {
 
 export class BrandRequestHandledEvent {
   static readonly eventName = 'brand.request.handled';
-  
+
   constructor(
     public readonly requestId: string,
     public readonly requesterId: string,
@@ -180,7 +180,7 @@ export class BrandRequestHandledEvent {
 
 export class BrandRequestCancelledEvent {
   static readonly eventName = 'brand.request.cancelled';
-  
+
   constructor(
     public readonly requestId: string,
     public readonly requesterId: string,

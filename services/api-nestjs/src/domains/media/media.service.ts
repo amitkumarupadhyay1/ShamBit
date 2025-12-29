@@ -77,7 +77,10 @@ export class MediaService {
     uploadDto: UploadSignedUrlDto,
     uploadedBy: string,
   ): Promise<{ uploadUrl: string; mediaId: string }> {
-    this.logger.log('MediaService.generateSignedUploadUrl', { uploadDto, uploadedBy });
+    this.logger.log('MediaService.generateSignedUploadUrl', {
+      uploadDto,
+      uploadedBy,
+    });
 
     // Validate file
     this.validateFile(uploadDto);
@@ -108,7 +111,10 @@ export class MediaService {
       status: 'PENDING',
     });
 
-    this.logger.log('Signed upload URL generated', { mediaId: media.id, filename });
+    this.logger.log('Signed upload URL generated', {
+      mediaId: media.id,
+      filename,
+    });
 
     return {
       uploadUrl,

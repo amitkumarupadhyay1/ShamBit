@@ -1,6 +1,9 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { BrandStatus } from '../enums/brand-status.enum';
-import { BrandRequestStatus, BrandRequestType } from '../enums/request-status.enum';
+import {
+  BrandRequestStatus,
+  BrandRequestType,
+} from '../enums/request-status.enum';
 import type { BrandMetadata } from '../entities/brand.entity';
 
 export class BrandResponseDto {
@@ -13,7 +16,9 @@ export class BrandResponseDto {
   @ApiProperty({ example: 'nike' })
   slug: string;
 
-  @ApiPropertyOptional({ example: 'Leading athletic footwear and apparel brand' })
+  @ApiPropertyOptional({
+    example: 'Leading athletic footwear and apparel brand',
+  })
   description?: string;
 
   @ApiPropertyOptional({ example: 'https://example.com/logo.png' })
@@ -60,7 +65,10 @@ export class BrandRequestResponseDto {
   @ApiProperty({ enum: BrandRequestType, example: BrandRequestType.NEW_BRAND })
   type: BrandRequestType;
 
-  @ApiProperty({ enum: BrandRequestStatus, example: BrandRequestStatus.PENDING })
+  @ApiProperty({
+    enum: BrandRequestStatus,
+    example: BrandRequestStatus.PENDING,
+  })
   status: BrandRequestStatus;
 
   @ApiProperty({ example: 'Nike' })
@@ -69,7 +77,9 @@ export class BrandRequestResponseDto {
   @ApiProperty({ example: 'nike' })
   brandSlug: string;
 
-  @ApiPropertyOptional({ example: 'Leading athletic footwear and apparel brand' })
+  @ApiPropertyOptional({
+    example: 'Leading athletic footwear and apparel brand',
+  })
   description?: string;
 
   @ApiPropertyOptional({ example: 'https://example.com/logo.png' })
@@ -84,7 +94,9 @@ export class BrandRequestResponseDto {
   @ApiProperty({ example: 'We are an authorized retailer...' })
   businessJustification: string;
 
-  @ApiPropertyOptional({ example: 'We plan to list approximately 100 products...' })
+  @ApiPropertyOptional({
+    example: 'We plan to list approximately 100 products...',
+  })
   expectedUsage?: string;
 
   @ApiPropertyOptional({ example: 'brand_123' })

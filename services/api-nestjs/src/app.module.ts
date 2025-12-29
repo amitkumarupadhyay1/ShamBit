@@ -57,7 +57,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
       isGlobal: true,
       envFilePath: '.env',
     }),
-    
+
     // Rate limiting
     ThrottlerModule.forRoot([
       {
@@ -65,7 +65,7 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
         limit: 100, // 100 requests per minute
       },
     ]),
-    
+
     // Infrastructure
     PrismaModule,
     RedisModule,
@@ -82,10 +82,10 @@ import { HttpExceptionFilter } from './common/filters/http-exception.filter';
     AuthorizationModule,
     DynamicConfigModule,
     LifecycleModule,
-    
+
     // Core modules
     HealthModule,
-    
+
     // Domain modules
     AuthModule,
     CategoryModule,

@@ -24,11 +24,12 @@ import { OrderPolicies } from './order.policies.js';
 import { OrderValidators } from './order.validators';
 
 import { CreateOrderDto } from './dtos/create-order.dto';
-import { UpdateOrderDto, OrderStatusUpdateDto } from './dtos/update-order.dto.js';
+import {
+  UpdateOrderDto,
+  OrderStatusUpdateDto,
+} from './dtos/update-order.dto.js';
 import { CancelOrderDto } from './dtos/cancel-order.dto.js';
 import { RefundOrderDto } from './dtos/refund-order.dto.js';
-
-
 
 import {
   OrderUpdatedEvent,
@@ -69,12 +70,16 @@ export class OrderService {
     pagination: any = {},
     includes: any = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
     this.logger.log('OrderService.findAll', { filters, pagination, userId });
 
     // Apply access control filters
-    const enhancedFilters = await this.applyAccessFilters(filters, userId, userRole);
+    const enhancedFilters = await this.applyAccessFilters(
+      filters,
+      userId,
+      userRole,
+    );
 
     return this.orderRepository.findAll(enhancedFilters, pagination, includes);
   }
@@ -83,7 +88,7 @@ export class OrderService {
     id: string,
     includes: any = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Order> {
     const order = await this.orderRepository.findById(id);
     if (!order) {
@@ -100,7 +105,7 @@ export class OrderService {
     orderNumber: string,
     includes: any = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Order> {
     const order = await this.orderRepository.findByOrderNumber(orderNumber);
     if (!order) {
@@ -117,7 +122,7 @@ export class OrderService {
     customerId: string,
     filters: any = {},
     pagination: any = {},
-    includes: any = {}
+    includes: any = {},
   ) {
     return this.orderRepository.findByCustomer(customerId, pagination);
   }
@@ -131,20 +136,28 @@ export class OrderService {
 
     // SAFETY: Validate all monetary values are properly formatted
     for (const item of createOrderDto.items) {
-      OrderValidators.validateMonetaryValues(item.unitPrice || 0, 'item unit price');
+      OrderValidators.validateMonetaryValues(
+        item.unitPrice || 0,
+        'item unit price',
+      );
     }
 
     // Validate permissions
     await this.validateOrderCreationPermissions(createOrderDto, createdBy);
 
     // Use orchestration service for complex order creation
-    const result = await this.orderOrchestrationService.createOrder(createOrderDto, createdBy);
+    const result = await this.orderOrchestrationService.createOrder(
+      createOrderDto,
+      createdBy,
+    );
 
     if (!result.success) {
       throw new BadRequestException(result.error || 'Order creation failed');
     }
 
-    this.logger.log('Order created successfully', { orderId: result.order!.id });
+    this.logger.log('Order created successfully', {
+      orderId: result.order!.id,
+    });
     return result.order!;
   }
 
@@ -155,7 +168,7 @@ export class OrderService {
   async update(
     id: string,
     updateOrderDto: UpdateOrderDto,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<Order> {
     this.logger.log('OrderService.update', { id, updateOrderDto, updatedBy });
 
@@ -168,7 +181,10 @@ export class OrderService {
     OrderValidators.validateOrderImmutability(existingOrder, updateOrderDto);
 
     // SAFETY: Validate currency immutability
-    OrderValidators.validateCurrencyImmutability(existingOrder, updateOrderDto.currency);
+    OrderValidators.validateCurrencyImmutability(
+      existingOrder,
+      updateOrderDto.currency,
+    );
 
     // Validate update rules
     await this.validateOrderUpdate(existingOrder);
@@ -190,13 +206,16 @@ export class OrderService {
     });
 
     // Emit event
-    this.eventEmitter.emit('order.updated', new OrderUpdatedEvent(
-      id,
-      updatedOrder.orderNumber,
-      updatedOrder.customerId,
-      this.calculateChanges(existingOrder, updatedOrder),
-      updatedBy
-    ));
+    this.eventEmitter.emit(
+      'order.updated',
+      new OrderUpdatedEvent(
+        id,
+        updatedOrder.orderNumber,
+        updatedOrder.customerId,
+        this.calculateChanges(existingOrder, updatedOrder),
+        updatedBy,
+      ),
+    );
 
     this.logger.log('Order updated successfully', { orderId: id });
     return updatedOrder;
@@ -209,9 +228,13 @@ export class OrderService {
   async updateStatus(
     id: string,
     statusUpdate: OrderStatusUpdateDto,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<Order> {
-    this.logger.log('OrderService.updateStatus', { id, statusUpdate, updatedBy });
+    this.logger.log('OrderService.updateStatus', {
+      id,
+      statusUpdate,
+      updatedBy,
+    });
 
     const order = await this.findById(id);
 
@@ -225,7 +248,11 @@ export class OrderService {
     await this.validateStatusChange(order, statusUpdate.status);
 
     // Update status with side effects
-    const updatedOrder = await this.executeStatusChange(order, statusUpdate, updatedBy);
+    const updatedOrder = await this.executeStatusChange(
+      order,
+      statusUpdate,
+      updatedBy,
+    );
 
     this.logger.log('Order status updated successfully', {
       orderId: id,
@@ -237,18 +264,34 @@ export class OrderService {
   }
 
   async confirm(id: string, confirmedBy: string): Promise<Order> {
-    return this.updateStatus(id, { status: OrderStatus.CONFIRMED }, confirmedBy);
+    return this.updateStatus(
+      id,
+      { status: OrderStatus.CONFIRMED },
+      confirmedBy,
+    );
   }
 
-  async ship(id: string, shippedBy: string, trackingNumber?: string): Promise<Order> {
+  async ship(
+    id: string,
+    shippedBy: string,
+    trackingNumber?: string,
+  ): Promise<Order> {
     const order = await this.findById(id);
-    
+
     // Use fulfillment service for shipping logic
-    return this.orderFulfillmentService.shipOrder(order, shippedBy, trackingNumber);
+    return this.orderFulfillmentService.shipOrder(
+      order,
+      shippedBy,
+      trackingNumber,
+    );
   }
 
   async deliver(id: string, deliveredBy: string): Promise<Order> {
-    return this.updateStatus(id, { status: OrderStatus.DELIVERED }, deliveredBy);
+    return this.updateStatus(
+      id,
+      { status: OrderStatus.DELIVERED },
+      deliveredBy,
+    );
   }
 
   // ============================================================================
@@ -258,7 +301,7 @@ export class OrderService {
   async cancel(
     id: string,
     cancelDto: CancelOrderDto,
-    cancelledBy: string
+    cancelledBy: string,
   ): Promise<Order> {
     this.logger.log('OrderService.cancel', { id, cancelDto, cancelledBy });
 
@@ -275,7 +318,7 @@ export class OrderService {
       const cancelledOrder = await this.orderRepository.updateStatus(
         id,
         OrderStatus.CANCELLED,
-        cancelledBy
+        cancelledBy,
       );
 
       // Cancel all order items
@@ -297,13 +340,16 @@ export class OrderService {
       });
 
       // Emit event
-      this.eventEmitter.emit('order.cancelled', new OrderCancelledEvent(
-        id,
-        order.orderNumber,
-        order.customerId,
-        cancelDto.reason || 'Order cancelled',
-        cancelledBy
-      ));
+      this.eventEmitter.emit(
+        'order.cancelled',
+        new OrderCancelledEvent(
+          id,
+          order.orderNumber,
+          order.customerId,
+          cancelDto.reason || 'Order cancelled',
+          cancelledBy,
+        ),
+      );
 
       this.logger.log('Order cancelled successfully', { orderId: id });
       return cancelledOrder;
@@ -314,11 +360,7 @@ export class OrderService {
   // ORDER REFUNDS
   // ============================================================================
 
-  async refund(
-    id: string,
-    refundDto: RefundOrderDto,
-    refundedBy: string
-  ) {
+  async refund(id: string, refundDto: RefundOrderDto, refundedBy: string) {
     this.logger.log('OrderService.refund', { id, refundDto, refundedBy });
 
     const order = await this.findById(id);
@@ -334,7 +376,10 @@ export class OrderService {
   // ORDER EXPIRY HANDLING
   // ============================================================================
 
-  async handleExpiredOrders(): Promise<{ processed: number; errors: string[] }> {
+  async handleExpiredOrders(): Promise<{
+    processed: number;
+    errors: string[];
+  }> {
     this.logger.log('OrderService.handleExpiredOrders');
 
     const results = { processed: 0, errors: [] as string[] };
@@ -357,7 +402,6 @@ export class OrderService {
 
       this.logger.log('Expired orders processing completed', results);
       return results;
-
     } catch (error) {
       this.logger.error('Failed to process expired orders', error);
       results.errors.push(error.message);
@@ -373,7 +417,7 @@ export class OrderService {
       await this.orderRepository.updateStatus(
         order.id,
         OrderStatus.CANCELLED,
-        'SYSTEM'
+        'SYSTEM',
       );
 
       // Release inventory reservations
@@ -390,12 +434,15 @@ export class OrderService {
       });
 
       // Emit event
-      this.eventEmitter.emit('order.expired', new OrderExpiredEvent(
-        order.id,
-        order.orderNumber,
-        order.customerId,
-        order.expiresAt!
-      ));
+      this.eventEmitter.emit(
+        'order.expired',
+        new OrderExpiredEvent(
+          order.id,
+          order.orderNumber,
+          order.customerId,
+          order.expiresAt!,
+        ),
+      );
     });
   }
 
@@ -404,7 +451,9 @@ export class OrderService {
   // ============================================================================
 
   async splitMultiSellerOrder(order: Order): Promise<Order[]> {
-    this.logger.log('OrderService.splitMultiSellerOrder', { orderId: order.id });
+    this.logger.log('OrderService.splitMultiSellerOrder', {
+      orderId: order.id,
+    });
 
     if (!order.isMultiSeller()) {
       throw new BadRequestException('Order does not require splitting');
@@ -425,9 +474,12 @@ export class OrderService {
         // Calculate proportional amounts
         const proportion = sellerSubtotal / order.subtotal;
         const sellerTax = Math.round(order.taxAmount * proportion * 100) / 100;
-        const sellerShipping = Math.round(order.shippingAmount * proportion * 100) / 100;
-        const sellerDiscount = Math.round(order.discountAmount * proportion * 100) / 100;
-        const sellerTotal = sellerSubtotal + sellerTax + sellerShipping - sellerDiscount;
+        const sellerShipping =
+          Math.round(order.shippingAmount * proportion * 100) / 100;
+        const sellerDiscount =
+          Math.round(order.discountAmount * proportion * 100) / 100;
+        const sellerTotal =
+          sellerSubtotal + sellerTax + sellerShipping - sellerDiscount;
 
         const childOrderData = {
           orderNumber: `${order.orderNumber}-${sellerId.slice(-4)}`,
@@ -463,7 +515,7 @@ export class OrderService {
   private async applyAccessFilters(
     filters: any,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<any> {
     // Apply role-based filtering
     if (userRole === UserRole.CUSTOMER) {
@@ -480,7 +532,7 @@ export class OrderService {
   private async checkOrderAccess(
     order: Order,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<void> {
     if (!OrderPolicies.canAccess(userId || '', userRole || '', order)) {
       throw new ForbiddenException('Access denied to this order');
@@ -489,7 +541,7 @@ export class OrderService {
 
   private async validateOrderCreationPermissions(
     createOrderDto: CreateOrderDto,
-    createdBy: string
+    createdBy: string,
   ): Promise<void> {
     // Validate user can create orders for this customer
     if (createOrderDto.customerId !== createdBy) {
@@ -497,9 +549,7 @@ export class OrderService {
     }
   }
 
-  private async validateOrderUpdate(
-    existingOrder: Order
-  ): Promise<void> {
+  private async validateOrderUpdate(existingOrder: Order): Promise<void> {
     // Validate business rules for updates
     if (existingOrder.isTerminal) {
       throw new BadRequestException('Cannot update terminal order');
@@ -508,7 +558,7 @@ export class OrderService {
 
   private async validateStatusChange(
     order: Order,
-    newStatus: OrderStatus
+    newStatus: OrderStatus,
   ): Promise<void> {
     // Additional business rule validations for status changes
     if (newStatus === OrderStatus.CONFIRMED && !order.isFullyPaid()) {
@@ -519,18 +569,22 @@ export class OrderService {
   private async executeStatusChange(
     order: Order,
     statusUpdate: OrderStatusUpdateDto,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<Order> {
     return this.prisma.$transaction(async () => {
       // Update order status
       const updatedOrder = await this.orderRepository.updateStatus(
         order.id,
         statusUpdate.status,
-        updatedBy
+        updatedBy,
       );
 
       // Execute side effects based on status
-      await this.executeStatusSideEffects(order, statusUpdate.status, updatedBy);
+      await this.executeStatusSideEffects(
+        order,
+        statusUpdate.status,
+        updatedBy,
+      );
 
       // Create audit log
       await this.orderAuditService.logAction({
@@ -552,7 +606,7 @@ export class OrderService {
   private async executeStatusSideEffects(
     order: Order,
     newStatus: OrderStatus,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     switch (newStatus) {
       case OrderStatus.CONFIRMED:
@@ -585,7 +639,10 @@ export class OrderService {
     for (const item of order.items || []) {
       if (item.reservationKey) {
         // SAFETY: Validate reservation can only be committed once
-        const reservation = await this.inventoryReservationService.getReservation(item.reservationKey);
+        const reservation =
+          await this.inventoryReservationService.getReservation(
+            item.reservationKey,
+          );
         if (reservation) {
           InventoryValidators.validateReservationCommitIdempotency(reservation);
         }
@@ -593,7 +650,7 @@ export class OrderService {
         await this.inventoryReservationService.commitReservation(
           item.reservationKey,
           'SYSTEM',
-          `Order ${order.orderNumber} confirmed`
+          `Order ${order.orderNumber} confirmed`,
         );
       }
     }
@@ -601,14 +658,14 @@ export class OrderService {
 
   private async releaseOrderReservations(
     order: Order,
-    reason: string
+    reason: string,
   ): Promise<void> {
     for (const item of order.items || []) {
       if (item.reservationKey) {
         await this.inventoryReservationService.releaseReservation(
           item.reservationKey,
           'SYSTEM',
-          reason
+          reason,
         );
       }
     }
@@ -617,28 +674,35 @@ export class OrderService {
   private async cancelOrderItem(
     item: OrderItem,
     reason: string,
-    cancelledBy: string
+    cancelledBy: string,
   ): Promise<void> {
     await this.orderRepository.updateItemStatus(
       item.id,
-      OrderItemStatus.CANCELLED
+      OrderItemStatus.CANCELLED,
     );
   }
 
   private async validateOrderCancellation(order: Order): Promise<void> {
     if (!order.canBeCancelled) {
-      throw new BadRequestException(`Cannot cancel order in ${order.status} status`);
+      throw new BadRequestException(
+        `Cannot cancel order in ${order.status} status`,
+      );
     }
   }
 
   private calculateChanges(
     oldOrder: Order,
-    newOrder: Order
+    newOrder: Order,
   ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     // Compare relevant fields
-    const fieldsToCompare = ['status', 'shippingAddress', 'billingAddress', 'notes'];
+    const fieldsToCompare = [
+      'status',
+      'shippingAddress',
+      'billingAddress',
+      'notes',
+    ];
 
     for (const field of fieldsToCompare) {
       const oldValue = (oldOrder as any)[field];
@@ -655,46 +719,58 @@ export class OrderService {
   private emitStatusChangeEvent(
     order: Order,
     oldStatus: OrderStatus,
-    updatedBy: string
+    updatedBy: string,
   ): void {
     // Emit generic status change event
-    this.eventEmitter.emit('order.status.changed', new OrderStatusChangedEvent(
-      order.id,
-      order.orderNumber,
-      order.customerId,
-      oldStatus,
-      order.status,
-      updatedBy
-    ));
+    this.eventEmitter.emit(
+      'order.status.changed',
+      new OrderStatusChangedEvent(
+        order.id,
+        order.orderNumber,
+        order.customerId,
+        oldStatus,
+        order.status,
+        updatedBy,
+      ),
+    );
 
     // Emit specific status events
     switch (order.status) {
       case OrderStatus.CONFIRMED:
-        this.eventEmitter.emit('order.confirmed', new OrderConfirmedEvent(
-          order.id,
-          order.orderNumber,
-          order.customerId,
-          order.totalAmount
-        ));
+        this.eventEmitter.emit(
+          'order.confirmed',
+          new OrderConfirmedEvent(
+            order.id,
+            order.orderNumber,
+            order.customerId,
+            order.totalAmount,
+          ),
+        );
         break;
 
       case OrderStatus.SHIPPED:
-        this.eventEmitter.emit('order.shipped', new OrderShippedEvent(
-          order.id,
-          order.orderNumber,
-          order.customerId,
-          order.trackingNumber || '',
-          'DEFAULT_CARRIER'
-        ));
+        this.eventEmitter.emit(
+          'order.shipped',
+          new OrderShippedEvent(
+            order.id,
+            order.orderNumber,
+            order.customerId,
+            order.trackingNumber || '',
+            'DEFAULT_CARRIER',
+          ),
+        );
         break;
 
       case OrderStatus.DELIVERED:
-        this.eventEmitter.emit('order.delivered', new OrderDeliveredEvent(
-          order.id,
-          order.orderNumber,
-          order.customerId,
-          order.deliveredAt!
-        ));
+        this.eventEmitter.emit(
+          'order.delivered',
+          new OrderDeliveredEvent(
+            order.id,
+            order.orderNumber,
+            order.customerId,
+            order.deliveredAt!,
+          ),
+        );
         break;
     }
   }
@@ -708,31 +784,34 @@ export class OrderService {
     return this.orderRepository.findAll(
       { customerId: userId },
       { limit, offset },
-      { items: true, payments: true }
+      { items: true, payments: true },
     );
   }
 
-  async createOrder(createOrderDto: CreateOrderDto, userId: string): Promise<Order> {
+  async createOrder(
+    createOrderDto: CreateOrderDto,
+    userId: string,
+  ): Promise<Order> {
     return this.create(createOrderDto, userId);
   }
 
   async processPayment(orderId: string, userId: string): Promise<any> {
     this.logger.log('OrderService.processPayment', { orderId, userId });
-    
+
     const order = await this.findById(orderId);
     await this.checkOrderAccess(order, userId);
 
     // TODO: Implement payment processing logic
     // This would typically integrate with payment gateway
-    
+
     return { success: true, message: 'Payment processing initiated' };
   }
 
   async confirmPayment(orderId: string, paymentId: string): Promise<Order> {
     this.logger.log('OrderService.confirmPayment', { orderId, paymentId });
-    
+
     const order = await this.findById(orderId);
-    
+
     // Update order status to confirmed
     const updatedOrder = await this.orderRepository.update(orderId, {
       status: OrderStatus.CONFIRMED,
@@ -742,29 +821,34 @@ export class OrderService {
     });
 
     // Emit event
-    this.eventEmitter.emit('order.confirmed', new OrderConfirmedEvent(
-      orderId,
-      order.orderNumber,
-      order.customerId,
-      paymentId
-    ));
+    this.eventEmitter.emit(
+      'order.confirmed',
+      new OrderConfirmedEvent(
+        orderId,
+        order.orderNumber,
+        order.customerId,
+        paymentId,
+      ),
+    );
 
     return updatedOrder;
   }
 
   async cancelOrder(
-    orderId: string, 
-    userId: string, 
-    reason: string, 
-    userRole: UserRole
+    orderId: string,
+    userId: string,
+    reason: string,
+    userRole: UserRole,
   ): Promise<Order> {
     this.logger.log('OrderService.cancelOrder', { orderId, userId, reason });
-    
+
     const order = await this.findById(orderId);
     await this.checkOrderAccess(order, userId, userRole);
 
     if (!order.canBeCancelled) {
-      throw new BadRequestException('Order cannot be cancelled in current status');
+      throw new BadRequestException(
+        'Order cannot be cancelled in current status',
+      );
     }
 
     const updatedOrder = await this.orderRepository.update(orderId, {
@@ -787,15 +871,17 @@ export class OrderService {
     });
 
     // Emit event
-    this.eventEmitter.emit('order.cancelled', new OrderCancelledEvent(
-      orderId,
-      order.orderNumber,
-      order.customerId,
-      reason,
-      userId
-    ));
+    this.eventEmitter.emit(
+      'order.cancelled',
+      new OrderCancelledEvent(
+        orderId,
+        order.orderNumber,
+        order.customerId,
+        reason,
+        userId,
+      ),
+    );
 
     return updatedOrder;
   }
-
 }

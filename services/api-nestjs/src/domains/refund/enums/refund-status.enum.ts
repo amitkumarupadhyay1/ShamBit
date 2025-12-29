@@ -52,24 +52,24 @@ export enum RefundReasonCode {
   CUST_002 = 'CUST_002', // Found better price
   CUST_003 = 'CUST_003', // No longer needed
   CUST_004 = 'CUST_004', // Size/fit issue
-  
+
   // Product issues
   PROD_001 = 'PROD_001', // Defective product
   PROD_002 = 'PROD_002', // Wrong item received
   PROD_003 = 'PROD_003', // Not as described
   PROD_004 = 'PROD_004', // Quality issue
   PROD_005 = 'PROD_005', // Damaged in shipping
-  
+
   // Service issues
   SERV_001 = 'SERV_001', // Late delivery
   SERV_002 = 'SERV_002', // Poor customer service
   SERV_003 = 'SERV_003', // Merchant error
-  
+
   // Payment issues
   PAY_001 = 'PAY_001', // Payment dispute
   PAY_002 = 'PAY_002', // Duplicate charge
   PAY_003 = 'PAY_003', // Fraudulent transaction
-  
+
   // Other
   OTHER_001 = 'OTHER_001', // Other reason
 }
@@ -160,7 +160,8 @@ export enum RefundErrorCode {
 export function getRefundErrorMessage(code: RefundErrorCode): string {
   const messages: Record<RefundErrorCode, string> = {
     [RefundErrorCode.INVALID_ORDER]: 'Order is not valid for refund',
-    [RefundErrorCode.INSUFFICIENT_PAYMENT]: 'Insufficient payment amount for refund',
+    [RefundErrorCode.INSUFFICIENT_PAYMENT]:
+      'Insufficient payment amount for refund',
     [RefundErrorCode.REFUND_WINDOW_EXPIRED]: 'Refund window has expired',
     [RefundErrorCode.ALREADY_REFUNDED]: 'Order has already been refunded',
     [RefundErrorCode.GATEWAY_ERROR]: 'Payment gateway error',
@@ -175,7 +176,10 @@ export function getRefundErrorMessage(code: RefundErrorCode): string {
   return messages[code] || 'Unknown error';
 }
 
-export function getRefundPriority(refundType: RefundType, refundAmount: number): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
+export function getRefundPriority(
+  refundType: RefundType,
+  refundAmount: number,
+): 'LOW' | 'NORMAL' | 'HIGH' | 'URGENT' {
   // Urgent priority for high-value refunds
   if (refundAmount > 10000) {
     return 'URGENT';
@@ -194,9 +198,16 @@ export function getRefundPriority(refundType: RefundType, refundAmount: number):
   return 'LOW';
 }
 
-export function canTransitionRefundStatus(from: RefundStatus, to: RefundStatus): boolean {
+export function canTransitionRefundStatus(
+  from: RefundStatus,
+  to: RefundStatus,
+): boolean {
   const transitions: Record<RefundStatus, RefundStatus[]> = {
-    [RefundStatus.PENDING]: [RefundStatus.APPROVED, RefundStatus.REJECTED, RefundStatus.CANCELLED],
+    [RefundStatus.PENDING]: [
+      RefundStatus.APPROVED,
+      RefundStatus.REJECTED,
+      RefundStatus.CANCELLED,
+    ],
     [RefundStatus.APPROVED]: [RefundStatus.PROCESSING, RefundStatus.CANCELLED],
     [RefundStatus.REJECTED]: [],
     [RefundStatus.PROCESSING]: [RefundStatus.COMPLETED, RefundStatus.FAILED],
@@ -212,7 +223,7 @@ export function shouldRequireApproval(
   refundAmount: number,
   refundReason: RefundReason,
   refundType: RefundType,
-  autoApprovalLimit?: number
+  autoApprovalLimit?: number,
 ): boolean {
   // Default auto-approval limit (in paise/cents)
   const defaultLimit = autoApprovalLimit || 500000; // 5000 INR or $50

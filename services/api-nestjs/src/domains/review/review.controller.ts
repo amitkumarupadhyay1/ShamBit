@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { ReviewService } from './review.service';
 import type { CreateReviewDto } from './review.service';
@@ -29,7 +34,10 @@ export class ReviewController {
 
   @Get()
   @ApiOperation({ summary: 'Get reviews' })
-  async findAll(@Query() query: PaginationQuery & { entityType?: string; entityId?: string }) {
+  async findAll(
+    @Query()
+    query: PaginationQuery & { entityType?: string; entityId?: string },
+  ) {
     return this.reviewService.findAll(query);
   }
 
@@ -110,6 +118,11 @@ export class ReviewController {
     @Body() body: { status: 'APPROVED' | 'REJECTED'; reason?: string },
     @CurrentUser('id') moderatorId: string,
   ) {
-    return this.reviewService.moderateReview(reviewId, body.status, moderatorId, body.reason);
+    return this.reviewService.moderateReview(
+      reviewId,
+      body.status,
+      moderatorId,
+      body.reason,
+    );
   }
 }

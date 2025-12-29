@@ -38,11 +38,11 @@ import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
     ProductService,
     ProductAuditService,
     ProductIntegrationService,
-    
+
     // Repositories
     ProductRepository,
     ProductAttributeValueRepository,
-    
+
     // Guards
     ProductOwnershipGuard,
   ],

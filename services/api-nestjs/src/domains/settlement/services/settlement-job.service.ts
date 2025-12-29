@@ -9,9 +9,19 @@ interface ISettlementJobRepository {
   update(id: string, data: any): Promise<SettlementJob>;
   findPendingJobs(): Promise<SettlementJob[]>;
   findFailedJobsForRetry(): Promise<SettlementJob[]>;
-  findByGatewaySettlementId(gatewaySettlementId: string): Promise<SettlementJob | null>;
-  findByType(type: string, status?: string, limit?: number): Promise<SettlementJob[]>;
-  findBySeller(sellerId: string, status?: string, limit?: number): Promise<SettlementJob[]>;
+  findByGatewaySettlementId(
+    gatewaySettlementId: string,
+  ): Promise<SettlementJob | null>;
+  findByType(
+    type: string,
+    status?: string,
+    limit?: number,
+  ): Promise<SettlementJob[]>;
+  findBySeller(
+    sellerId: string,
+    status?: string,
+    limit?: number,
+  ): Promise<SettlementJob[]>;
   getStatistics(): Promise<{
     total: number;
     pending: number;
@@ -59,7 +69,7 @@ interface CreateSettlementJobDto {
 }
 
 import { SettlementCalculationService } from './settlement-calculation.service';
-import { 
+import {
   SettlementJobType,
   SettlementJobStatus,
 } from '../enums/settlement-status.enum';
@@ -85,7 +95,9 @@ export class SettlementJobService {
   // JOB CREATION & MANAGEMENT
   // ============================================================================
 
-  async createJob(createJobDto: CreateSettlementJobDto): Promise<SettlementJob> {
+  async createJob(
+    createJobDto: CreateSettlementJobDto,
+  ): Promise<SettlementJob> {
     this.logger.log('SettlementJobService.createJob', {
       type: createJobDto.type,
       sellerId: createJobDto.sellerId,
@@ -108,12 +120,15 @@ export class SettlementJobService {
     const job = await this.settlementJobRepository.create(jobData);
 
     // Emit job created event
-    this.eventEmitter.emit('settlement.job.created', new SettlementJobCreatedEvent(
-      job.id,
-      job.type,
-      job.sellerId,
-      job.createdBy
-    ));
+    this.eventEmitter.emit(
+      'settlement.job.created',
+      new SettlementJobCreatedEvent(
+        job.id,
+        job.type,
+        job.sellerId,
+        job.createdBy,
+      ),
+    );
 
     this.logger.log('Settlement job created', {
       jobId: job.id,
@@ -133,7 +148,10 @@ export class SettlementJobService {
     }
 
     // Check if job is already processing or completed
-    if (job.status !== SettlementJobStatus.PENDING && job.status !== SettlementJobStatus.RETRYING) {
+    if (
+      job.status !== SettlementJobStatus.PENDING &&
+      job.status !== SettlementJobStatus.RETRYING
+    ) {
       this.logger.warn('Job is not in processable state', {
         jobId,
         status: job.status,
@@ -163,7 +181,6 @@ export class SettlementJobService {
 
       // Mark job as completed
       await this.completeJob(jobId, result);
-
     } catch (error) {
       await this.handleJobFailure(jobId, error);
     }
@@ -176,9 +193,12 @@ export class SettlementJobService {
 
     try {
       // Find failed jobs eligible for retry
-      const failedJobs = await this.settlementJobRepository.findFailedJobsForRetry();
+      const failedJobs =
+        await this.settlementJobRepository.findFailedJobsForRetry();
 
-      this.logger.log('Found failed jobs for retry', { count: failedJobs.length });
+      this.logger.log('Found failed jobs for retry', {
+        count: failedJobs.length,
+      });
 
       for (const job of failedJobs) {
         try {
@@ -190,7 +210,6 @@ export class SettlementJobService {
       }
 
       return results;
-
     } catch (error) {
       this.logger.error('Failed to process job retries', error);
       results.errors.push(error.message);
@@ -202,7 +221,9 @@ export class SettlementJobService {
   // JOB PROCESSORS
   // ============================================================================
 
-  private async processCalculateSettlementJob(job: SettlementJob): Promise<any> {
+  private async processCalculateSettlementJob(
+    job: SettlementJob,
+  ): Promise<any> {
     this.logger.log('Processing calculate settlement job', {
       jobId: job.id,
       sellerId: job.sellerId,
@@ -211,12 +232,13 @@ export class SettlementJobService {
     const { sellerId, periodStart, periodEnd } = job.payload;
 
     // Calculate settlement
-    const calculationResult = await this.settlementCalculationService.calculateSettlement({
-      sellerId,
-      periodStart: new Date(periodStart),
-      periodEnd: new Date(periodEnd),
-      currency: job.payload.currency || 'INR',
-    });
+    const calculationResult =
+      await this.settlementCalculationService.calculateSettlement({
+        sellerId,
+        periodStart: new Date(periodStart),
+        periodEnd: new Date(periodEnd),
+        currency: job.payload.currency || 'INR',
+      });
 
     // If there are transactions to settle, create settlement record
     if (calculationResult.transactionCount > 0) {
@@ -271,12 +293,16 @@ export class SettlementJobService {
     return result;
   }
 
-  private async processSyncGatewaySettlementsJob(job: SettlementJob): Promise<any> {
+  private async processSyncGatewaySettlementsJob(
+    job: SettlementJob,
+  ): Promise<any> {
     this.logger.log('Processing sync gateway settlements job', {
       jobId: job.id,
     });
 
-    const gateway = await this.paymentGatewayService.getGateway(PaymentGatewayProvider.RAZORPAY);
+    const gateway = await this.paymentGatewayService.getGateway(
+      PaymentGatewayProvider.RAZORPAY,
+    );
 
     // Get settlements from gateway for the last 7 days
     const fromDate = new Date();
@@ -291,7 +317,9 @@ export class SettlementJobService {
     });
 
     if (!gatewayResponse.success) {
-      throw new Error(`Failed to fetch gateway settlements: ${gatewayResponse.error?.message}`);
+      throw new Error(
+        `Failed to fetch gateway settlements: ${gatewayResponse.error?.message}`,
+      );
     }
 
     const settlements = gatewayResponse.data?.items || [];
@@ -339,7 +367,7 @@ export class SettlementJobService {
   private async updateJobStatus(
     jobId: string,
     status: SettlementJobStatus,
-    errorMessage?: string
+    errorMessage?: string,
   ): Promise<void> {
     const updateData: any = {
       status,
@@ -365,10 +393,10 @@ export class SettlementJobService {
     });
 
     // Emit job completed event
-    this.eventEmitter.emit('settlement.job.completed', new SettlementJobCompletedEvent(
-      jobId,
-      result
-    ));
+    this.eventEmitter.emit(
+      'settlement.job.completed',
+      new SettlementJobCompletedEvent(jobId, result),
+    );
 
     this.logger.log('Settlement job completed successfully', { jobId });
   }
@@ -383,7 +411,7 @@ export class SettlementJobService {
     if (newRetryCount <= job.maxRetries) {
       // Schedule retry
       const nextRetryAt = this.calculateNextRetryTime(newRetryCount);
-      
+
       await this.settlementJobRepository.update(jobId, {
         status: SettlementJobStatus.RETRYING,
         retryCount: newRetryCount,
@@ -398,7 +426,6 @@ export class SettlementJobService {
         nextRetryAt,
         error: errorMessage,
       });
-
     } else {
       // Mark as permanently failed
       await this.settlementJobRepository.update(jobId, {
@@ -407,11 +434,10 @@ export class SettlementJobService {
       });
 
       // Emit job failed event
-      this.eventEmitter.emit('settlement.job.failed', new SettlementJobFailedEvent(
-        jobId,
-        job.type,
-        errorMessage
-      ));
+      this.eventEmitter.emit(
+        'settlement.job.failed',
+        new SettlementJobFailedEvent(jobId, job.type, errorMessage),
+      );
 
       this.logger.error('Settlement job permanently failed', errorMessage, {
         jobId,
@@ -449,14 +475,21 @@ export class SettlementJobService {
 
   private async syncGatewaySettlement(gatewaySettlement: any): Promise<void> {
     // Check if we already have this settlement
-    const existingSettlement = await this.settlementJobRepository.findByGatewaySettlementId(
-      gatewaySettlement.id
-    );
+    const existingSettlement =
+      await this.settlementJobRepository.findByGatewaySettlementId(
+        gatewaySettlement.id,
+      );
 
     if (existingSettlement) {
       // Update existing settlement if status changed
-      if (existingSettlement.status !== this.mapGatewaySettlementStatus(gatewaySettlement.status)) {
-        await this.updateSettlementFromGateway(existingSettlement, gatewaySettlement);
+      if (
+        existingSettlement.status !==
+        this.mapGatewaySettlementStatus(gatewaySettlement.status)
+      ) {
+        await this.updateSettlementFromGateway(
+          existingSettlement,
+          gatewaySettlement,
+        );
       }
       return;
     }
@@ -467,10 +500,10 @@ export class SettlementJobService {
 
   private async updateSettlementFromGateway(
     settlement: any,
-    gatewaySettlement: any
+    gatewaySettlement: any,
   ): Promise<void> {
     const newStatus = this.mapGatewaySettlementStatus(gatewaySettlement.status);
-    
+
     // Update settlement status and gateway data
     // This would typically update the Settlement entity
     this.logger.log('Updated settlement from gateway', {
@@ -481,7 +514,9 @@ export class SettlementJobService {
     });
   }
 
-  private async createSettlementFromGateway(gatewaySettlement: any): Promise<void> {
+  private async createSettlementFromGateway(
+    gatewaySettlement: any,
+  ): Promise<void> {
     // Create settlement record from gateway data
     // This would typically create a new Settlement entity
     this.logger.log('Created settlement from gateway', {
@@ -505,10 +540,10 @@ export class SettlementJobService {
 
   private mapGatewaySettlementStatus(gatewayStatus: string): string {
     const mapping: Record<string, string> = {
-      'created': 'PENDING',
-      'processed': 'PROCESSING',
-      'settled': 'SETTLED',
-      'failed': 'FAILED',
+      created: 'PENDING',
+      processed: 'PROCESSING',
+      settled: 'SETTLED',
+      failed: 'FAILED',
     };
 
     return mapping[gatewayStatus] || gatewayStatus.toUpperCase();
@@ -521,7 +556,7 @@ export class SettlementJobService {
   async findJobsByType(
     type: SettlementJobType,
     status?: SettlementJobStatus,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SettlementJob[]> {
     return this.settlementJobRepository.findByType(type, status, limit);
   }
@@ -529,7 +564,7 @@ export class SettlementJobService {
   async findJobsBySeller(
     sellerId: string,
     status?: SettlementJobStatus,
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SettlementJob[]> {
     return this.settlementJobRepository.findBySeller(sellerId, status, limit);
   }
@@ -552,7 +587,8 @@ export class SettlementJobService {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - olderThanDays);
 
-    const deletedCount = await this.settlementJobRepository.deleteOldJobs(cutoffDate);
+    const deletedCount =
+      await this.settlementJobRepository.deleteOldJobs(cutoffDate);
 
     this.logger.log('Old settlement jobs cleaned up', {
       deletedCount,

@@ -53,7 +53,10 @@ export class OrderRepository {
     return this.mapToEntity(order);
   }
 
-  async findById(id: string, includes: OrderIncludeOptions = {}): Promise<Order | null> {
+  async findById(
+    id: string,
+    includes: OrderIncludeOptions = {},
+  ): Promise<Order | null> {
     const order = await this.prisma.order.findUnique({
       where: { id },
       include: {
@@ -69,7 +72,7 @@ export class OrderRepository {
   async findAll(
     filters: OrderFilters = {},
     pagination: PaginationOptions = {},
-    includes: OrderIncludeOptions = {}
+    includes: OrderIncludeOptions = {},
   ): Promise<{ data: Order[]; total: number }> {
     const where: any = {};
 
@@ -114,7 +117,7 @@ export class OrderRepository {
     ]);
 
     return {
-      data: orders.map(order => this.mapToEntity(order)),
+      data: orders.map((order) => this.mapToEntity(order)),
       total,
     };
   }
@@ -140,7 +143,10 @@ export class OrderRepository {
     return this.mapToEntity(order);
   }
 
-  async findByOrderNumber(orderNumber: string, includes: OrderIncludeOptions = {}): Promise<Order | null> {
+  async findByOrderNumber(
+    orderNumber: string,
+    includes: OrderIncludeOptions = {},
+  ): Promise<Order | null> {
     const order = await this.prisma.order.findUnique({
       where: { orderNumber },
       include: {
@@ -155,13 +161,12 @@ export class OrderRepository {
 
   async findByCustomer(
     customerId: string,
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: Order[]; total: number }> {
-    return this.findAll(
-      { customerId },
-      pagination,
-      { items: true, payments: true }
-    );
+    return this.findAll({ customerId }, pagination, {
+      items: true,
+      payments: true,
+    });
   }
 
   async createItem(orderItemData: any, tx?: any): Promise<any> {
@@ -181,7 +186,11 @@ export class OrderRepository {
     });
   }
 
-  async updateStatus(orderId: string, status: OrderStatus, updatedBy: string): Promise<Order> {
+  async updateStatus(
+    orderId: string,
+    status: OrderStatus,
+    updatedBy: string,
+  ): Promise<Order> {
     const order = await this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -193,12 +202,18 @@ export class OrderRepository {
     return this.mapToEntity(order);
   }
 
-  async updateItemStatus(itemId: string, status: OrderItemStatus): Promise<void> {
+  async updateItemStatus(
+    itemId: string,
+    status: OrderItemStatus,
+  ): Promise<void> {
     // TODO: Implement order item status update
     // This would update the OrderItem table
   }
 
-  async updateShippingInfo(orderId: string, shippingInfo: { shippedAt: Date }): Promise<void> {
+  async updateShippingInfo(
+    orderId: string,
+    shippingInfo: { shippedAt: Date },
+  ): Promise<void> {
     await this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -208,7 +223,10 @@ export class OrderRepository {
     });
   }
 
-  async updateDeliveryInfo(orderId: string, deliveryInfo: { deliveredAt: Date }): Promise<void> {
+  async updateDeliveryInfo(
+    orderId: string,
+    deliveryInfo: { deliveredAt: Date },
+  ): Promise<void> {
     await this.prisma.order.update({
       where: { id: orderId },
       data: {
@@ -232,7 +250,11 @@ export class OrderRepository {
       customerId: order.userId, // Map userId back to customerId for entity
       status: order.status as OrderStatus,
       items: order.items || [],
-      subtotal: Number(order.totalAmount) - Number(order.shippingAmount) - Number(order.taxAmount) + Number(order.discountAmount),
+      subtotal:
+        Number(order.totalAmount) -
+        Number(order.shippingAmount) -
+        Number(order.taxAmount) +
+        Number(order.discountAmount),
       shippingAmount: Number(order.shippingAmount),
       taxAmount: Number(order.taxAmount),
       discountAmount: Number(order.discountAmount),

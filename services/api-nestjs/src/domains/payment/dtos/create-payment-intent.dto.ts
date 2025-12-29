@@ -1,6 +1,18 @@
-import { IsString, IsNumber, IsArray, IsOptional, IsEnum, IsObject, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsArray,
+  IsOptional,
+  IsEnum,
+  IsObject,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
-import { PaymentMethod, PaymentGatewayProvider } from '../enums/payment-status.enum';
+import {
+  PaymentMethod,
+  PaymentGatewayProvider,
+} from '../enums/payment-status.enum';
 
 export class CreatePaymentIntentDto {
   @IsString()

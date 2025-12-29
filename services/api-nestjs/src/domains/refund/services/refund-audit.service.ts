@@ -68,7 +68,7 @@ export class RefundAuditService {
     tx?: any,
     metadata?: any,
     ipAddress?: string,
-    userAgent?: string
+    userAgent?: string,
   ): Promise<RefundAuditLog> {
     this.logger.log('RefundAuditService.logAction', {
       refundId,
@@ -119,7 +119,7 @@ export class RefundAuditService {
     reason?: string,
     metadata?: any,
     ipAddress?: string,
-    userAgent?: string
+    userAgent?: string,
   ): Promise<RefundAuditLog[]> {
     this.logger.log('RefundAuditService.logBulkAction', {
       refundCount: refundIds.length,
@@ -144,7 +144,7 @@ export class RefundAuditService {
           totalRefunds: refundIds.length,
         },
         ipAddress,
-        userAgent
+        userAgent,
       );
       auditLogs.push(auditLog);
     }
@@ -157,7 +157,7 @@ export class RefundAuditService {
     action: RefundAuditAction,
     systemComponent: string,
     details?: any,
-    tx?: any
+    tx?: any,
   ): Promise<RefundAuditLog> {
     return this.logAction(
       refundId,
@@ -171,7 +171,7 @@ export class RefundAuditService {
         systemComponent,
         automated: true,
         ...details,
-      }
+      },
     );
   }
 
@@ -182,7 +182,7 @@ export class RefundAuditService {
     userId: string,
     reason?: string,
     tx?: any,
-    metadata?: any
+    metadata?: any,
   ): Promise<RefundAuditLog> {
     return this.logAction(
       refundId,
@@ -197,7 +197,7 @@ export class RefundAuditService {
         statusChange: true,
         fromStatus,
         toStatus,
-      }
+      },
     );
   }
 
@@ -207,7 +207,7 @@ export class RefundAuditService {
     toAmount: number,
     userId: string,
     reason?: string,
-    tx?: any
+    tx?: any,
   ): Promise<RefundAuditLog> {
     return this.logAction(
       refundId,
@@ -222,7 +222,7 @@ export class RefundAuditService {
         fromAmount,
         toAmount,
         difference: toAmount - fromAmount,
-      }
+      },
     );
   }
 
@@ -239,7 +239,8 @@ export class RefundAuditService {
   async getRefundAuditTrail(refundId: string): Promise<AuditTrail> {
     this.logger.log('RefundAuditService.getRefundAuditTrail', { refundId });
 
-    const auditLogs = await this.refundRepository.findAuditLogsByRefundId(refundId);
+    const auditLogs =
+      await this.refundRepository.findAuditLogsByRefundId(refundId);
 
     if (auditLogs.length === 0) {
       throw new Error('No audit trail found for refund');
@@ -249,7 +250,7 @@ export class RefundAuditService {
     auditLogs.sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
     // Build timeline
-    const timeline = auditLogs.map(log => ({
+    const timeline = auditLogs.map((log) => ({
       timestamp: log.createdAt,
       action: log.action as RefundAuditAction,
       userId: log.userId,
@@ -262,8 +263,10 @@ export class RefundAuditService {
     }));
 
     // Calculate summary
-    const uniqueUsers = new Set(auditLogs.map(log => log.userId)).size;
-    const criticalActions = auditLogs.filter(log => this.isCriticalAction(log.action as RefundAuditAction)).length;
+    const uniqueUsers = new Set(auditLogs.map((log) => log.userId)).size;
+    const criticalActions = auditLogs.filter((log) =>
+      this.isCriticalAction(log.action as RefundAuditAction),
+    ).length;
 
     const summary = {
       totalActions: auditLogs.length,
@@ -282,14 +285,14 @@ export class RefundAuditService {
 
   async getUserAuditHistory(
     userId: string,
-    filters: Omit<AuditLogFilters, 'userId'> = {}
+    filters: Omit<AuditLogFilters, 'userId'> = {},
   ): Promise<RefundAuditLog[]> {
     return this.getAuditLogs({ ...filters, userId });
   }
 
   async getActionHistory(
     action: RefundAuditAction,
-    filters: Omit<AuditLogFilters, 'action'> = {}
+    filters: Omit<AuditLogFilters, 'action'> = {},
   ): Promise<RefundAuditLog[]> {
     return this.getAuditLogs({ ...filters, action });
   }
@@ -305,7 +308,7 @@ export class RefundAuditService {
       includeSystemActions?: boolean;
       criticalActionsOnly?: boolean;
       userId?: string;
-    } = {}
+    } = {},
   ): Promise<{
     period: { from: Date; to: Date };
     totalActions: number;
@@ -341,27 +344,34 @@ export class RefundAuditService {
     const auditLogs = await this.getAuditLogs(filters);
 
     // Filter system actions if requested
-    const filteredLogs = options.includeSystemActions 
-      ? auditLogs 
-      : auditLogs.filter(log => log.userId !== 'SYSTEM');
+    const filteredLogs = options.includeSystemActions
+      ? auditLogs
+      : auditLogs.filter((log) => log.userId !== 'SYSTEM');
 
     // Filter critical actions if requested
     const finalLogs = options.criticalActionsOnly
-      ? filteredLogs.filter(log => this.isCriticalAction(log.action as RefundAuditAction))
+      ? filteredLogs.filter((log) =>
+          this.isCriticalAction(log.action as RefundAuditAction),
+        )
       : filteredLogs;
 
     // Calculate action breakdown
     const actionBreakdown: Record<RefundAuditAction, number> = {} as any;
     for (const action of Object.values(RefundAuditAction)) {
-      actionBreakdown[action] = finalLogs.filter(log => log.action === action).length;
+      actionBreakdown[action] = finalLogs.filter(
+        (log) => log.action === action,
+      ).length;
     }
 
     // Calculate user activity
-    const userActivityMap = new Map<string, {
-      actionCount: number;
-      criticalActions: number;
-      lastActivity: Date;
-    }>();
+    const userActivityMap = new Map<
+      string,
+      {
+        actionCount: number;
+        criticalActions: number;
+        lastActivity: Date;
+      }
+    >();
 
     for (const log of finalLogs) {
       if (!userActivityMap.has(log.userId)) {
@@ -374,7 +384,7 @@ export class RefundAuditService {
 
       const activity = userActivityMap.get(log.userId)!;
       activity.actionCount++;
-      
+
       if (this.isCriticalAction(log.action as RefundAuditAction)) {
         activity.criticalActions++;
       }
@@ -384,18 +394,21 @@ export class RefundAuditService {
       }
     }
 
-    const userActivity = Array.from(userActivityMap.entries()).map(([userId, activity]) => ({
-      userId,
-      ...activity,
-    }));
+    const userActivity = Array.from(userActivityMap.entries()).map(
+      ([userId, activity]) => ({
+        userId,
+        ...activity,
+      }),
+    );
 
     // Get critical events
-    const criticalEvents = finalLogs.filter(log => 
-      this.isCriticalAction(log.action as RefundAuditAction)
+    const criticalEvents = finalLogs.filter((log) =>
+      this.isCriticalAction(log.action as RefundAuditAction),
     );
 
     // Perform data integrity checks
-    const dataIntegrityChecks = await this.performDataIntegrityChecks(finalLogs);
+    const dataIntegrityChecks =
+      await this.performDataIntegrityChecks(finalLogs);
 
     return {
       period: { from: dateFrom, to: dateTo },
@@ -409,7 +422,7 @@ export class RefundAuditService {
 
   async exportAuditTrail(
     refundId: string,
-    format: 'JSON' | 'CSV' | 'PDF' = 'JSON'
+    format: 'JSON' | 'CSV' | 'PDF' = 'JSON',
   ): Promise<{
     data: any;
     filename: string;
@@ -465,14 +478,17 @@ export class RefundAuditService {
 
     // Get refund and audit logs
     const refund = await this.refundRepository.findById(refundId);
-    const auditLogs = await this.refundRepository.findAuditLogsByRefundId(refundId);
+    const auditLogs =
+      await this.refundRepository.findAuditLogsByRefundId(refundId);
 
     if (!refund) {
       throw new Error('Refund not found');
     }
 
     // Check for missing creation audit
-    const hasCreationAudit = auditLogs.some(log => log.action === RefundAuditAction.CREATE);
+    const hasCreationAudit = auditLogs.some(
+      (log) => log.action === RefundAuditAction.CREATE,
+    );
     if (!hasCreationAudit) {
       issues.push({
         type: 'MISSING_AUDIT',
@@ -483,11 +499,12 @@ export class RefundAuditService {
 
     // Check for status changes without audit
     if (refund.status !== 'PENDING') {
-      const hasStatusChangeAudit = auditLogs.some(log => 
-        log.action === RefundAuditAction.UPDATE && 
-        log.metadata?.statusChange === true
+      const hasStatusChangeAudit = auditLogs.some(
+        (log) =>
+          log.action === RefundAuditAction.UPDATE &&
+          log.metadata?.statusChange === true,
       );
-      
+
       if (!hasStatusChangeAudit) {
         issues.push({
           type: 'MISSING_AUDIT',
@@ -519,7 +536,7 @@ export class RefundAuditService {
 
   async archiveOldAuditLogs(
     cutoffDate: Date,
-    archiveLocation?: string
+    archiveLocation?: string,
   ): Promise<{
     archivedCount: number;
     archiveLocation?: string;
@@ -553,7 +570,10 @@ export class RefundAuditService {
   // PRIVATE HELPER METHODS
   // ============================================================================
 
-  private calculateChanges(oldValues: any, newValues: any): Record<string, { from: any; to: any }> | null {
+  private calculateChanges(
+    oldValues: any,
+    newValues: any,
+  ): Record<string, { from: any; to: any }> | null {
     if (!oldValues || !newValues) {
       return null;
     }
@@ -561,7 +581,10 @@ export class RefundAuditService {
     const changes: Record<string, { from: any; to: any }> = {};
 
     // Compare all keys from both objects
-    const allKeys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)]);
+    const allKeys = new Set([
+      ...Object.keys(oldValues),
+      ...Object.keys(newValues),
+    ]);
 
     for (const key of allKeys) {
       const oldValue = oldValues[key];
@@ -581,7 +604,7 @@ export class RefundAuditService {
   private sanitizeValues(values: any): any {
     // Remove sensitive information from audit logs
     const sensitiveFields = ['password', 'token', 'secret', 'key'];
-    
+
     if (typeof values !== 'object' || values === null) {
       return values;
     }
@@ -609,7 +632,9 @@ export class RefundAuditService {
     return criticalActions.includes(action);
   }
 
-  private async performDataIntegrityChecks(auditLogs: RefundAuditLog[]): Promise<{
+  private async performDataIntegrityChecks(
+    auditLogs: RefundAuditLog[],
+  ): Promise<{
     missingAuditLogs: string[];
     suspiciousPatterns: Array<{
       type: string;
@@ -635,7 +660,7 @@ export class RefundAuditService {
       'IP Address',
     ];
 
-    const rows = auditTrail.timeline.map(entry => [
+    const rows = auditTrail.timeline.map((entry) => [
       entry.timestamp.toISOString(),
       entry.action,
       entry.userId,
@@ -646,7 +671,7 @@ export class RefundAuditService {
     ]);
 
     const csvContent = [headers, ...rows]
-      .map(row => row.map(field => `"${field}"`).join(','))
+      .map((row) => row.map((field) => `"${field}"`).join(','))
       .join('\n');
 
     return csvContent;
@@ -660,8 +685,9 @@ export class RefundAuditService {
       const current = auditLogs[i];
       const previous = auditLogs[i - 1];
 
-      const timeDiff = current.createdAt.getTime() - previous.createdAt.getTime();
-      
+      const timeDiff =
+        current.createdAt.getTime() - previous.createdAt.getTime();
+
       if (timeDiff < timeThreshold && current.userId === previous.userId) {
         rapidActions.push(current);
       }
@@ -670,7 +696,10 @@ export class RefundAuditService {
     return rapidActions;
   }
 
-  private detectDataInconsistencies(refund: any, auditLogs: RefundAuditLog[]): Array<{
+  private detectDataInconsistencies(
+    refund: any,
+    auditLogs: RefundAuditLog[],
+  ): Array<{
     type: 'MISSING_AUDIT' | 'INCONSISTENT_DATA' | 'SUSPICIOUS_PATTERN';
     description: string;
     severity: 'LOW' | 'MEDIUM' | 'HIGH';

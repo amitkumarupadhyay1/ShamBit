@@ -133,7 +133,11 @@ export class OrderRefund {
     this.version++;
   }
 
-  updateStatus(newStatus: RefundStatus, updatedBy: string, reason?: string): void {
+  updateStatus(
+    newStatus: RefundStatus,
+    updatedBy: string,
+    reason?: string,
+  ): void {
     this.status = newStatus;
     this.updatedBy = updatedBy;
     this.updatedAt = new Date();

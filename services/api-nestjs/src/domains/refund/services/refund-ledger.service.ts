@@ -6,8 +6,17 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 interface IRefundRepository {
   createLedgerEntry(data: any, tx?: any): Promise<any>;
   findLedgerEntriesByRefundId(refundId: string, options?: any): Promise<any[]>;
-  findLedgerEntriesByAccount(accountType: any, accountId?: string, currency?: string): Promise<any[]>;
-  findLastLedgerEntry(refundId: string, accountType: any, accountId?: string, tx?: any): Promise<any>;
+  findLedgerEntriesByAccount(
+    accountType: any,
+    accountId?: string,
+    currency?: string,
+  ): Promise<any[]>;
+  findLastLedgerEntry(
+    refundId: string,
+    accountType: any,
+    accountId?: string,
+    tx?: any,
+  ): Promise<any>;
   findLedgerEntriesWithFilters(filters: any): Promise<any[]>;
   findById(id: string): Promise<any>;
 }
@@ -15,9 +24,9 @@ interface IRefundRepository {
 import { RefundLedgerEntry } from '../entities/refund.entity';
 import { CreateRefundLedgerEntryDto } from '../dtos/create-refund-ledger-entry.dto';
 
-import { 
-  RefundLedgerEntryType, 
-  RefundAccountType 
+import {
+  RefundLedgerEntryType,
+  RefundAccountType,
 } from '../enums/refund-status.enum';
 
 export interface LedgerBalance {
@@ -52,7 +61,7 @@ export class RefundLedgerService {
 
   async createEntry(
     createEntryDto: CreateRefundLedgerEntryDto,
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry> {
     this.logger.log('RefundLedgerService.createEntry', {
       refundId: createEntryDto.refundId,
@@ -70,7 +79,7 @@ export class RefundLedgerService {
       createEntryDto.accountType,
       createEntryDto.accountId,
       createEntryDto.amount,
-      tx
+      tx,
     );
 
     const entryData = {
@@ -93,7 +102,7 @@ export class RefundLedgerService {
 
   async createMultipleEntries(
     entries: CreateRefundLedgerEntryDto[],
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry[]> {
     this.logger.log('RefundLedgerService.createMultipleEntries', {
       count: entries.length,
@@ -120,7 +129,7 @@ export class RefundLedgerService {
     currency: string,
     customerId: string,
     createdBy: string,
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry[]> {
     const entries: CreateRefundLedgerEntryDto[] = [
       {
@@ -155,7 +164,7 @@ export class RefundLedgerService {
     customerId: string,
     gatewayRefundId: string,
     processedBy: string,
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry[]> {
     const entries: CreateRefundLedgerEntryDto[] = [
       {
@@ -216,7 +225,7 @@ export class RefundLedgerService {
     currency: string,
     merchantId: string,
     createdBy: string,
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry[]> {
     const entries: CreateRefundLedgerEntryDto[] = [
       {
@@ -255,18 +264,21 @@ export class RefundLedgerService {
     accountType: RefundAccountType,
     accountId: string | undefined,
     createdBy: string,
-    tx?: any
+    tx?: any,
   ): Promise<RefundLedgerEntry> {
-    return this.createEntry({
-      refundId,
-      entryType: RefundLedgerEntryType.ADJUSTMENT_APPLIED,
-      amount: adjustmentAmount,
-      currency,
-      accountType,
-      accountId,
-      description: `Adjustment: ${adjustmentReason}`,
-      createdBy,
-    }, tx);
+    return this.createEntry(
+      {
+        refundId,
+        entryType: RefundLedgerEntryType.ADJUSTMENT_APPLIED,
+        amount: adjustmentAmount,
+        currency,
+        accountType,
+        accountId,
+        description: `Adjustment: ${adjustmentReason}`,
+        createdBy,
+      },
+      tx,
+    );
   }
 
   // ============================================================================
@@ -276,7 +288,8 @@ export class RefundLedgerService {
   async getLedgerSummary(refundId: string): Promise<LedgerSummary> {
     this.logger.log('RefundLedgerService.getLedgerSummary', { refundId });
 
-    const entries = await this.refundRepository.findLedgerEntriesByRefundId(refundId);
+    const entries =
+      await this.refundRepository.findLedgerEntriesByRefundId(refundId);
 
     if (entries.length === 0) {
       throw new Error('No ledger entries found for refund');
@@ -312,7 +325,7 @@ export class RefundLedgerService {
   async getAccountBalance(
     accountType: RefundAccountType,
     accountId?: string,
-    currency: string = 'INR'
+    currency: string = 'INR',
   ): Promise<LedgerBalance> {
     this.logger.log('RefundLedgerService.getAccountBalance', {
       accountType,
@@ -323,13 +336,14 @@ export class RefundLedgerService {
     const entries = await this.refundRepository.findLedgerEntriesByAccount(
       accountType,
       accountId,
-      currency
+      currency,
     );
 
     const balance = entries.reduce((sum, entry) => sum + entry.amount, 0);
-    const lastUpdated = entries.length > 0 
-      ? new Date(Math.max(...entries.map(e => e.createdAt.getTime())))
-      : new Date();
+    const lastUpdated =
+      entries.length > 0
+        ? new Date(Math.max(...entries.map((e) => e.createdAt.getTime())))
+        : new Date();
 
     return {
       accountType,
@@ -347,7 +361,7 @@ export class RefundLedgerService {
       accountType?: RefundAccountType;
       limit?: number;
       offset?: number;
-    } = {}
+    } = {},
   ): Promise<RefundLedgerEntry[]> {
     return this.refundRepository.findLedgerEntriesByRefundId(refundId, options);
   }
@@ -394,7 +408,9 @@ export class RefundLedgerService {
       difference: number;
     }>;
   }> {
-    this.logger.log('RefundLedgerService.reconcileLedgerWithRefund', { refundId });
+    this.logger.log('RefundLedgerService.reconcileLedgerWithRefund', {
+      refundId,
+    });
 
     // Get refund details
     const refund = await this.refundRepository.findById(refundId);
@@ -414,8 +430,9 @@ export class RefundLedgerService {
 
     // Check processed amount
     const processedAmount = refund.processedAmount || refund.approvedAmount;
-    const ledgerProcessedAmount = this.calculateProcessedAmountFromLedger(ledgerSummary);
-    
+    const ledgerProcessedAmount =
+      this.calculateProcessedAmountFromLedger(ledgerSummary);
+
     if (Math.abs(processedAmount - ledgerProcessedAmount) > 0.01) {
       discrepancies.push({
         field: 'processedAmount',
@@ -427,7 +444,7 @@ export class RefundLedgerService {
 
     // Check fees
     const ledgerFees = this.calculateFeesFromLedger(ledgerSummary);
-    
+
     if (Math.abs(refund.refundFees - ledgerFees) > 0.01) {
       discrepancies.push({
         field: 'refundFees',
@@ -452,7 +469,7 @@ export class RefundLedgerService {
       dateFrom?: Date;
       dateTo?: Date;
       currency?: string;
-    } = {}
+    } = {},
   ): Promise<{
     entries: RefundLedgerEntry[];
     summary: {
@@ -465,7 +482,8 @@ export class RefundLedgerService {
   }> {
     this.logger.log('RefundLedgerService.generateLedgerReport', { filters });
 
-    const entries = await this.refundRepository.findLedgerEntriesWithFilters(filters);
+    const entries =
+      await this.refundRepository.findLedgerEntriesWithFilters(filters);
 
     let totalDebits = 0;
     let totalCredits = 0;
@@ -526,26 +544,28 @@ export class RefundLedgerService {
     accountType: RefundAccountType,
     accountId: string | undefined,
     newAmount: number,
-    tx?: any
+    tx?: any,
   ): Promise<number> {
     // Get the last entry for this account
     const lastEntry = await this.refundRepository.findLastLedgerEntry(
       refundId,
       accountType,
       accountId,
-      tx
+      tx,
     );
 
     const previousBalance = lastEntry?.runningBalance || 0;
     return previousBalance + newAmount;
   }
 
-  private calculateBalancesByAccount(entries: RefundLedgerEntry[]): LedgerBalance[] {
+  private calculateBalancesByAccount(
+    entries: RefundLedgerEntry[],
+  ): LedgerBalance[] {
     const balanceMap = new Map<string, LedgerBalance>();
 
     for (const entry of entries) {
       const key = `${entry.accountType}:${entry.accountId || 'default'}`;
-      
+
       if (!balanceMap.has(key)) {
         balanceMap.set(key, {
           accountType: entry.accountType as RefundAccountType,
@@ -558,7 +578,7 @@ export class RefundLedgerService {
 
       const balance = balanceMap.get(key)!;
       balance.balance += entry.amount;
-      
+
       if (entry.createdAt > balance.lastUpdated) {
         balance.lastUpdated = entry.createdAt;
       }
@@ -570,7 +590,7 @@ export class RefundLedgerService {
   private calculateProcessedAmountFromLedger(summary: LedgerSummary): number {
     // Find customer credit entries (positive amounts to customer account)
     const customerBalance = summary.balancesByAccount.find(
-      b => b.accountType === RefundAccountType.CUSTOMER
+      (b) => b.accountType === RefundAccountType.CUSTOMER,
     );
 
     return customerBalance?.balance || 0;

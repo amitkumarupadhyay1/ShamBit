@@ -5,7 +5,7 @@
 
 export class RefundCreatedEvent {
   static readonly eventName = 'refund.created';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -20,7 +20,7 @@ export class RefundCreatedEvent {
 
 export class RefundUpdatedEvent {
   static readonly eventName = 'refund.updated';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -32,7 +32,7 @@ export class RefundUpdatedEvent {
 
 export class RefundStatusChangedEvent {
   static readonly eventName = 'refund.status.changed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -45,7 +45,7 @@ export class RefundStatusChangedEvent {
 
 export class RefundApprovedEvent {
   static readonly eventName = 'refund.approved';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -58,7 +58,7 @@ export class RefundApprovedEvent {
 
 export class RefundRejectedEvent {
   static readonly eventName = 'refund.rejected';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -70,7 +70,7 @@ export class RefundRejectedEvent {
 
 export class RefundProcessingStartedEvent {
   static readonly eventName = 'refund.processing.started';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -84,7 +84,7 @@ export class RefundProcessingStartedEvent {
 
 export class RefundProcessedEvent {
   static readonly eventName = 'refund.processed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -98,7 +98,7 @@ export class RefundProcessedEvent {
 
 export class RefundCompletedEvent {
   static readonly eventName = 'refund.completed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -112,7 +112,7 @@ export class RefundCompletedEvent {
 
 export class RefundFailedEvent {
   static readonly eventName = 'refund.failed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -125,7 +125,7 @@ export class RefundFailedEvent {
 
 export class RefundCancelledEvent {
   static readonly eventName = 'refund.cancelled';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -137,7 +137,7 @@ export class RefundCancelledEvent {
 
 export class RefundRetriedEvent {
   static readonly eventName = 'refund.retried';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -154,7 +154,7 @@ export class RefundRetriedEvent {
 
 export class RefundItemAddedEvent {
   static readonly eventName = 'refund.item.added';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly refundItemId: string,
@@ -169,7 +169,7 @@ export class RefundItemAddedEvent {
 
 export class RefundItemUpdatedEvent {
   static readonly eventName = 'refund.item.updated';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly refundItemId: string,
@@ -182,7 +182,7 @@ export class RefundItemUpdatedEvent {
 
 export class RefundItemRestockedEvent {
   static readonly eventName = 'refund.item.restocked';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly refundItemId: string,
@@ -195,7 +195,7 @@ export class RefundItemRestockedEvent {
 
 export class RefundItemRestockFailedEvent {
   static readonly eventName = 'refund.item.restock.failed';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly refundItemId: string,
@@ -212,7 +212,7 @@ export class RefundItemRestockFailedEvent {
 
 export class RefundLedgerEntryCreatedEvent {
   static readonly eventName = 'refund.ledger.entry.created';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly entryId: string,
@@ -230,7 +230,7 @@ export class RefundLedgerEntryCreatedEvent {
 
 export class RefundJobCreatedEvent {
   static readonly eventName = 'refund.job.created';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -243,7 +243,7 @@ export class RefundJobCreatedEvent {
 
 export class RefundJobStartedEvent {
   static readonly eventName = 'refund.job.started';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -255,7 +255,7 @@ export class RefundJobStartedEvent {
 
 export class RefundJobCompletedEvent {
   static readonly eventName = 'refund.job.completed';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -268,7 +268,7 @@ export class RefundJobCompletedEvent {
 
 export class RefundJobFailedEvent {
   static readonly eventName = 'refund.job.failed';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -287,7 +287,7 @@ export class RefundJobFailedEvent {
 
 export class RefundEligibilityCheckedEvent {
   static readonly eventName = 'refund.eligibility.checked';
-  
+
   constructor(
     public readonly orderId: string,
     public readonly orderItemId: string | null,
@@ -301,7 +301,7 @@ export class RefundEligibilityCheckedEvent {
 
 export class RefundEligibilityExpiredEvent {
   static readonly eventName = 'refund.eligibility.expired';
-  
+
   constructor(
     public readonly orderId: string,
     public readonly orderItemId: string | null,
@@ -316,7 +316,7 @@ export class RefundEligibilityExpiredEvent {
 
 export class RefundPolicyCreatedEvent {
   static readonly eventName = 'refund.policy.created';
-  
+
   constructor(
     public readonly policyId: string,
     public readonly name: string,
@@ -328,7 +328,7 @@ export class RefundPolicyCreatedEvent {
 
 export class RefundPolicyUpdatedEvent {
   static readonly eventName = 'refund.policy.updated';
-  
+
   constructor(
     public readonly policyId: string,
     public readonly name: string,
@@ -340,7 +340,7 @@ export class RefundPolicyUpdatedEvent {
 
 export class RefundPolicyActivatedEvent {
   static readonly eventName = 'refund.policy.activated';
-  
+
   constructor(
     public readonly policyId: string,
     public readonly name: string,
@@ -351,7 +351,7 @@ export class RefundPolicyActivatedEvent {
 
 export class RefundPolicyDeactivatedEvent {
   static readonly eventName = 'refund.policy.deactivated';
-  
+
   constructor(
     public readonly policyId: string,
     public readonly name: string,
@@ -366,7 +366,7 @@ export class RefundPolicyDeactivatedEvent {
 
 export class RefundWebhookReceivedEvent {
   static readonly eventName = 'refund.webhook.received';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -379,7 +379,7 @@ export class RefundWebhookReceivedEvent {
 
 export class RefundWebhookProcessedEvent {
   static readonly eventName = 'refund.webhook.processed';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -397,11 +397,17 @@ export class RefundWebhookProcessedEvent {
 
 export class RefundNotificationEvent {
   static readonly eventName = 'refund.notification';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
-    public readonly notificationType: 'REFUND_CREATED' | 'REFUND_APPROVED' | 'REFUND_REJECTED' | 'REFUND_PROCESSED' | 'REFUND_COMPLETED' | 'REFUND_FAILED',
+    public readonly notificationType:
+      | 'REFUND_CREATED'
+      | 'REFUND_APPROVED'
+      | 'REFUND_REJECTED'
+      | 'REFUND_PROCESSED'
+      | 'REFUND_COMPLETED'
+      | 'REFUND_FAILED',
     public readonly notificationChannel: 'EMAIL' | 'SMS' | 'PUSH' | 'WEBHOOK',
     public readonly recipientId: string,
     public readonly message: string,
@@ -416,9 +422,12 @@ export class RefundNotificationEvent {
 
 export class RefundAnalyticsEvent {
   static readonly eventName = 'refund.analytics';
-  
+
   constructor(
-    public readonly eventType: 'REFUND_RATE_THRESHOLD' | 'REFUND_VOLUME_SPIKE' | 'REFUND_PATTERN_DETECTED',
+    public readonly eventType:
+      | 'REFUND_RATE_THRESHOLD'
+      | 'REFUND_VOLUME_SPIKE'
+      | 'REFUND_PATTERN_DETECTED',
     public readonly timeframe: {
       start: Date;
       end: Date;
@@ -441,7 +450,7 @@ export class RefundAnalyticsEvent {
 
 export class RefundFraudDetectedEvent {
   static readonly eventName = 'refund.fraud.detected';
-  
+
   constructor(
     public readonly refundId: string,
     public readonly orderId: string,
@@ -455,10 +464,13 @@ export class RefundFraudDetectedEvent {
 
 export class RefundAbuseDetectedEvent {
   static readonly eventName = 'refund.abuse.detected';
-  
+
   constructor(
     public readonly customerId: string,
-    public readonly abuseType: 'FREQUENT_REFUNDS' | 'HIGH_VALUE_REFUNDS' | 'SUSPICIOUS_PATTERN',
+    public readonly abuseType:
+      | 'FREQUENT_REFUNDS'
+      | 'HIGH_VALUE_REFUNDS'
+      | 'SUSPICIOUS_PATTERN',
     public readonly refundCount: number,
     public readonly totalRefundAmount: number,
     public readonly timeframe: {
@@ -476,7 +488,7 @@ export class RefundAbuseDetectedEvent {
 
 export class RefundReconciliationStartedEvent {
   static readonly eventName = 'refund.reconciliation.started';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -488,7 +500,7 @@ export class RefundReconciliationStartedEvent {
 
 export class RefundReconciliationCompletedEvent {
   static readonly eventName = 'refund.reconciliation.completed';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -509,7 +521,7 @@ export class RefundReconciliationCompletedEvent {
 
 export class RefundReconciliationFailedEvent {
   static readonly eventName = 'refund.reconciliation.failed';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -525,7 +537,7 @@ export class RefundReconciliationFailedEvent {
 
 export class RefundAuditLogCreatedEvent {
   static readonly eventName = 'refund.audit.created';
-  
+
   constructor(
     public readonly auditLogId: string,
     public readonly refundId: string,
@@ -541,7 +553,7 @@ export class RefundAuditLogCreatedEvent {
 
 export class RefundStatisticsCalculatedEvent {
   static readonly eventName = 'refund.statistics.calculated';
-  
+
   constructor(
     public readonly periodType: string,
     public readonly periodStart: Date,

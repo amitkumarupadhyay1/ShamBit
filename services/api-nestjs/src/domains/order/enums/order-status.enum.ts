@@ -41,7 +41,11 @@ export enum ShipmentStatus {
 }
 
 export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
-  [OrderStatus.PENDING]: [OrderStatus.CONFIRMED, OrderStatus.CANCELLED, OrderStatus.FAILED],
+  [OrderStatus.PENDING]: [
+    OrderStatus.CONFIRMED,
+    OrderStatus.CANCELLED,
+    OrderStatus.FAILED,
+  ],
   [OrderStatus.CONFIRMED]: [OrderStatus.PROCESSING, OrderStatus.CANCELLED],
   [OrderStatus.PROCESSING]: [OrderStatus.SHIPPED, OrderStatus.CANCELLED],
   [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.CANCELLED],
@@ -51,10 +55,18 @@ export const ORDER_STATUS_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   [OrderStatus.FAILED]: [OrderStatus.PENDING],
 };
 
-export function canTransitionOrderStatus(from: OrderStatus, to: OrderStatus): boolean {
+export function canTransitionOrderStatus(
+  from: OrderStatus,
+  to: OrderStatus,
+): boolean {
   return ORDER_STATUS_TRANSITIONS[from]?.includes(to) || false;
 }
 
 export function isTerminalOrderStatus(status: OrderStatus): boolean {
-  return [OrderStatus.DELIVERED, OrderStatus.CANCELLED, OrderStatus.REFUNDED, OrderStatus.FAILED].includes(status);
+  return [
+    OrderStatus.DELIVERED,
+    OrderStatus.CANCELLED,
+    OrderStatus.REFUNDED,
+    OrderStatus.FAILED,
+  ].includes(status);
 }

@@ -33,7 +33,10 @@ export class PaymentRetryService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async scheduleRetry(attempt: RetryAttempt, config?: Partial<RetryConfig>): Promise<boolean> {
+  async scheduleRetry(
+    attempt: RetryAttempt,
+    config?: Partial<RetryConfig>,
+  ): Promise<boolean> {
     const retryConfig = { ...this.defaultRetryConfig, ...config };
 
     try {
@@ -49,8 +52,9 @@ export class PaymentRetryService {
 
       // Calculate delay with exponential backoff
       const delay = Math.min(
-        retryConfig.retryDelayMs * Math.pow(retryConfig.backoffMultiplier, attempt.attemptNumber - 1),
-        retryConfig.maxDelayMs
+        retryConfig.retryDelayMs *
+          Math.pow(retryConfig.backoffMultiplier, attempt.attemptNumber - 1),
+        retryConfig.maxDelayMs,
       );
 
       const scheduledAt = new Date(Date.now() + delay);
@@ -94,15 +98,20 @@ export class PaymentRetryService {
       this.logger.log('Payment retry processed', { paymentIntentId });
       return true;
     } catch (error) {
-      this.logger.error('Failed to process payment retry', error, { paymentIntentId });
+      this.logger.error('Failed to process payment retry', error, {
+        paymentIntentId,
+      });
       return false;
     }
   }
 
-  async cancelRetries(paymentIntentId: string, reason: string): Promise<boolean> {
+  async cancelRetries(
+    paymentIntentId: string,
+    reason: string,
+  ): Promise<boolean> {
     try {
       // TODO: Cancel all pending retries for the payment intent
-      
+
       this.eventEmitter.emit('payment.retries_cancelled', {
         paymentIntentId,
         reason,
@@ -112,7 +121,10 @@ export class PaymentRetryService {
       this.logger.log('Payment retries cancelled', { paymentIntentId, reason });
       return true;
     } catch (error) {
-      this.logger.error('Failed to cancel payment retries', error, { paymentIntentId, reason });
+      this.logger.error('Failed to cancel payment retries', error, {
+        paymentIntentId,
+        reason,
+      });
       return false;
     }
   }
@@ -130,7 +142,9 @@ export class PaymentRetryService {
         attemptCount: 0,
       };
     } catch (error) {
-      this.logger.error('Failed to get retry status', error, { paymentIntentId });
+      this.logger.error('Failed to get retry status', error, {
+        paymentIntentId,
+      });
       return {
         hasRetries: false,
         attemptCount: 0,
@@ -138,19 +152,23 @@ export class PaymentRetryService {
     }
   }
 
-  calculateNextRetryDelay(attemptNumber: number, config?: Partial<RetryConfig>): number {
+  calculateNextRetryDelay(
+    attemptNumber: number,
+    config?: Partial<RetryConfig>,
+  ): number {
     const retryConfig = { ...this.defaultRetryConfig, ...config };
-    
+
     return Math.min(
-      retryConfig.retryDelayMs * Math.pow(retryConfig.backoffMultiplier, attemptNumber - 1),
-      retryConfig.maxDelayMs
+      retryConfig.retryDelayMs *
+        Math.pow(retryConfig.backoffMultiplier, attemptNumber - 1),
+      retryConfig.maxDelayMs,
     );
   }
 
   async retryPayment(paymentIntentId: string, userId: string): Promise<any> {
     try {
       this.logger.log('Retrying payment', { paymentIntentId, userId });
-      
+
       // Placeholder implementation
       return {
         success: true,
@@ -158,7 +176,10 @@ export class PaymentRetryService {
         retryAttempt: 1,
       };
     } catch (error) {
-      this.logger.error('Failed to retry payment', error, { paymentIntentId, userId });
+      this.logger.error('Failed to retry payment', error, {
+        paymentIntentId,
+        userId,
+      });
       throw error;
     }
   }

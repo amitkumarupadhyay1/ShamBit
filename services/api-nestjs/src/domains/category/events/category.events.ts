@@ -2,7 +2,7 @@
 
 export class CategoryCreatedEvent {
   static readonly eventName = 'category.created';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -17,7 +17,7 @@ export class CategoryCreatedEvent {
 
 export class CategoryUpdatedEvent {
   static readonly eventName = 'category.updated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -29,7 +29,7 @@ export class CategoryUpdatedEvent {
 
 export class CategoryActivatedEvent {
   static readonly eventName = 'category.activated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -41,7 +41,7 @@ export class CategoryActivatedEvent {
 
 export class CategoryDeactivatedEvent {
   static readonly eventName = 'category.deactivated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -54,7 +54,7 @@ export class CategoryDeactivatedEvent {
 
 export class CategoryArchivedEvent {
   static readonly eventName = 'category.archived';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -67,7 +67,7 @@ export class CategoryArchivedEvent {
 
 export class CategoryDeletedEvent {
   static readonly eventName = 'category.deleted';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -79,7 +79,7 @@ export class CategoryDeletedEvent {
 
 export class CategoryMovedEvent {
   static readonly eventName = 'category.moved';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -96,7 +96,7 @@ export class CategoryMovedEvent {
 
 export class CategoryTreeRebuiltEvent {
   static readonly eventName = 'category.tree.rebuilt';
-  
+
   constructor(
     public readonly rootCategoryId: string,
     public readonly affectedCategories: number,
@@ -109,7 +109,7 @@ export class CategoryTreeRebuiltEvent {
 // Attribute Events
 export class CategoryAttributeCreatedEvent {
   static readonly eventName = 'category.attribute.created';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly attributeId: string,
@@ -123,7 +123,7 @@ export class CategoryAttributeCreatedEvent {
 
 export class CategoryAttributeUpdatedEvent {
   static readonly eventName = 'category.attribute.updated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly attributeId: string,
@@ -136,7 +136,7 @@ export class CategoryAttributeUpdatedEvent {
 
 export class CategoryAttributeDeletedEvent {
   static readonly eventName = 'category.attribute.deleted';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly attributeId: string,
@@ -148,7 +148,7 @@ export class CategoryAttributeDeletedEvent {
 
 export class CategoryAttributeInheritedEvent {
   static readonly eventName = 'category.attribute.inherited';
-  
+
   constructor(
     public readonly sourceCategoryId: string,
     public readonly targetCategoryId: string,
@@ -161,7 +161,7 @@ export class CategoryAttributeInheritedEvent {
 
 export class CategoryAttributeOverriddenEvent {
   static readonly eventName = 'category.attribute.overridden';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly attributeId: string,
@@ -176,7 +176,7 @@ export class CategoryAttributeOverriddenEvent {
 // Brand Integration Events
 export class CategoryBrandConstraintUpdatedEvent {
   static readonly eventName = 'category.brand.constraint.updated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -191,7 +191,7 @@ export class CategoryBrandConstraintUpdatedEvent {
 // Performance Events
 export class CategoryStatisticsUpdatedEvent {
   static readonly eventName = 'category.statistics.updated';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly childCount: number,
@@ -204,7 +204,7 @@ export class CategoryStatisticsUpdatedEvent {
 
 export class CategoryCacheInvalidatedEvent {
   static readonly eventName = 'category.cache.invalidated';
-  
+
   constructor(
     public readonly categoryIds: string[],
     public readonly cacheKeys: string[],
@@ -216,7 +216,7 @@ export class CategoryCacheInvalidatedEvent {
 // Legacy events for backward compatibility
 export class CategoryStatusChangedEvent {
   static readonly eventName = 'category.status.changed';
-  
+
   constructor(
     public readonly categoryId: string,
     public readonly categoryName: string,
@@ -231,7 +231,7 @@ export class CategoryStatusChangedEvent {
 // Bulk operation events
 export class CategoryBulkOperationCompletedEvent {
   static readonly eventName = 'category.bulk.operation.completed';
-  
+
   constructor(
     public readonly operation: string, // 'CREATE', 'UPDATE', 'DELETE', 'MOVE'
     public readonly categoryIds: string[],

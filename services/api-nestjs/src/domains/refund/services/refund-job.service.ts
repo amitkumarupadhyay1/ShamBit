@@ -30,10 +30,10 @@ import { NotificationService } from '../../../infrastructure/notifications/notif
 import { RefundJob } from '../entities/refund-job.entity';
 import { CreateRefundJobDto } from '../dtos/create-refund-job.dto';
 
-import { 
-  RefundJobType, 
+import {
+  RefundJobType,
   RefundJobStatus,
-  RefundStatus 
+  RefundStatus,
 } from '../enums/refund-status.enum';
 
 import {
@@ -69,7 +69,7 @@ export class RefundJobService {
 
   async createJob(
     createJobDto: CreateRefundJobDto,
-    tx?: any
+    tx?: any,
   ): Promise<RefundJob> {
     this.logger.log('RefundJobService.createJob', {
       type: createJobDto.type,
@@ -92,13 +92,16 @@ export class RefundJobService {
     const job = await this.refundRepository.createJob(jobData, tx);
 
     // Emit job created event
-    this.eventEmitter.emit('refund.job.created', new RefundJobCreatedEvent(
-      job.id,
-      job.type,
-      job.refundId,
-      job.orderId,
-      job.createdBy
-    ));
+    this.eventEmitter.emit(
+      'refund.job.created',
+      new RefundJobCreatedEvent(
+        job.id,
+        job.type,
+        job.refundId,
+        job.orderId,
+        job.createdBy,
+      ),
+    );
 
     // Queue job for processing if not scheduled
     if (!createJobDto.scheduledAt) {
@@ -131,12 +134,10 @@ export class RefundJobService {
       await this.updateJobStatus(jobId, RefundJobStatus.PROCESSING, tx);
 
       // Emit job started event
-      this.eventEmitter.emit('refund.job.started', new RefundJobStartedEvent(
-        job.id,
-        job.type,
-        job.refundId,
-        job.orderId
-      ));
+      this.eventEmitter.emit(
+        'refund.job.started',
+        new RefundJobStartedEvent(job.id, job.type, job.refundId, job.orderId),
+      );
 
       try {
         // Process job based on type
@@ -146,13 +147,16 @@ export class RefundJobService {
         await this.completeJob(job, result, tx);
 
         // Emit job completed event
-        this.eventEmitter.emit('refund.job.completed', new RefundJobCompletedEvent(
-          job.id,
-          job.type,
-          job.refundId,
-          job.orderId,
-          result
-        ));
+        this.eventEmitter.emit(
+          'refund.job.completed',
+          new RefundJobCompletedEvent(
+            job.id,
+            job.type,
+            job.refundId,
+            job.orderId,
+            result,
+          ),
+        );
 
         this.logger.log('Job processed successfully', {
           jobId,
@@ -161,21 +165,25 @@ export class RefundJobService {
         });
 
         return { success: true, result };
-
       } catch (error) {
         // Handle job failure
         const shouldRetry = await this.handleJobFailure(job, error, tx);
 
         // Emit job failed event
-        this.eventEmitter.emit('refund.job.failed', new RefundJobFailedEvent(
-          job.id,
-          job.type,
-          error.message,
-          job.refundId,
-          job.orderId,
-          shouldRetry,
-          shouldRetry ? this.calculateNextRetryTime(job.retryCount) : undefined
-        ));
+        this.eventEmitter.emit(
+          'refund.job.failed',
+          new RefundJobFailedEvent(
+            job.id,
+            job.type,
+            error.message,
+            job.refundId,
+            job.orderId,
+            shouldRetry,
+            shouldRetry
+              ? this.calculateNextRetryTime(job.retryCount)
+              : undefined,
+          ),
+        );
 
         this.logger.error('Job processing failed', error, {
           jobId,
@@ -296,7 +304,7 @@ export class RefundJobService {
     const notificationResult = await this.sendRefundNotification(
       refund,
       notificationType,
-      recipientId
+      recipientId,
     );
 
     return {
@@ -320,7 +328,9 @@ export class RefundJobService {
     const gatewayStatus = await gateway.getRefundStatus(gatewayRefundId);
 
     if (!gatewayStatus.success) {
-      throw new Error(`Failed to sync gateway status: ${gatewayStatus.error?.message}`);
+      throw new Error(
+        `Failed to sync gateway status: ${gatewayStatus.error?.message}`,
+      );
     }
 
     // Update refund with latest gateway information
@@ -341,7 +351,10 @@ export class RefundJobService {
     };
   }
 
-  private async processUpdateOrderStatusJob(job: RefundJob, tx: any): Promise<any> {
+  private async processUpdateOrderStatusJob(
+    job: RefundJob,
+    tx: any,
+  ): Promise<any> {
     const { orderId, newStatus, reason } = job.payload;
 
     this.logger.log('Processing order status update job', {
@@ -377,14 +390,18 @@ export class RefundJobService {
     const fees = this.calculateRefundFees(refund);
 
     // Update refund with calculated fees
-    await this.refundRepository.update(refundId, {
-      refundFees: fees.totalFees,
-      metadata: {
-        ...refund.metadata,
-        feeCalculation: fees,
-        calculatedAt: new Date(),
+    await this.refundRepository.update(
+      refundId,
+      {
+        refundFees: fees.totalFees,
+        metadata: {
+          ...refund.metadata,
+          feeCalculation: fees,
+          calculatedAt: new Date(),
+        },
       },
-    }, tx);
+      tx,
+    );
 
     return {
       feesCalculated: true,
@@ -392,7 +409,10 @@ export class RefundJobService {
     };
   }
 
-  private async processGenerateCreditNoteJob(job: RefundJob, tx: any): Promise<any> {
+  private async processGenerateCreditNoteJob(
+    job: RefundJob,
+    tx: any,
+  ): Promise<any> {
     const { refundId } = job.payload;
 
     this.logger.log('Processing generate credit note job', {
@@ -418,7 +438,7 @@ export class RefundJobService {
   private async updateJobStatus(
     jobId: string,
     status: RefundJobStatus,
-    tx?: any
+    tx?: any,
   ): Promise<void> {
     const updateData: any = {
       status,
@@ -434,20 +454,29 @@ export class RefundJobService {
     await this.refundRepository.updateJob(jobId, updateData, tx);
   }
 
-  private async completeJob(job: RefundJob, result: any, tx: any): Promise<void> {
-    await this.refundRepository.updateJob(job.id, {
-      status: RefundJobStatus.COMPLETED,
-      result,
-      completedAt: new Date(),
-    }, tx);
+  private async completeJob(
+    job: RefundJob,
+    result: any,
+    tx: any,
+  ): Promise<void> {
+    await this.refundRepository.updateJob(
+      job.id,
+      {
+        status: RefundJobStatus.COMPLETED,
+        result,
+        completedAt: new Date(),
+      },
+      tx,
+    );
   }
 
   private async handleJobFailure(
     job: RefundJob,
     error: Error,
-    tx: any
+    tx: any,
   ): Promise<boolean> {
-    const shouldRetry = job.retryCount < job.maxRetries && this.isRetryableError(error);
+    const shouldRetry =
+      job.retryCount < job.maxRetries && this.isRetryableError(error);
 
     const updateData: any = {
       status: shouldRetry ? RefundJobStatus.RETRYING : RefundJobStatus.FAILED,
@@ -477,34 +506,42 @@ export class RefundJobService {
     const queueName = this.getQueueNameForJobType(job.type);
     const priority = this.getJobPriority(job);
 
-    await this.queueService.add(queueName, {
-      jobId: job.id,
-      type: job.type,
-      payload: job.payload,
-    }, {
-      priority,
-      delay: job.scheduledAt ? job.scheduledAt.getTime() - Date.now() : 0,
-      attempts: job.maxRetries + 1,
-      backoff: {
-        type: 'exponential',
-        delay: 2000,
+    await this.queueService.add(
+      queueName,
+      {
+        jobId: job.id,
+        type: job.type,
+        payload: job.payload,
       },
-    });
+      {
+        priority,
+        delay: job.scheduledAt ? job.scheduledAt.getTime() - Date.now() : 0,
+        attempts: job.maxRetries + 1,
+        backoff: {
+          type: 'exponential',
+          delay: 2000,
+        },
+      },
+    );
   }
 
   private async scheduleJobRetry(job: RefundJob, retryAt: Date): Promise<void> {
     const delay = retryAt.getTime() - Date.now();
     const queueName = this.getQueueNameForJobType(job.type);
 
-    await this.queueService.add(queueName, {
-      jobId: job.id,
-      type: job.type,
-      payload: job.payload,
-      isRetry: true,
-    }, {
-      delay: Math.max(0, delay),
-      attempts: 1, // Single attempt for retry
-    });
+    await this.queueService.add(
+      queueName,
+      {
+        jobId: job.id,
+        type: job.type,
+        payload: job.payload,
+        isRetry: true,
+      },
+      {
+        delay: Math.max(0, delay),
+        attempts: 1, // Single attempt for retry
+      },
+    );
   }
 
   // ============================================================================
@@ -514,7 +551,9 @@ export class RefundJobService {
   @Cron(CronExpression.EVERY_MINUTE)
   async processScheduledJobs(): Promise<void> {
     try {
-      const scheduledJobs = await this.refundRepository.findScheduledJobs(new Date());
+      const scheduledJobs = await this.refundRepository.findScheduledJobs(
+        new Date(),
+      );
 
       this.logger.log('Processing scheduled refund jobs', {
         count: scheduledJobs.length,
@@ -523,12 +562,11 @@ export class RefundJobService {
       for (const job of scheduledJobs) {
         try {
           await this.queueJob(job);
-          
+
           // Update job to remove scheduled time
           await this.refundRepository.updateJob(job.id, {
             scheduledAt: null,
           });
-
         } catch (error) {
           this.logger.error('Failed to queue scheduled job', error, {
             jobId: job.id,
@@ -536,7 +574,6 @@ export class RefundJobService {
           });
         }
       }
-
     } catch (error) {
       this.logger.error('Failed to process scheduled jobs', error);
     }
@@ -554,7 +591,6 @@ export class RefundJobService {
       for (const job of retryJobs) {
         try {
           await this.processJob(job.id);
-
         } catch (error) {
           this.logger.error('Failed to process retry job', error, {
             jobId: job.id,
@@ -562,7 +598,6 @@ export class RefundJobService {
           });
         }
       }
-
     } catch (error) {
       this.logger.error('Failed to process retry jobs', error);
     }
@@ -574,13 +609,13 @@ export class RefundJobService {
       const cutoffDate = new Date();
       cutoffDate.setDate(cutoffDate.getDate() - 7); // Keep jobs for 7 days
 
-      const deletedCount = await this.refundRepository.deleteCompletedJobs(cutoffDate);
+      const deletedCount =
+        await this.refundRepository.deleteCompletedJobs(cutoffDate);
 
       this.logger.log('Cleaned up completed refund jobs', {
         deletedCount,
         cutoffDate,
       });
-
     } catch (error) {
       this.logger.error('Failed to cleanup completed jobs', error);
     }
@@ -593,13 +628,16 @@ export class RefundJobService {
   private async sendRefundNotification(
     refund: any,
     notificationType: string,
-    recipientId?: string
+    recipientId?: string,
   ): Promise<{ channels: string[] }> {
     const channels: string[] = [];
 
     try {
       // Determine notification channels and content
-      const notificationConfig = this.getNotificationConfig(notificationType, refund);
+      const notificationConfig = this.getNotificationConfig(
+        notificationType,
+        refund,
+      );
 
       // Send email notification
       if (notificationConfig.email) {
@@ -633,7 +671,6 @@ export class RefundJobService {
         });
         channels.push('PUSH');
       }
-
     } catch (error) {
       this.logger.error('Failed to send refund notification', error, {
         refundId: refund.id,
@@ -686,8 +723,8 @@ export class RefundJobService {
       'rate limit',
     ];
 
-    return retryableErrors.some(keyword => 
-      error.message.toLowerCase().includes(keyword)
+    return retryableErrors.some((keyword) =>
+      error.message.toLowerCase().includes(keyword),
     );
   }
 

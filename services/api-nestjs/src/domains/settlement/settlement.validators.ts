@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException } from '@nestjs/common';
-import { 
+import {
   SettlementStatus,
   SellerAccountStatus,
   KycStatus,
@@ -42,7 +42,9 @@ export class SettlementValidators {
       }
 
       // Check minimum period (1 day)
-      const periodDays = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+      const periodDays = Math.ceil(
+        (end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24),
+      );
       if (periodDays < 1) {
         errors.push('Settlement period must be at least 1 day');
       }
@@ -62,18 +64,22 @@ export class SettlementValidators {
     if (data.settlementDate) {
       const settlementDate = new Date(data.settlementDate);
       const now = new Date();
-      
+
       // Settlement date cannot be more than 30 days in the future
       const maxFutureDate = new Date();
       maxFutureDate.setDate(maxFutureDate.getDate() + 30);
-      
+
       if (settlementDate > maxFutureDate) {
-        errors.push('Settlement date cannot be more than 30 days in the future');
+        errors.push(
+          'Settlement date cannot be more than 30 days in the future',
+        );
       }
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Settlement validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Settlement validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -82,7 +88,9 @@ export class SettlementValidators {
 
     // Check settlement status
     if (settlement.status !== SettlementStatus.PENDING) {
-      errors.push(`Settlement must be in PENDING status to process (current: ${settlement.status})`);
+      errors.push(
+        `Settlement must be in PENDING status to process (current: ${settlement.status})`,
+      );
     }
 
     // Check if settlement has transactions
@@ -101,18 +109,23 @@ export class SettlementValidators {
     }
 
     // Check bank account information
-    if (!settlement.bankAccount || Object.keys(settlement.bankAccount).length === 0) {
+    if (
+      !settlement.bankAccount ||
+      Object.keys(settlement.bankAccount).length === 0
+    ) {
       errors.push('Settlement must have bank account information');
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Settlement processing validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Settlement processing validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
   static validateSettlementStatusTransition(
     currentStatus: SettlementStatus,
-    newStatus: SettlementStatus
+    newStatus: SettlementStatus,
   ): void {
     const validTransitions: Record<SettlementStatus, SettlementStatus[]> = {
       [SettlementStatus.PENDING]: [
@@ -130,10 +143,10 @@ export class SettlementValidators {
     };
 
     const allowedTransitions = validTransitions[currentStatus] || [];
-    
+
     if (!allowedTransitions.includes(newStatus)) {
       throw new BadRequestException(
-        `Invalid status transition from ${currentStatus} to ${newStatus}`
+        `Invalid status transition from ${currentStatus} to ${newStatus}`,
       );
     }
   }
@@ -168,14 +181,18 @@ export class SettlementValidators {
 
     // Validate primary bank account
     if (data.primaryBankId && data.bankAccounts) {
-      const primaryBank = data.bankAccounts.find((bank: any) => bank.id === data.primaryBankId);
+      const primaryBank = data.bankAccounts.find(
+        (bank: any) => bank.id === data.primaryBankId,
+      );
       if (!primaryBank) {
         errors.push('Primary bank account must exist in bank accounts list');
       }
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Seller account validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Seller account validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -184,16 +201,23 @@ export class SettlementValidators {
 
     // Check account status
     if (sellerAccount.status !== SellerAccountStatus.ACTIVATED) {
-      errors.push(`Seller account must be activated for settlements (current: ${sellerAccount.status})`);
+      errors.push(
+        `Seller account must be activated for settlements (current: ${sellerAccount.status})`,
+      );
     }
 
     // Check KYC status
     if (sellerAccount.kycStatus !== KycStatus.VERIFIED) {
-      errors.push(`Seller KYC must be verified for settlements (current: ${sellerAccount.kycStatus})`);
+      errors.push(
+        `Seller KYC must be verified for settlements (current: ${sellerAccount.kycStatus})`,
+      );
     }
 
     // Check bank accounts
-    if (!sellerAccount.bankAccounts || sellerAccount.bankAccounts.length === 0) {
+    if (
+      !sellerAccount.bankAccounts ||
+      sellerAccount.bankAccounts.length === 0
+    ) {
       errors.push('Seller must have at least one bank account for settlements');
     }
 
@@ -203,44 +227,45 @@ export class SettlementValidators {
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Seller account settlement validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Seller account settlement validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
   static validateSellerAccountStatusTransition(
     currentStatus: SellerAccountStatus,
-    newStatus: SellerAccountStatus
+    newStatus: SellerAccountStatus,
   ): void {
-    const validTransitions: Record<SellerAccountStatus, SellerAccountStatus[]> = {
-      [SellerAccountStatus.CREATED]: [
-        SellerAccountStatus.UNDER_REVIEW,
-        SellerAccountStatus.NEEDS_CLARIFICATION,
-        SellerAccountStatus.REJECTED,
-      ],
-      [SellerAccountStatus.UNDER_REVIEW]: [
-        SellerAccountStatus.ACTIVATED,
-        SellerAccountStatus.NEEDS_CLARIFICATION,
-        SellerAccountStatus.REJECTED,
-      ],
-      [SellerAccountStatus.NEEDS_CLARIFICATION]: [
-        SellerAccountStatus.UNDER_REVIEW,
-        SellerAccountStatus.REJECTED,
-      ],
-      [SellerAccountStatus.ACTIVATED]: [
-        SellerAccountStatus.SUSPENDED,
-      ],
-      [SellerAccountStatus.SUSPENDED]: [
-        SellerAccountStatus.ACTIVATED,
-        SellerAccountStatus.REJECTED,
-      ],
-      [SellerAccountStatus.REJECTED]: [], // Terminal state
-    };
+    const validTransitions: Record<SellerAccountStatus, SellerAccountStatus[]> =
+      {
+        [SellerAccountStatus.CREATED]: [
+          SellerAccountStatus.UNDER_REVIEW,
+          SellerAccountStatus.NEEDS_CLARIFICATION,
+          SellerAccountStatus.REJECTED,
+        ],
+        [SellerAccountStatus.UNDER_REVIEW]: [
+          SellerAccountStatus.ACTIVATED,
+          SellerAccountStatus.NEEDS_CLARIFICATION,
+          SellerAccountStatus.REJECTED,
+        ],
+        [SellerAccountStatus.NEEDS_CLARIFICATION]: [
+          SellerAccountStatus.UNDER_REVIEW,
+          SellerAccountStatus.REJECTED,
+        ],
+        [SellerAccountStatus.ACTIVATED]: [SellerAccountStatus.SUSPENDED],
+        [SellerAccountStatus.SUSPENDED]: [
+          SellerAccountStatus.ACTIVATED,
+          SellerAccountStatus.REJECTED,
+        ],
+        [SellerAccountStatus.REJECTED]: [], // Terminal state
+      };
 
     const allowedTransitions = validTransitions[currentStatus] || [];
-    
+
     if (!allowedTransitions.includes(newStatus)) {
       throw new BadRequestException(
-        `Invalid seller account status transition from ${currentStatus} to ${newStatus}`
+        `Invalid seller account status transition from ${currentStatus} to ${newStatus}`,
       );
     }
   }
@@ -266,12 +291,18 @@ export class SettlementValidators {
     }
 
     // Validate email format
-    if (businessDetails.contactEmail && !this.isValidEmail(businessDetails.contactEmail)) {
+    if (
+      businessDetails.contactEmail &&
+      !this.isValidEmail(businessDetails.contactEmail)
+    ) {
       errors.push('Invalid contact email format');
     }
 
     // Validate phone format
-    if (businessDetails.contactPhone && !this.isValidPhone(businessDetails.contactPhone)) {
+    if (
+      businessDetails.contactPhone &&
+      !this.isValidPhone(businessDetails.contactPhone)
+    ) {
       errors.push('Invalid contact phone format');
     }
 
@@ -287,15 +318,24 @@ export class SettlementValidators {
       'NGO',
     ];
 
-    if (businessDetails.businessType && !validBusinessTypes.includes(businessDetails.businessType)) {
+    if (
+      businessDetails.businessType &&
+      !validBusinessTypes.includes(businessDetails.businessType)
+    ) {
       errors.push('Invalid business type');
     }
 
     // Validate address
     if (businessDetails.address) {
       const address = businessDetails.address;
-      const requiredAddressFields = ['street', 'city', 'state', 'postalCode', 'country'];
-      
+      const requiredAddressFields = [
+        'street',
+        'city',
+        'state',
+        'postalCode',
+        'country',
+      ];
+
       for (const field of requiredAddressFields) {
         if (!address[field]) {
           errors.push(`Address ${field} is required`);
@@ -309,7 +349,9 @@ export class SettlementValidators {
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Business details validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Business details validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -342,18 +384,26 @@ export class SettlementValidators {
     }
 
     // Validate IFSC code format
-    if (bankAccount.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankAccount.ifscCode)) {
+    if (
+      bankAccount.ifscCode &&
+      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(bankAccount.ifscCode)
+    ) {
       errors.push('Invalid IFSC code format');
     }
 
     // Validate account type
     const validAccountTypes = ['SAVINGS', 'CURRENT', 'OVERDRAFT'];
-    if (bankAccount.accountType && !validAccountTypes.includes(bankAccount.accountType)) {
+    if (
+      bankAccount.accountType &&
+      !validAccountTypes.includes(bankAccount.accountType)
+    ) {
       errors.push('Invalid account type');
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Bank account validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Bank account validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -372,15 +422,27 @@ export class SettlementValidators {
 
     // Validate day of week (for weekly frequency)
     if (schedule.frequency === 'WEEKLY') {
-      if (!schedule.dayOfWeek || schedule.dayOfWeek < 1 || schedule.dayOfWeek > 7) {
-        errors.push('Day of week must be between 1 (Monday) and 7 (Sunday) for weekly frequency');
+      if (
+        !schedule.dayOfWeek ||
+        schedule.dayOfWeek < 1 ||
+        schedule.dayOfWeek > 7
+      ) {
+        errors.push(
+          'Day of week must be between 1 (Monday) and 7 (Sunday) for weekly frequency',
+        );
       }
     }
 
     // Validate day of month (for monthly frequency)
     if (schedule.frequency === 'MONTHLY') {
-      if (!schedule.dayOfMonth || schedule.dayOfMonth < 1 || schedule.dayOfMonth > 31) {
-        errors.push('Day of month must be between 1 and 31 for monthly frequency');
+      if (
+        !schedule.dayOfMonth ||
+        schedule.dayOfMonth < 1 ||
+        schedule.dayOfMonth > 31
+      ) {
+        errors.push(
+          'Day of month must be between 1 and 31 for monthly frequency',
+        );
       }
     }
 
@@ -389,7 +451,8 @@ export class SettlementValidators {
       if (schedule.minAmount < 0) {
         errors.push('Minimum settlement amount cannot be negative');
       }
-      if (schedule.minAmount > 10000000) { // ₹1,00,000
+      if (schedule.minAmount > 10000000) {
+        // ₹1,00,000
         errors.push('Minimum settlement amount cannot exceed ₹1,00,000');
       }
     }
@@ -405,7 +468,9 @@ export class SettlementValidators {
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Settlement schedule validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Settlement schedule validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -445,16 +510,25 @@ export class SettlementValidators {
     }
 
     // Validate amount consistency
-    if (data.grossAmount !== undefined && data.fees !== undefined && 
-        data.tax !== undefined && data.netAmount !== undefined) {
+    if (
+      data.grossAmount !== undefined &&
+      data.fees !== undefined &&
+      data.tax !== undefined &&
+      data.netAmount !== undefined
+    ) {
       const calculatedNet = data.grossAmount - data.fees - data.tax;
-      if (Math.abs(calculatedNet - data.netAmount) > 1) { // Allow 1 paisa difference for rounding
-        errors.push('Net amount does not match gross amount minus fees and tax');
+      if (Math.abs(calculatedNet - data.netAmount) > 1) {
+        // Allow 1 paisa difference for rounding
+        errors.push(
+          'Net amount does not match gross amount minus fees and tax',
+        );
       }
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Settlement amount validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Settlement amount validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
@@ -464,7 +538,15 @@ export class SettlementValidators {
 
   private static isValidCurrency(currency: string): boolean {
     const validCurrencies = [
-      'INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED', 'MYR'
+      'INR',
+      'USD',
+      'EUR',
+      'GBP',
+      'AUD',
+      'CAD',
+      'SGD',
+      'AED',
+      'MYR',
     ];
     return validCurrencies.includes(currency.toUpperCase());
   }
@@ -484,13 +566,18 @@ export class SettlementValidators {
   // BUSINESS RULE VALIDATION
   // ============================================================================
 
-  static validateSettlementBusinessRules(settlement: any, sellerAccount: any): void {
+  static validateSettlementBusinessRules(
+    settlement: any,
+    sellerAccount: any,
+  ): void {
     const errors: string[] = [];
 
     // Check minimum settlement amount based on seller tier
     const minAmount = this.getMinimumSettlementAmount(sellerAccount);
     if (settlement.netAmount < minAmount) {
-      errors.push(`Settlement amount ${settlement.netAmount} is below minimum ${minAmount} for seller tier`);
+      errors.push(
+        `Settlement amount ${settlement.netAmount} is below minimum ${minAmount} for seller tier`,
+      );
     }
 
     // Check settlement frequency limits
@@ -501,24 +588,29 @@ export class SettlementValidators {
     // Check hold period compliance
     const requiredHoldDays = this.getRequiredHoldDays(sellerAccount);
     const settlementAge = Math.ceil(
-      (new Date().getTime() - settlement.periodEnd.getTime()) / (1000 * 60 * 60 * 24)
+      (new Date().getTime() - settlement.periodEnd.getTime()) /
+        (1000 * 60 * 60 * 24),
     );
-    
+
     if (settlementAge < requiredHoldDays) {
-      errors.push(`Settlement period must be at least ${requiredHoldDays} days old`);
+      errors.push(
+        `Settlement period must be at least ${requiredHoldDays} days old`,
+      );
     }
 
     if (errors.length > 0) {
-      throw new BadRequestException(`Settlement business rule validation failed: ${errors.join(', ')}`);
+      throw new BadRequestException(
+        `Settlement business rule validation failed: ${errors.join(', ')}`,
+      );
     }
   }
 
   private static getMinimumSettlementAmount(sellerAccount: any): number {
     // Minimum settlement amount based on seller tier
     const tierMinimums: Record<string, number> = {
-      'STANDARD': 100,    // ₹1.00
-      'PREMIUM': 50,      // ₹0.50
-      'ENTERPRISE': 10,   // ₹0.10
+      STANDARD: 100, // ₹1.00
+      PREMIUM: 50, // ₹0.50
+      ENTERPRISE: 10, // ₹0.10
     };
 
     const tier = sellerAccount.seller?.tier || 'STANDARD';
@@ -528,9 +620,9 @@ export class SettlementValidators {
   private static getMaxSettlementsPerDay(sellerAccount: any): number {
     // Maximum settlements per day based on seller tier
     const tierLimits: Record<string, number> = {
-      'STANDARD': 1,
-      'PREMIUM': 3,
-      'ENTERPRISE': 10,
+      STANDARD: 1,
+      PREMIUM: 3,
+      ENTERPRISE: 10,
     };
 
     const tier = sellerAccount.seller?.tier || 'STANDARD';
@@ -540,9 +632,9 @@ export class SettlementValidators {
   private static getRequiredHoldDays(sellerAccount: any): number {
     // Required hold days based on seller tier and risk profile
     const tierHoldDays: Record<string, number> = {
-      'STANDARD': 7,
-      'PREMIUM': 5,
-      'ENTERPRISE': 3,
+      STANDARD: 7,
+      PREMIUM: 5,
+      ENTERPRISE: 3,
     };
 
     const tier = sellerAccount.seller?.tier || 'STANDARD';

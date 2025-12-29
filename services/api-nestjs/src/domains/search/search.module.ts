@@ -8,11 +8,7 @@ import { ProductModule } from '../product/product.module';
 @Module({
   imports: [ProductModule],
   controllers: [SearchController],
-  providers: [
-    SearchService,
-    SearchIndexService,
-    FilterService,
-  ],
+  providers: [SearchService, SearchIndexService, FilterService],
   exports: [SearchService, SearchIndexService],
 })
 export class SearchModule {}

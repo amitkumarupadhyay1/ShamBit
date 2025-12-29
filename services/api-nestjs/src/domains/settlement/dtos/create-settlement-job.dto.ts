@@ -1,4 +1,10 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsDateString } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsEnum,
+  IsDateString,
+} from 'class-validator';
 
 export enum SettlementJobType {
   DAILY = 'DAILY',

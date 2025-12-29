@@ -1,4 +1,9 @@
-import { CategoryStatus, CategoryStatusTransitions, ADMIN_ONLY_TRANSITIONS, PRODUCT_ALLOWED_STATUSES } from './enums/category-status.enum';
+import {
+  CategoryStatus,
+  CategoryStatusTransitions,
+  ADMIN_ONLY_TRANSITIONS,
+  PRODUCT_ALLOWED_STATUSES,
+} from './enums/category-status.enum';
 import { CategoryVisibility } from './enums/category-visibility.enum';
 import { Category } from './entities/category.entity';
 import { UserRole } from '../../common/types';
@@ -6,15 +11,18 @@ import { UserRole } from '../../common/types';
 export class CategoryPolicies {
   // Maximum tree depth to prevent infinite nesting
   static readonly MAX_TREE_DEPTH = 10;
-  
+
   // Maximum number of children per category
   static readonly MAX_CHILDREN_PER_CATEGORY = 1000;
-  
+
   // Maximum number of attributes per category
   static readonly MAX_ATTRIBUTES_PER_CATEGORY = 50;
 
   // State machine validation
-  static canTransitionTo(currentStatus: CategoryStatus, newStatus: CategoryStatus): boolean {
+  static canTransitionTo(
+    currentStatus: CategoryStatus,
+    newStatus: CategoryStatus,
+  ): boolean {
     const allowedTransitions = CategoryStatusTransitions[currentStatus] || [];
     return allowedTransitions.includes(newStatus);
   }
@@ -28,7 +36,11 @@ export class CategoryPolicies {
   }
 
   // Access control policies
-  static canUserViewCategory(category: Category, userId: string, userRole: UserRole): boolean {
+  static canUserViewCategory(
+    category: Category,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Admins can view all categories
     if (userRole === UserRole.ADMIN) {
       return true;
@@ -39,7 +51,10 @@ export class CategoryPolicies {
       case CategoryVisibility.PUBLIC:
         return category.isVisible();
       case CategoryVisibility.INTERNAL:
-        return [UserRole.ADMIN, UserRole.SELLER].includes(userRole) && category.isVisible();
+        return (
+          [UserRole.ADMIN, UserRole.SELLER].includes(userRole) &&
+          category.isVisible()
+        );
       case CategoryVisibility.RESTRICTED:
         return userRole === UserRole.ADMIN;
       default:
@@ -47,17 +62,29 @@ export class CategoryPolicies {
     }
   }
 
-  static canUserModifyCategory(category: Category, userId: string, userRole: UserRole): boolean {
+  static canUserModifyCategory(
+    category: Category,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Only admins can modify categories
     return userRole === UserRole.ADMIN;
   }
 
-  static canUserDeleteCategory(category: Category, userId: string, userRole: UserRole): boolean {
+  static canUserDeleteCategory(
+    category: Category,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Only admins can delete categories
     return userRole === UserRole.ADMIN;
   }
 
-  static canUserCreateCategory(parentCategory: Category | null, userId: string, userRole: UserRole): boolean {
+  static canUserCreateCategory(
+    parentCategory: Category | null,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Only admins can create categories
     if (userRole !== UserRole.ADMIN) {
       return false;
@@ -81,7 +108,7 @@ export class CategoryPolicies {
     category: Category,
     newParent: Category | null,
     userId: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): boolean {
     // Only admins can move categories
     if (userRole !== UserRole.ADMIN) {
@@ -89,7 +116,10 @@ export class CategoryPolicies {
     }
 
     // Cannot move to self or descendant
-    if (newParent && (newParent.id === category.id || newParent.isDescendantOf(category.id))) {
+    if (
+      newParent &&
+      (newParent.id === category.id || newParent.isDescendantOf(category.id))
+    ) {
       return false;
     }
 
@@ -118,16 +148,26 @@ export class CategoryPolicies {
   }
 
   // Brand constraint policies
-  static canBrandBeUsedInCategory(category: Category, brandId: string): boolean {
+  static canBrandBeUsedInCategory(
+    category: Category,
+    brandId: string,
+  ): boolean {
     return category.canBrandBeUsed(brandId);
   }
 
-  static validateBrandRequirement(category: Category, brandId?: string): boolean {
+  static validateBrandRequirement(
+    category: Category,
+    brandId?: string,
+  ): boolean {
     return category.validateBrandRequirement(brandId);
   }
 
   // Attribute policies
-  static canAddAttributeToCategory(category: Category, userId: string, userRole: UserRole): boolean {
+  static canAddAttributeToCategory(
+    category: Category,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
     // Only admins can manage attributes
     if (userRole !== UserRole.ADMIN) {
       return false;
@@ -141,7 +181,7 @@ export class CategoryPolicies {
   static canInheritAttribute(
     sourceCategory: Category,
     targetCategory: Category,
-    attributeSlug: string
+    attributeSlug: string,
   ): boolean {
     // Target must be a descendant of source
     if (!targetCategory.isDescendantOf(sourceCategory.id)) {
@@ -157,7 +197,7 @@ export class CategoryPolicies {
     category: Category,
     attributeSlug: string,
     userId: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): boolean {
     // Only admins can override attributes
     if (userRole !== UserRole.ADMIN) {
@@ -170,18 +210,21 @@ export class CategoryPolicies {
   }
 
   // Validation policies
-  static validateCategoryName(name: string): { isValid: boolean; errors: string[] } {
+  static validateCategoryName(name: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (!name || name.trim().length === 0) {
       errors.push('Category name is required');
     } else {
       const trimmedName = name.trim();
-      
+
       if (trimmedName.length < 2) {
         errors.push('Category name must be at least 2 characters long');
       }
-      
+
       if (trimmedName.length > 100) {
         errors.push('Category name must not exceed 100 characters');
       }
@@ -196,18 +239,21 @@ export class CategoryPolicies {
     return { isValid: errors.length === 0, errors };
   }
 
-  static validateCategorySlug(slug: string): { isValid: boolean; errors: string[] } {
+  static validateCategorySlug(slug: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (!slug || slug.trim().length === 0) {
       errors.push('Category slug is required');
     } else {
       const trimmedSlug = slug.trim().toLowerCase();
-      
+
       if (trimmedSlug.length < 2) {
         errors.push('Category slug must be at least 2 characters long');
       }
-      
+
       if (trimmedSlug.length > 100) {
         errors.push('Category slug must not exceed 100 characters');
       }
@@ -215,7 +261,9 @@ export class CategoryPolicies {
       // Slug pattern validation
       const validSlugPattern = /^[a-z0-9-]+$/;
       if (!validSlugPattern.test(trimmedSlug)) {
-        errors.push('Category slug must contain only lowercase letters, numbers, and hyphens');
+        errors.push(
+          'Category slug must contain only lowercase letters, numbers, and hyphens',
+        );
       }
 
       // Cannot start or end with hyphen
@@ -232,7 +280,10 @@ export class CategoryPolicies {
     return { isValid: errors.length === 0, errors };
   }
 
-  static validateCategoryPath(path: string): { isValid: boolean; errors: string[] } {
+  static validateCategoryPath(path: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (!path.startsWith('/')) {
@@ -245,14 +296,18 @@ export class CategoryPolicies {
 
     const segments = path.split('/').filter(Boolean);
     if (segments.length > this.MAX_TREE_DEPTH) {
-      errors.push(`Category path depth cannot exceed ${this.MAX_TREE_DEPTH} levels`);
+      errors.push(
+        `Category path depth cannot exceed ${this.MAX_TREE_DEPTH} levels`,
+      );
     }
 
     // Validate each segment
     for (const segment of segments) {
       const slugValidation = this.validateCategorySlug(segment);
       if (!slugValidation.isValid) {
-        errors.push(`Invalid path segment "${segment}": ${slugValidation.errors.join(', ')}`);
+        errors.push(
+          `Invalid path segment "${segment}": ${slugValidation.errors.join(', ')}`,
+        );
       }
     }
 
@@ -260,30 +315,44 @@ export class CategoryPolicies {
   }
 
   // SEO policies
-  static validateSeoTitle(title?: string): { isValid: boolean; errors: string[] } {
+  static validateSeoTitle(title?: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (title) {
       if (title.length > 60) {
-        errors.push('SEO title should not exceed 60 characters for optimal display');
+        errors.push(
+          'SEO title should not exceed 60 characters for optimal display',
+        );
       }
       if (title.length < 10) {
-        errors.push('SEO title should be at least 10 characters for effectiveness');
+        errors.push(
+          'SEO title should be at least 10 characters for effectiveness',
+        );
       }
     }
 
     return { isValid: errors.length === 0, errors };
   }
 
-  static validateSeoDescription(description?: string): { isValid: boolean; errors: string[] } {
+  static validateSeoDescription(description?: string): {
+    isValid: boolean;
+    errors: string[];
+  } {
     const errors: string[] = [];
 
     if (description) {
       if (description.length > 160) {
-        errors.push('SEO description should not exceed 160 characters for optimal display');
+        errors.push(
+          'SEO description should not exceed 160 characters for optimal display',
+        );
       }
       if (description.length < 50) {
-        errors.push('SEO description should be at least 50 characters for effectiveness');
+        errors.push(
+          'SEO description should be at least 50 characters for effectiveness',
+        );
       }
     }
 
@@ -291,15 +360,26 @@ export class CategoryPolicies {
   }
 
   // Performance policies
-  static shouldRebuildMaterializedPath(oldParentId?: string, newParentId?: string): boolean {
+  static shouldRebuildMaterializedPath(
+    oldParentId?: string,
+    newParentId?: string,
+  ): boolean {
     return oldParentId !== newParentId;
   }
 
   static shouldUpdateTreeStatistics(operation: string): boolean {
-    return ['CREATE', 'DELETE', 'MOVE', 'PRODUCT_ADD', 'PRODUCT_REMOVE'].includes(operation);
+    return [
+      'CREATE',
+      'DELETE',
+      'MOVE',
+      'PRODUCT_ADD',
+      'PRODUCT_REMOVE',
+    ].includes(operation);
   }
 
   static shouldInvalidateCache(operation: string): boolean {
-    return ['CREATE', 'UPDATE', 'DELETE', 'MOVE', 'STATUS_CHANGE'].includes(operation);
+    return ['CREATE', 'UPDATE', 'DELETE', 'MOVE', 'STATUS_CHANGE'].includes(
+      operation,
+    );
   }
 }

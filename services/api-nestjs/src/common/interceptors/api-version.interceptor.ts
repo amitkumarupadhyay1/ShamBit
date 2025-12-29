@@ -7,7 +7,10 @@ import {
 import { Reflector } from '@nestjs/core';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
-import { API_VERSION_KEY, DEPRECATED_KEY } from '../decorators/api-version.decorator';
+import {
+  API_VERSION_KEY,
+  DEPRECATED_KEY,
+} from '../decorators/api-version.decorator';
 
 @Injectable()
 export class ApiVersionInterceptor implements NestInterceptor {
@@ -15,7 +18,7 @@ export class ApiVersionInterceptor implements NestInterceptor {
 
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const response = context.switchToHttp().getResponse();
-    
+
     // Get version metadata
     const version = this.reflector.getAllAndOverride<string>(API_VERSION_KEY, [
       context.getHandler(),
@@ -26,10 +29,7 @@ export class ApiVersionInterceptor implements NestInterceptor {
     const deprecation = this.reflector.getAllAndOverride<{
       sunsetDate?: Date;
       message?: string;
-    }>(DEPRECATED_KEY, [
-      context.getHandler(),
-      context.getClass(),
-    ]);
+    }>(DEPRECATED_KEY, [context.getHandler(), context.getClass()]);
 
     // Set version header
     if (version) {

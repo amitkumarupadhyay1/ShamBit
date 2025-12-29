@@ -40,13 +40,16 @@ export class AttributeService {
   async findAll(
     filters: AttributeFilters = {},
     pagination: PaginationOptions = {},
-    includes: AttributeIncludeOptions = {}
+    includes: AttributeIncludeOptions = {},
   ) {
     this.logger.log('AttributeService.findAll', { filters, pagination });
     return this.attributeRepository.findAll(filters, pagination, includes);
   }
 
-  async findById(id: string, includes: AttributeIncludeOptions = {}): Promise<Attribute> {
+  async findById(
+    id: string,
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute> {
     const attribute = await this.attributeRepository.findById(id, includes);
     if (!attribute) {
       throw new NotFoundException('Attribute not found');
@@ -54,7 +57,10 @@ export class AttributeService {
     return attribute;
   }
 
-  async findBySlug(slug: string, includes: AttributeIncludeOptions = {}): Promise<Attribute> {
+  async findBySlug(
+    slug: string,
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute> {
     const attribute = await this.attributeRepository.findBySlug(slug, includes);
     if (!attribute) {
       throw new NotFoundException('Attribute not found');
@@ -62,7 +68,10 @@ export class AttributeService {
     return attribute;
   }
 
-  async findByIds(ids: string[], includes: AttributeIncludeOptions = {}): Promise<Attribute[]> {
+  async findByIds(
+    ids: string[],
+    includes: AttributeIncludeOptions = {},
+  ): Promise<Attribute[]> {
     return this.attributeRepository.findByIds(ids, includes);
   }
 
@@ -70,11 +79,18 @@ export class AttributeService {
   // CREATE OPERATIONS
   // ============================================================================
 
-  async create(createAttributeDto: CreateAttributeDto, createdBy: string): Promise<Attribute> {
-    this.logger.log('AttributeService.create', { createAttributeDto, createdBy });
+  async create(
+    createAttributeDto: CreateAttributeDto,
+    createdBy: string,
+  ): Promise<Attribute> {
+    this.logger.log('AttributeService.create', {
+      createAttributeDto,
+      createdBy,
+    });
 
     // Generate slug if not provided
-    const slug = createAttributeDto.slug || this.generateSlug(createAttributeDto.name);
+    const slug =
+      createAttributeDto.slug || this.generateSlug(createAttributeDto.name);
 
     // Validate slug uniqueness
     const slugExists = !(await this.attributeRepository.validateSlug(slug));
@@ -83,7 +99,9 @@ export class AttributeService {
     }
 
     // Validate name uniqueness
-    const nameExists = !(await this.attributeRepository.validateName(createAttributeDto.name));
+    const nameExists = !(await this.attributeRepository.validateName(
+      createAttributeDto.name,
+    ));
     if (nameExists) {
       throw new ConflictException('Attribute with this name already exists');
     }
@@ -97,7 +115,9 @@ export class AttributeService {
 
     const attribute = await this.attributeRepository.create(attributeData);
 
-    this.logger.log('Attribute created successfully', { attributeId: attribute.id });
+    this.logger.log('Attribute created successfully', {
+      attributeId: attribute.id,
+    });
     return attribute;
   }
 
@@ -105,22 +125,42 @@ export class AttributeService {
   // UPDATE OPERATIONS
   // ============================================================================
 
-  async update(id: string, updateAttributeDto: UpdateAttributeDto, updatedBy: string): Promise<Attribute> {
-    this.logger.log('AttributeService.update', { id, updateAttributeDto, updatedBy });
+  async update(
+    id: string,
+    updateAttributeDto: UpdateAttributeDto,
+    updatedBy: string,
+  ): Promise<Attribute> {
+    this.logger.log('AttributeService.update', {
+      id,
+      updateAttributeDto,
+      updatedBy,
+    });
 
     const existingAttribute = await this.findById(id);
 
     // Validate slug uniqueness if changed
-    if (updateAttributeDto.slug && updateAttributeDto.slug !== existingAttribute.slug) {
-      const slugExists = !(await this.attributeRepository.validateSlug(updateAttributeDto.slug, id));
+    if (
+      updateAttributeDto.slug &&
+      updateAttributeDto.slug !== existingAttribute.slug
+    ) {
+      const slugExists = !(await this.attributeRepository.validateSlug(
+        updateAttributeDto.slug,
+        id,
+      ));
       if (slugExists) {
         throw new ConflictException('Attribute with this slug already exists');
       }
     }
 
     // Validate name uniqueness if changed
-    if (updateAttributeDto.name && updateAttributeDto.name !== existingAttribute.name) {
-      const nameExists = !(await this.attributeRepository.validateName(updateAttributeDto.name, id));
+    if (
+      updateAttributeDto.name &&
+      updateAttributeDto.name !== existingAttribute.name
+    ) {
+      const nameExists = !(await this.attributeRepository.validateName(
+        updateAttributeDto.name,
+        id,
+      ));
       if (nameExists) {
         throw new ConflictException('Attribute with this name already exists');
       }
@@ -139,17 +179,28 @@ export class AttributeService {
   // STATUS OPERATIONS
   // ============================================================================
 
-  async updateStatus(id: string, status: AttributeStatus, updatedBy: string): Promise<Attribute> {
+  async updateStatus(
+    id: string,
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute> {
     this.logger.log('AttributeService.updateStatus', { id, status, updatedBy });
 
     const attribute = await this.findById(id);
-    
+
     // Validate status transition
     this.validateStatusTransition(attribute.status, status);
 
-    const updatedAttribute = await this.attributeRepository.updateStatus(id, status, updatedBy);
+    const updatedAttribute = await this.attributeRepository.updateStatus(
+      id,
+      status,
+      updatedBy,
+    );
 
-    this.logger.log('Attribute status updated successfully', { attributeId: id, status });
+    this.logger.log('Attribute status updated successfully', {
+      attributeId: id,
+      status,
+    });
     return updatedAttribute;
   }
 
@@ -165,7 +216,9 @@ export class AttributeService {
     // Check if attribute is in use
     const usageStats = await this.attributeRepository.getUsageStats(id);
     if (usageStats.totalUsage > 0) {
-      throw new BadRequestException('Cannot delete attribute that is currently in use');
+      throw new BadRequestException(
+        'Cannot delete attribute that is currently in use',
+      );
     }
 
     await this.attributeRepository.softDelete(id, deletedBy, reason);
@@ -177,15 +230,24 @@ export class AttributeService {
   // SEARCH OPERATIONS
   // ============================================================================
 
-  async searchByName(query: string, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async searchByName(
+    query: string,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     return this.attributeRepository.searchByName(query, filters);
   }
 
-  async findByGroup(groupName: string, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async findByGroup(
+    groupName: string,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     return this.attributeRepository.findByGroup(groupName, filters);
   }
 
-  async findByDataType(dataType: AttributeDataType, filters: AttributeFilters = {}): Promise<Attribute[]> {
+  async findByDataType(
+    dataType: AttributeDataType,
+    filters: AttributeFilters = {},
+  ): Promise<Attribute[]> {
     return this.attributeRepository.findByDataType(dataType, filters);
   }
 
@@ -193,23 +255,40 @@ export class AttributeService {
   // CATEGORY INTEGRATION
   // ============================================================================
 
-  async findByCategoryId(categoryId: string, includeInherited: boolean = true): Promise<Attribute[]> {
-    return this.attributeRepository.findByCategoryId(categoryId, includeInherited);
+  async findByCategoryId(
+    categoryId: string,
+    includeInherited: boolean = true,
+  ): Promise<Attribute[]> {
+    return this.attributeRepository.findByCategoryId(
+      categoryId,
+      includeInherited,
+    );
   }
 
-  async findVariantAttributesForCategory(categoryId: string): Promise<Attribute[]> {
-    return this.attributeRepository.findVariantAttributesForCategory(categoryId);
+  async findVariantAttributesForCategory(
+    categoryId: string,
+  ): Promise<Attribute[]> {
+    return this.attributeRepository.findVariantAttributesForCategory(
+      categoryId,
+    );
   }
 
-  async findFilterableAttributesForCategory(categoryId: string): Promise<Attribute[]> {
-    return this.attributeRepository.findFilterableAttributesForCategory(categoryId);
+  async findFilterableAttributesForCategory(
+    categoryId: string,
+  ): Promise<Attribute[]> {
+    return this.attributeRepository.findFilterableAttributesForCategory(
+      categoryId,
+    );
   }
 
   // ============================================================================
   // VALIDATION OPERATIONS
   // ============================================================================
 
-  async validateAttributeValue(attributeId: string, value: any): Promise<{
+  async validateAttributeValue(
+    attributeId: string,
+    value: any,
+  ): Promise<{
     isValid: boolean;
     errors: string[];
   }> {
@@ -241,8 +320,16 @@ export class AttributeService {
   // BULK OPERATIONS
   // ============================================================================
 
-  async bulkUpdateStatus(ids: string[], status: AttributeStatus, updatedBy: string): Promise<Attribute[]> {
-    this.logger.log('AttributeService.bulkUpdateStatus', { ids, status, updatedBy });
+  async bulkUpdateStatus(
+    ids: string[],
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute[]> {
+    this.logger.log('AttributeService.bulkUpdateStatus', {
+      ids,
+      status,
+      updatedBy,
+    });
 
     // Validate all attributes exist
     const attributes = await this.findByIds(ids);
@@ -255,13 +342,23 @@ export class AttributeService {
       this.validateStatusTransition(attribute.status, status);
     }
 
-    const updatedAttributes = await this.attributeRepository.bulkUpdateStatus(ids, status, updatedBy);
+    const updatedAttributes = await this.attributeRepository.bulkUpdateStatus(
+      ids,
+      status,
+      updatedBy,
+    );
 
-    this.logger.log('Bulk status update completed', { count: updatedAttributes.length });
+    this.logger.log('Bulk status update completed', {
+      count: updatedAttributes.length,
+    });
     return updatedAttributes;
   }
 
-  async bulkDelete(ids: string[], deletedBy: string, reason?: string): Promise<void> {
+  async bulkDelete(
+    ids: string[],
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     this.logger.log('AttributeService.bulkDelete', { ids, deletedBy });
 
     // Validate all attributes exist and are not in use
@@ -272,9 +369,13 @@ export class AttributeService {
 
     // Check usage for all attributes
     for (const attribute of attributes) {
-      const usageStats = await this.attributeRepository.getUsageStats(attribute.id);
+      const usageStats = await this.attributeRepository.getUsageStats(
+        attribute.id,
+      );
       if (usageStats.totalUsage > 0) {
-        throw new BadRequestException(`Cannot delete attribute '${attribute.name}' that is currently in use`);
+        throw new BadRequestException(
+          `Cannot delete attribute '${attribute.name}' that is currently in use`,
+        );
       }
     }
 
@@ -292,7 +393,8 @@ export class AttributeService {
   }
 
   async cleanupDeletedAttributes(olderThanDays: number = 365): Promise<number> {
-    const count = await this.attributeRepository.cleanupDeletedAttributes(olderThanDays);
+    const count =
+      await this.attributeRepository.cleanupDeletedAttributes(olderThanDays);
     this.logger.log('Cleanup completed', { deletedCount: count });
     return count;
   }
@@ -311,19 +413,31 @@ export class AttributeService {
       .replace(/^-|-$/g, '');
   }
 
-  private validateStatusTransition(currentStatus: AttributeStatus, newStatus: AttributeStatus): void {
+  private validateStatusTransition(
+    currentStatus: AttributeStatus,
+    newStatus: AttributeStatus,
+  ): void {
     const validTransitions: Record<AttributeStatus, AttributeStatus[]> = {
-      [AttributeStatus.DRAFT]: [AttributeStatus.ACTIVE, AttributeStatus.ARCHIVED],
-      [AttributeStatus.ACTIVE]: [AttributeStatus.DEPRECATED, AttributeStatus.ARCHIVED],
-      [AttributeStatus.DEPRECATED]: [AttributeStatus.ACTIVE, AttributeStatus.ARCHIVED],
+      [AttributeStatus.DRAFT]: [
+        AttributeStatus.ACTIVE,
+        AttributeStatus.ARCHIVED,
+      ],
+      [AttributeStatus.ACTIVE]: [
+        AttributeStatus.DEPRECATED,
+        AttributeStatus.ARCHIVED,
+      ],
+      [AttributeStatus.DEPRECATED]: [
+        AttributeStatus.ACTIVE,
+        AttributeStatus.ARCHIVED,
+      ],
       [AttributeStatus.ARCHIVED]: [AttributeStatus.ACTIVE], // Can reactivate archived attributes
     };
 
     const allowedTransitions = validTransitions[currentStatus] || [];
-    
+
     if (!allowedTransitions.includes(newStatus)) {
       throw new BadRequestException(
-        `Invalid status transition from ${currentStatus} to ${newStatus}`
+        `Invalid status transition from ${currentStatus} to ${newStatus}`,
       );
     }
   }

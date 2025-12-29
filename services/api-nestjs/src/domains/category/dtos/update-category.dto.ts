@@ -5,7 +5,7 @@ import { CreateCategoryDto } from './create-category.dto';
 import { CategoryStatus } from '../enums/category-status.enum';
 
 export class UpdateCategoryDto extends PartialType(
-  OmitType(CreateCategoryDto, ['slug', 'parentId'] as const)
+  OmitType(CreateCategoryDto, ['slug', 'parentId'] as const),
 ) {
   @ApiPropertyOptional({
     description: 'Category status',

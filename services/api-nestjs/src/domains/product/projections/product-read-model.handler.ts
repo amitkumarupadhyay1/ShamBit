@@ -49,7 +49,7 @@ export class ProductReadModelHandler implements ProjectionHandler {
 
   private async createProductReadModel(event: DomainEvent): Promise<void> {
     const product = event.data.product;
-    
+
     await this.prisma.productReadModel.create({
       data: {
         id: product.id,
@@ -171,10 +171,10 @@ export class ProductVariantReadModelHandler implements ProjectionHandler {
     });
 
     if (productReadModel) {
-      const variants = Array.isArray(productReadModel.variants) 
-        ? productReadModel.variants as any[]
+      const variants = Array.isArray(productReadModel.variants)
+        ? (productReadModel.variants as any[])
         : [];
-      
+
       variants.push({
         id: variant.id,
         sku: variant.sku,
@@ -209,11 +209,11 @@ export class ProductVariantReadModelHandler implements ProjectionHandler {
     });
 
     if (productReadModel) {
-      const variants = Array.isArray(productReadModel.variants) 
-        ? productReadModel.variants as any[]
+      const variants = Array.isArray(productReadModel.variants)
+        ? (productReadModel.variants as any[])
         : [];
-      
-      const variantIndex = variants.findIndex(v => v.id === variant.id);
+
+      const variantIndex = variants.findIndex((v) => v.id === variant.id);
       if (variantIndex !== -1) {
         variants[variantIndex] = {
           id: variant.id,
@@ -250,11 +250,11 @@ export class ProductVariantReadModelHandler implements ProjectionHandler {
     });
 
     if (productReadModel) {
-      const variants = Array.isArray(productReadModel.variants) 
-        ? productReadModel.variants as any[]
+      const variants = Array.isArray(productReadModel.variants)
+        ? (productReadModel.variants as any[])
         : [];
-      
-      const filteredVariants = variants.filter(v => v.id !== variantId);
+
+      const filteredVariants = variants.filter((v) => v.id !== variantId);
 
       await this.prisma.productReadModel.update({
         where: {

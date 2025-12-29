@@ -70,12 +70,21 @@ export interface AttributeRepository {
   findAll(
     filters?: AttributeFilters,
     pagination?: PaginationOptions,
-    includes?: AttributeIncludeOptions
+    includes?: AttributeIncludeOptions,
   ): Promise<{ data: Attribute[]; total: number }>;
 
-  findById(id: string, includes?: AttributeIncludeOptions): Promise<Attribute | null>;
-  findBySlug(slug: string, includes?: AttributeIncludeOptions): Promise<Attribute | null>;
-  findByIds(ids: string[], includes?: AttributeIncludeOptions): Promise<Attribute[]>;
+  findById(
+    id: string,
+    includes?: AttributeIncludeOptions,
+  ): Promise<Attribute | null>;
+  findBySlug(
+    slug: string,
+    includes?: AttributeIncludeOptions,
+  ): Promise<Attribute | null>;
+  findByIds(
+    ids: string[],
+    includes?: AttributeIncludeOptions,
+  ): Promise<Attribute[]>;
 
   create(data: Partial<Attribute>): Promise<Attribute>;
   update(id: string, data: Partial<Attribute>): Promise<Attribute>;
@@ -87,8 +96,16 @@ export interface AttributeRepository {
   validateName(name: string, excludeId?: string): Promise<boolean>;
 
   // Status operations
-  updateStatus(id: string, status: AttributeStatus, updatedBy: string): Promise<Attribute>;
-  bulkUpdateStatus(ids: string[], status: AttributeStatus, updatedBy: string): Promise<Attribute[]>;
+  updateStatus(
+    id: string,
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute>;
+  bulkUpdateStatus(
+    ids: string[],
+    status: AttributeStatus,
+    updatedBy: string,
+  ): Promise<Attribute[]>;
 
   // Bulk operations
   bulkUpdate(updates: BulkUpdateData[]): Promise<Attribute[]>;
@@ -96,11 +113,20 @@ export interface AttributeRepository {
 
   // Search operations
   searchByName(query: string, filters?: AttributeFilters): Promise<Attribute[]>;
-  findByGroup(groupName: string, filters?: AttributeFilters): Promise<Attribute[]>;
-  findByDataType(dataType: AttributeDataType, filters?: AttributeFilters): Promise<Attribute[]>;
+  findByGroup(
+    groupName: string,
+    filters?: AttributeFilters,
+  ): Promise<Attribute[]>;
+  findByDataType(
+    dataType: AttributeDataType,
+    filters?: AttributeFilters,
+  ): Promise<Attribute[]>;
 
   // Category integration
-  findByCategoryId(categoryId: string, includeInherited?: boolean): Promise<Attribute[]>;
+  findByCategoryId(
+    categoryId: string,
+    includeInherited?: boolean,
+  ): Promise<Attribute[]>;
   findVariantAttributesForCategory(categoryId: string): Promise<Attribute[]>;
   findFilterableAttributesForCategory(categoryId: string): Promise<Attribute[]>;
 
@@ -125,11 +151,17 @@ export interface AttributeOptionRepository {
 
   // Bulk operations
   createMany(options: Partial<AttributeOption>[]): Promise<AttributeOption[]>;
-  updateMany(updates: { id: string; data: Partial<AttributeOption> }[]): Promise<AttributeOption[]>;
+  updateMany(
+    updates: { id: string; data: Partial<AttributeOption> }[],
+  ): Promise<AttributeOption[]>;
   deleteByAttributeId(attributeId: string): Promise<void>;
 
   // Validation operations
-  validateValue(attributeId: string, value: string, excludeId?: string): Promise<boolean>;
+  validateValue(
+    attributeId: string,
+    value: string,
+    excludeId?: string,
+  ): Promise<boolean>;
   reorderOptions(attributeId: string, optionIds: string[]): Promise<void>;
 }
 
@@ -138,14 +170,14 @@ export interface AttributeValueRepository {
   findByEntity(
     entityType: AttributeEntityType,
     entityId: string,
-    locale?: string
+    locale?: string,
   ): Promise<AttributeValue[]>;
 
   findByEntityAndAttribute(
     entityType: AttributeEntityType,
     entityId: string,
     attributeId: string,
-    locale?: string
+    locale?: string,
   ): Promise<AttributeValue | null>;
 
   create(data: Partial<AttributeValue>): Promise<AttributeValue>;
@@ -155,21 +187,26 @@ export interface AttributeValueRepository {
 
   // Bulk operations
   createMany(values: Partial<AttributeValue>[]): Promise<AttributeValue[]>;
-  updateMany(updates: { id: string; data: Partial<AttributeValue> }[]): Promise<AttributeValue[]>;
-  deleteByEntity(entityType: AttributeEntityType, entityId: string): Promise<void>;
+  updateMany(
+    updates: { id: string; data: Partial<AttributeValue> }[],
+  ): Promise<AttributeValue[]>;
+  deleteByEntity(
+    entityType: AttributeEntityType,
+    entityId: string,
+  ): Promise<void>;
   deleteByAttribute(attributeId: string): Promise<void>;
 
   // Query operations
   findByAttributeValue(
     attributeId: string,
     value: any,
-    entityType?: AttributeEntityType
+    entityType?: AttributeEntityType,
   ): Promise<AttributeValue[]>;
 
   findEntitiesWithAttribute(
     attributeId: string,
     entityType: AttributeEntityType,
-    value?: any
+    value?: any,
   ): Promise<string[]>;
 
   // Statistics

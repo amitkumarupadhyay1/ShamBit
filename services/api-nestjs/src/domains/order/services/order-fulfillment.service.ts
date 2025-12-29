@@ -3,9 +3,7 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 
 @Injectable()
 export class OrderFulfillmentService {
-  constructor(
-    private readonly logger: LoggerService
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
   async fulfillOrder(orderId: string): Promise<void> {
     this.logger.log('OrderFulfillmentService.fulfillOrder', { orderId });
@@ -13,7 +11,10 @@ export class OrderFulfillmentService {
   }
 
   async createShipment(orderId: string, items: any[]): Promise<any> {
-    this.logger.log('OrderFulfillmentService.createShipment', { orderId, itemCount: items.length });
+    this.logger.log('OrderFulfillmentService.createShipment', {
+      orderId,
+      itemCount: items.length,
+    });
     // TODO: Implement shipment creation
     return { id: 'temp_shipment_id' };
   }
@@ -24,8 +25,16 @@ export class OrderFulfillmentService {
     return { status: 'IN_TRANSIT' };
   }
 
-  async shipOrder(order: any, shippedBy: string, trackingNumber?: string): Promise<any> {
-    this.logger.log('OrderFulfillmentService.shipOrder', { orderId: order.id, shippedBy, trackingNumber });
+  async shipOrder(
+    order: any,
+    shippedBy: string,
+    trackingNumber?: string,
+  ): Promise<any> {
+    this.logger.log('OrderFulfillmentService.shipOrder', {
+      orderId: order.id,
+      shippedBy,
+      trackingNumber,
+    });
     // TODO: Implement order shipping logic
     return { ...order, status: 'SHIPPED', trackingNumber };
   }

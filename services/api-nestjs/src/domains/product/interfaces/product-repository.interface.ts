@@ -73,12 +73,21 @@ export interface ProductRepository {
   findAll(
     filters?: ProductFilters,
     pagination?: PaginationOptions,
-    includes?: ProductIncludeOptions
+    includes?: ProductIncludeOptions,
   ): Promise<{ data: Product[]; total: number }>;
 
-  findById(id: string, includes?: ProductIncludeOptions): Promise<Product | null>;
-  findBySlug(slug: string, includes?: ProductIncludeOptions): Promise<Product | null>;
-  findByIds(ids: string[], includes?: ProductIncludeOptions): Promise<Product[]>;
+  findById(
+    id: string,
+    includes?: ProductIncludeOptions,
+  ): Promise<Product | null>;
+  findBySlug(
+    slug: string,
+    includes?: ProductIncludeOptions,
+  ): Promise<Product | null>;
+  findByIds(
+    ids: string[],
+    includes?: ProductIncludeOptions,
+  ): Promise<Product[]>;
 
   create(data: Partial<Product>): Promise<Product>;
   update(id: string, data: Partial<Product>): Promise<Product>;
@@ -87,49 +96,102 @@ export interface ProductRepository {
 
   // Validation operations
   validateSlug(slug: string, excludeId?: string): Promise<boolean>;
-  validateName(name: string, sellerId: string, excludeId?: string): Promise<boolean>;
-  validateCategoryBrandCombination(categoryId: string, brandId: string): Promise<boolean>;
+  validateName(
+    name: string,
+    sellerId: string,
+    excludeId?: string,
+  ): Promise<boolean>;
+  validateCategoryBrandCombination(
+    categoryId: string,
+    brandId: string,
+  ): Promise<boolean>;
 
   // Status operations
-  updateStatus(id: string, status: ProductStatus, updatedBy: string, reason?: string): Promise<Product>;
-  updateModerationStatus(
-    id: string, 
-    moderationStatus: ProductModerationStatus, 
-    moderatedBy: string, 
-    notes?: string
+  updateStatus(
+    id: string,
+    status: ProductStatus,
+    updatedBy: string,
+    reason?: string,
   ): Promise<Product>;
-  
+  updateModerationStatus(
+    id: string,
+    moderationStatus: ProductModerationStatus,
+    moderatedBy: string,
+    notes?: string,
+  ): Promise<Product>;
+
   // Bulk operations
-  bulkUpdateStatus(ids: string[], status: ProductStatus, updatedBy: string, reason?: string): Promise<Product[]>;
+  bulkUpdateStatus(
+    ids: string[],
+    status: ProductStatus,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product[]>;
   bulkUpdate(updates: BulkUpdateData[]): Promise<Product[]>;
   bulkDelete(ids: string[], deletedBy: string, reason?: string): Promise<void>;
 
   // Search operations
   searchByName(query: string, filters?: ProductFilters): Promise<Product[]>;
-  searchByDescription(query: string, filters?: ProductFilters): Promise<Product[]>;
+  searchByDescription(
+    query: string,
+    filters?: ProductFilters,
+  ): Promise<Product[]>;
   fullTextSearch(query: string, filters?: ProductFilters): Promise<Product[]>;
 
   // Category operations
-  findByCategory(categoryId: string, filters?: ProductFilters, pagination?: PaginationOptions): Promise<{ data: Product[]; total: number }>;
-  findByCategoryTree(categoryId: string, includeDescendants?: boolean): Promise<Product[]>;
-  updateCategory(id: string, categoryId: string, updatedBy: string, reason?: string): Promise<Product>;
+  findByCategory(
+    categoryId: string,
+    filters?: ProductFilters,
+    pagination?: PaginationOptions,
+  ): Promise<{ data: Product[]; total: number }>;
+  findByCategoryTree(
+    categoryId: string,
+    includeDescendants?: boolean,
+  ): Promise<Product[]>;
+  updateCategory(
+    id: string,
+    categoryId: string,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product>;
 
   // Brand operations
-  findByBrand(brandId: string, filters?: ProductFilters, pagination?: PaginationOptions): Promise<{ data: Product[]; total: number }>;
-  updateBrand(id: string, brandId: string, updatedBy: string, reason?: string): Promise<Product>;
+  findByBrand(
+    brandId: string,
+    filters?: ProductFilters,
+    pagination?: PaginationOptions,
+  ): Promise<{ data: Product[]; total: number }>;
+  updateBrand(
+    id: string,
+    brandId: string,
+    updatedBy: string,
+    reason?: string,
+  ): Promise<Product>;
 
   // Seller operations
-  findBySeller(sellerId: string, filters?: ProductFilters, pagination?: PaginationOptions): Promise<{ data: Product[]; total: number }>;
+  findBySeller(
+    sellerId: string,
+    filters?: ProductFilters,
+    pagination?: PaginationOptions,
+  ): Promise<{ data: Product[]; total: number }>;
   getSellerStatistics(sellerId: string): Promise<ProductStatistics>;
 
   // Featured products
   findFeatured(filters?: ProductFilters, limit?: number): Promise<Product[]>;
-  setFeatured(id: string, isFeatured: boolean, updatedBy: string): Promise<Product>;
+  setFeatured(
+    id: string,
+    isFeatured: boolean,
+    updatedBy: string,
+  ): Promise<Product>;
 
   // Publishing operations
   findScheduledForPublishing(beforeDate?: Date): Promise<Product[]>;
   publish(id: string, publishedBy: string): Promise<Product>;
-  unpublish(id: string, unpublishedBy: string, reason?: string): Promise<Product>;
+  unpublish(
+    id: string,
+    unpublishedBy: string,
+    reason?: string,
+  ): Promise<Product>;
 
   // Moderation operations
   findPendingModeration(limit?: number): Promise<Product[]>;
@@ -151,33 +213,64 @@ export interface ProductRepository {
 
 export interface ProductAttributeValueRepository {
   // Basic CRUD operations
-  findByProduct(productId: string, locale?: string): Promise<ProductAttributeValue[]>;
-  findByProductAndAttribute(productId: string, attributeId: string, locale?: string): Promise<ProductAttributeValue | null>;
-  
+  findByProduct(
+    productId: string,
+    locale?: string,
+  ): Promise<ProductAttributeValue[]>;
+  findByProductAndAttribute(
+    productId: string,
+    attributeId: string,
+    locale?: string,
+  ): Promise<ProductAttributeValue | null>;
+
   create(data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue>;
-  update(id: string, data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue>;
+  update(
+    id: string,
+    data: Partial<ProductAttributeValue>,
+  ): Promise<ProductAttributeValue>;
   upsert(data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue>;
   delete(id: string): Promise<void>;
 
   // Bulk operations
-  createMany(values: Partial<ProductAttributeValue>[]): Promise<ProductAttributeValue[]>;
-  updateMany(updates: { id: string; data: Partial<ProductAttributeValue> }[]): Promise<ProductAttributeValue[]>;
+  createMany(
+    values: Partial<ProductAttributeValue>[],
+  ): Promise<ProductAttributeValue[]>;
+  updateMany(
+    updates: { id: string; data: Partial<ProductAttributeValue> }[],
+  ): Promise<ProductAttributeValue[]>;
   deleteByProduct(productId: string): Promise<void>;
   deleteByAttribute(attributeId: string): Promise<void>;
 
   // Inheritance operations
-  inheritFromCategory(productId: string, categoryId: string, createdBy: string): Promise<ProductAttributeValue[]>;
+  inheritFromCategory(
+    productId: string,
+    categoryId: string,
+    createdBy: string,
+  ): Promise<ProductAttributeValue[]>;
   resolveInheritance(productId: string): Promise<ProductAttributeValue[]>;
-  overrideInheritedValue(id: string, newValue: any, updatedBy: string): Promise<ProductAttributeValue>;
+  overrideInheritedValue(
+    id: string,
+    newValue: any,
+    updatedBy: string,
+  ): Promise<ProductAttributeValue>;
 
   // Query operations
-  findByAttributeValue(attributeId: string, value: any): Promise<ProductAttributeValue[]>;
-  findProductsWithAttribute(attributeId: string, value?: any): Promise<string[]>;
+  findByAttributeValue(
+    attributeId: string,
+    value: any,
+  ): Promise<ProductAttributeValue[]>;
+  findProductsWithAttribute(
+    attributeId: string,
+    value?: any,
+  ): Promise<string[]>;
   findVariantAttributes(productId: string): Promise<ProductAttributeValue[]>;
 
   // Validation operations
   validateAttributeValues(productId: string): Promise<ProductValidationResult>;
-  validateRequiredAttributes(productId: string, categoryId: string): Promise<ProductValidationResult>;
+  validateRequiredAttributes(
+    productId: string,
+    categoryId: string,
+  ): Promise<ProductValidationResult>;
 
   // Statistics
   getAttributeUsageCount(attributeId: string): Promise<number>;

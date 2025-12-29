@@ -13,7 +13,13 @@ import {
   ParseUUIDPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 import { CategoryService } from './category.service';
 import { CategoryAttributeService } from './services/category-attribute.service';
@@ -25,9 +31,20 @@ import { Roles, CurrentUser } from '../../common/decorators';
 import { UserRole } from '../../common/types';
 
 import { CreateCategoryDto } from './dtos/create-category.dto';
-import { UpdateCategoryDto, CategoryStatusUpdateDto, MoveCategoryDto } from './dtos/update-category.dto';
-import { CreateCategoryAttributeDto, UpdateCategoryAttributeDto } from './dtos/category-attribute.dto';
-import { CategoryResponseDto, CategoryListResponseDto, CategoryTreeResponseDto } from './dtos/category-response.dto';
+import {
+  UpdateCategoryDto,
+  CategoryStatusUpdateDto,
+  MoveCategoryDto,
+} from './dtos/update-category.dto';
+import {
+  CreateCategoryAttributeDto,
+  UpdateCategoryAttributeDto,
+} from './dtos/category-attribute.dto';
+import {
+  CategoryResponseDto,
+  CategoryListResponseDto,
+  CategoryTreeResponseDto,
+} from './dtos/category-response.dto';
 
 import { CategoryStatus } from './enums/category-status.enum';
 import { CategoryVisibility } from './enums/category-visibility.enum';
@@ -71,13 +88,47 @@ export class CategoryController {
   // Category CRUD Operations
   @Get()
   @ApiOperation({ summary: 'Get all categories with filtering and pagination' })
-  @ApiResponse({ status: 200, description: 'Categories retrieved successfully', type: CategoryListResponseDto })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  @ApiQuery({ name: 'status', required: false, enum: CategoryStatus, description: 'Filter by status' })
-  @ApiQuery({ name: 'visibility', required: false, enum: CategoryVisibility, description: 'Filter by visibility' })
-  @ApiQuery({ name: 'parentId', required: false, type: String, description: 'Filter by parent category' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search in name and description' })
+  @ApiResponse({
+    status: 200,
+    description: 'Categories retrieved successfully',
+    type: CategoryListResponseDto,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: CategoryStatus,
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'visibility',
+    required: false,
+    enum: CategoryVisibility,
+    description: 'Filter by visibility',
+  })
+  @ApiQuery({
+    name: 'parentId',
+    required: false,
+    type: String,
+    description: 'Filter by parent category',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search in name and description',
+  })
   async findAll(
     @Query() query: CategoryQueryFilters,
     @CurrentUser('id') userId?: string,
@@ -103,7 +154,12 @@ export class CategoryController {
       sortOrder: query.sortOrder || 'asc',
     };
 
-    const result = await this.categoryService.findAll(filters, pagination, userId, userRole);
+    const result = await this.categoryService.findAll(
+      filters,
+      pagination,
+      userId,
+      userRole,
+    );
 
     return {
       data: result.data as CategoryResponseDto[],
@@ -116,7 +172,11 @@ export class CategoryController {
 
   @Get('roots')
   @ApiOperation({ summary: 'Get root categories' })
-  @ApiResponse({ status: 200, description: 'Root categories retrieved successfully', type: CategoryListResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Root categories retrieved successfully',
+    type: CategoryListResponseDto,
+  })
   async findRoots(
     @Query() query: CategoryQueryFilters,
     @CurrentUser('role') userRole?: UserRole,
@@ -134,7 +194,11 @@ export class CategoryController {
       sortOrder: query.sortOrder || 'asc',
     };
 
-    const result = await this.categoryService.findRoots(filters, pagination, userRole);
+    const result = await this.categoryService.findRoots(
+      filters,
+      pagination,
+      userRole,
+    );
 
     return {
       data: result.data as CategoryResponseDto[],
@@ -147,10 +211,29 @@ export class CategoryController {
 
   @Get('tree')
   @ApiOperation({ summary: 'Get category tree structure' })
-  @ApiResponse({ status: 200, description: 'Category tree retrieved successfully', type: CategoryTreeResponseDto })
-  @ApiQuery({ name: 'rootId', required: false, type: String, description: 'Root category ID (optional)' })
-  @ApiQuery({ name: 'maxDepth', required: false, type: Number, description: 'Maximum tree depth' })
-  @ApiQuery({ name: 'activeOnly', required: false, type: Boolean, description: 'Include only active categories' })
+  @ApiResponse({
+    status: 200,
+    description: 'Category tree retrieved successfully',
+    type: CategoryTreeResponseDto,
+  })
+  @ApiQuery({
+    name: 'rootId',
+    required: false,
+    type: String,
+    description: 'Root category ID (optional)',
+  })
+  @ApiQuery({
+    name: 'maxDepth',
+    required: false,
+    type: Number,
+    description: 'Maximum tree depth',
+  })
+  @ApiQuery({
+    name: 'activeOnly',
+    required: false,
+    type: Boolean,
+    description: 'Include only active categories',
+  })
   async getCategoryTree(
     @Query() query: TreeQueryOptions,
     @CurrentUser('role') userRole?: UserRole,
@@ -159,7 +242,7 @@ export class CategoryController {
       query.rootId,
       query.maxDepth,
       query.activeOnly !== false, // Default to true
-      userRole
+      userRole,
     );
 
     return {
@@ -172,37 +255,67 @@ export class CategoryController {
 
   @Get('featured')
   @ApiOperation({ summary: 'Get featured categories' })
-  @ApiResponse({ status: 200, description: 'Featured categories retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Featured categories retrieved successfully',
+  })
   async getFeaturedCategories(
     @CurrentUser('role') userRole?: UserRole,
   ): Promise<CategoryResponseDto[]> {
-    return this.categoryService.getFeaturedCategories({}, userRole) as Promise<CategoryResponseDto[]>;
+    return this.categoryService.getFeaturedCategories({}, userRole) as Promise<
+      CategoryResponseDto[]
+    >;
   }
 
   @Get('leaf')
-  @ApiOperation({ summary: 'Get leaf categories (categories without children)' })
-  @ApiResponse({ status: 200, description: 'Leaf categories retrieved successfully' })
-  @ApiQuery({ name: 'parentId', required: false, type: String, description: 'Parent category ID (optional)' })
+  @ApiOperation({
+    summary: 'Get leaf categories (categories without children)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Leaf categories retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'parentId',
+    required: false,
+    type: String,
+    description: 'Parent category ID (optional)',
+  })
   async getLeafCategories(
     @Query('parentId') parentId?: string,
     @CurrentUser('role') userRole?: UserRole,
   ): Promise<CategoryResponseDto[]> {
-    return this.categoryService.getLeafCategories(parentId, userRole) as Promise<CategoryResponseDto[]>;
+    return this.categoryService.getLeafCategories(
+      parentId,
+      userRole,
+    ) as Promise<CategoryResponseDto[]>;
   }
 
   @Get('statistics')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get category statistics (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistics retrieved successfully',
+  })
   async getStatistics() {
     return this.categoryService.getTreeStatistics();
   }
 
   @Get('search')
   @ApiOperation({ summary: 'Search categories' })
-  @ApiResponse({ status: 200, description: 'Search results retrieved successfully', type: CategoryListResponseDto })
-  @ApiQuery({ name: 'q', required: true, type: String, description: 'Search query' })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results retrieved successfully',
+    type: CategoryListResponseDto,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    type: String,
+    description: 'Search query',
+  })
   async searchCategories(
     @Query('q') query: string,
     @Query() filters: CategoryQueryFilters,
@@ -221,7 +334,12 @@ export class CategoryController {
       sortOrder: filters.sortOrder || 'asc',
     };
 
-    const result = await this.categoryService.searchCategories(query, searchFilters, pagination, userRole);
+    const result = await this.categoryService.searchCategories(
+      query,
+      searchFilters,
+      pagination,
+      userRole,
+    );
 
     return {
       data: result.data as CategoryResponseDto[],
@@ -234,10 +352,24 @@ export class CategoryController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get category by ID' })
-  @ApiResponse({ status: 200, description: 'Category retrieved successfully', type: CategoryResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Category retrieved successfully',
+    type: CategoryResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
-  @ApiQuery({ name: 'includeChildren', required: false, type: Boolean, description: 'Include child categories' })
-  @ApiQuery({ name: 'includeAncestors', required: false, type: Boolean, description: 'Include ancestor categories' })
+  @ApiQuery({
+    name: 'includeChildren',
+    required: false,
+    type: Boolean,
+    description: 'Include child categories',
+  })
+  @ApiQuery({
+    name: 'includeAncestors',
+    required: false,
+    type: Boolean,
+    description: 'Include ancestor categories',
+  })
   async findById(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('includeChildren') includeChildren?: boolean,
@@ -247,12 +379,19 @@ export class CategoryController {
       includeChildren: includeChildren || false,
       includeAncestors: includeAncestors || false,
     };
-    return this.categoryService.findById(id, options) as Promise<CategoryResponseDto>;
+    return this.categoryService.findById(
+      id,
+      options,
+    ) as Promise<CategoryResponseDto>;
   }
 
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Get category by slug' })
-  @ApiResponse({ status: 200, description: 'Category retrieved successfully', type: CategoryResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Category retrieved successfully',
+    type: CategoryResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
   async findBySlug(
     @Param('slug') slug: string,
@@ -263,12 +402,19 @@ export class CategoryController {
       includeChildren: includeChildren || false,
       includeAncestors: includeAncestors || false,
     };
-    return this.categoryService.findBySlug(slug, options) as Promise<CategoryResponseDto>;
+    return this.categoryService.findBySlug(
+      slug,
+      options,
+    ) as Promise<CategoryResponseDto>;
   }
 
   @Get(':id/children')
   @ApiOperation({ summary: 'Get direct children of a category' })
-  @ApiResponse({ status: 200, description: 'Child categories retrieved successfully', type: CategoryListResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Child categories retrieved successfully',
+    type: CategoryListResponseDto,
+  })
   async getChildren(
     @Param('id', ParseUUIDPipe) id: string,
     @Query() query: CategoryQueryFilters,
@@ -287,7 +433,12 @@ export class CategoryController {
       sortOrder: query.sortOrder || 'asc',
     };
 
-    const result = await this.categoryService.findChildren(id, filters, pagination, userRole);
+    const result = await this.categoryService.findChildren(
+      id,
+      filters,
+      pagination,
+      userRole,
+    );
 
     return {
       data: result.data as CategoryResponseDto[],
@@ -300,47 +451,89 @@ export class CategoryController {
 
   @Get(':id/ancestors')
   @ApiOperation({ summary: 'Get ancestor categories (breadcrumb path)' })
-  @ApiResponse({ status: 200, description: 'Ancestor categories retrieved successfully' })
-  @ApiQuery({ name: 'includeRoot', required: false, type: Boolean, description: 'Include root category' })
+  @ApiResponse({
+    status: 200,
+    description: 'Ancestor categories retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'includeRoot',
+    required: false,
+    type: Boolean,
+    description: 'Include root category',
+  })
   async getAncestors(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('includeRoot') includeRoot: boolean = true,
   ): Promise<CategoryResponseDto[]> {
-    return this.categoryService.getAncestors(id, includeRoot) as Promise<CategoryResponseDto[]>;
+    return this.categoryService.getAncestors(id, includeRoot) as Promise<
+      CategoryResponseDto[]
+    >;
   }
 
   @Get(':id/descendants')
   @ApiOperation({ summary: 'Get all descendant categories' })
-  @ApiResponse({ status: 200, description: 'Descendant categories retrieved successfully' })
-  @ApiQuery({ name: 'maxDepth', required: false, type: Number, description: 'Maximum depth to traverse' })
-  @ApiQuery({ name: 'activeOnly', required: false, type: Boolean, description: 'Include only active categories' })
+  @ApiResponse({
+    status: 200,
+    description: 'Descendant categories retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'maxDepth',
+    required: false,
+    type: Number,
+    description: 'Maximum depth to traverse',
+  })
+  @ApiQuery({
+    name: 'activeOnly',
+    required: false,
+    type: Boolean,
+    description: 'Include only active categories',
+  })
   async getDescendants(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('maxDepth') maxDepth?: number,
     @Query('activeOnly') activeOnly: boolean = false,
   ): Promise<CategoryResponseDto[]> {
-    return this.categoryService.getDescendants(id, maxDepth, activeOnly) as Promise<CategoryResponseDto[]>;
+    return this.categoryService.getDescendants(
+      id,
+      maxDepth,
+      activeOnly,
+    ) as Promise<CategoryResponseDto[]>;
   }
 
   @Post()
   @UseGuards(CategoryAdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new category (Admin only)' })
-  @ApiResponse({ status: 201, description: 'Category created successfully', type: CategoryResponseDto })
-  @ApiResponse({ status: 409, description: 'Category with slug already exists' })
+  @ApiResponse({
+    status: 201,
+    description: 'Category created successfully',
+    type: CategoryResponseDto,
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Category with slug already exists',
+  })
   async create(
     @Body(ValidationPipe) createCategoryDto: CreateCategoryDto,
     @CurrentUser('id') createdBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<CategoryResponseDto> {
-    return this.categoryService.create(createCategoryDto, createdBy, userRole) as Promise<CategoryResponseDto>;
+    return this.categoryService.create(
+      createCategoryDto,
+      createdBy,
+      userRole,
+    ) as Promise<CategoryResponseDto>;
   }
 
   @Put(':id')
   @UseGuards(CategoryAdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update category (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Category updated successfully', type: CategoryResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Category updated successfully',
+    type: CategoryResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Category not found' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async update(
@@ -349,14 +542,23 @@ export class CategoryController {
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<CategoryResponseDto> {
-    return this.categoryService.update(id, updateCategoryDto, updatedBy, userRole) as Promise<CategoryResponseDto>;
+    return this.categoryService.update(
+      id,
+      updateCategoryDto,
+      updatedBy,
+      userRole,
+    ) as Promise<CategoryResponseDto>;
   }
 
   @Put(':id/status')
   @UseGuards(CategoryAdminGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update category status (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Category status updated successfully', type: CategoryResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Category status updated successfully',
+    type: CategoryResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -364,7 +566,12 @@ export class CategoryController {
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<CategoryResponseDto> {
-    return this.categoryService.updateStatus(id, statusUpdate, updatedBy, userRole) as Promise<CategoryResponseDto>;
+    return this.categoryService.updateStatus(
+      id,
+      statusUpdate,
+      updatedBy,
+      userRole,
+    ) as Promise<CategoryResponseDto>;
   }
 
   @Put(':id/move')
@@ -389,7 +596,10 @@ export class CategoryController {
   @ApiOperation({ summary: 'Delete category (Admin only)' })
   @ApiResponse({ status: 204, description: 'Category deleted successfully' })
   @ApiResponse({ status: 404, description: 'Category not found' })
-  @ApiResponse({ status: 400, description: 'Cannot delete category with children or products' })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete category with children or products',
+  })
   async delete(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') deletedBy: string,
@@ -402,13 +612,24 @@ export class CategoryController {
   // Category Attribute Operations
   @Get(':id/attributes')
   @ApiOperation({ summary: 'Get category attributes' })
-  @ApiResponse({ status: 200, description: 'Category attributes retrieved successfully' })
-  @ApiQuery({ name: 'inherited', required: false, type: Boolean, description: 'Include inherited attributes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Category attributes retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'inherited',
+    required: false,
+    type: Boolean,
+    description: 'Include inherited attributes',
+  })
   async getCategoryAttributes(
     @Param('id', ParseUUIDPipe) categoryId: string,
     @Query('inherited') includeInherited: boolean = true,
   ) {
-    return this.categoryAttributeService.findByCategoryId(categoryId, includeInherited);
+    return this.categoryAttributeService.findByCategoryId(
+      categoryId,
+      includeInherited,
+    );
   }
 
   @Post(':id/attributes')
@@ -421,7 +642,12 @@ export class CategoryController {
     @Body(ValidationPipe) createAttributeDto: CreateCategoryAttributeDto,
     @CurrentUser('id') createdBy: string,
   ) {
-    return this.categoryAttributeService.create(categoryId, createAttributeDto, createdBy, UserRole.ADMIN);
+    return this.categoryAttributeService.create(
+      categoryId,
+      createAttributeDto,
+      createdBy,
+      UserRole.ADMIN,
+    );
   }
 
   @Put(':id/attributes/:attributeId')
@@ -435,7 +661,12 @@ export class CategoryController {
     @Body(ValidationPipe) updateAttributeDto: UpdateCategoryAttributeDto,
     @CurrentUser('id') updatedBy: string,
   ) {
-    return this.categoryAttributeService.update(attributeId, updateAttributeDto, updatedBy, UserRole.ADMIN);
+    return this.categoryAttributeService.update(
+      attributeId,
+      updateAttributeDto,
+      updatedBy,
+      UserRole.ADMIN,
+    );
   }
 
   @Delete(':id/attributes/:attributeId')
@@ -449,13 +680,20 @@ export class CategoryController {
     @Param('attributeId', ParseUUIDPipe) attributeId: string,
     @CurrentUser('id') deletedBy: string,
   ): Promise<void> {
-    await this.categoryAttributeService.delete(attributeId, deletedBy, UserRole.ADMIN);
+    await this.categoryAttributeService.delete(
+      attributeId,
+      deletedBy,
+      UserRole.ADMIN,
+    );
   }
 
   // Brand Integration
   @Get(':id/brands')
   @ApiOperation({ summary: 'Get brands allowed in category' })
-  @ApiResponse({ status: 200, description: 'Category brands retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Category brands retrieved successfully',
+  })
   async getCategoryBrands(@Param('id', ParseUUIDPipe) categoryId: string) {
     return this.categoryService.findCategoriesForBrand(categoryId);
   }
@@ -467,7 +705,10 @@ export class CategoryController {
     @Param('id', ParseUUIDPipe) categoryId: string,
     @Body('brandId', ParseUUIDPipe) brandId: string,
   ) {
-    const isValid = await this.categoryService.validateBrandInCategory(brandId, categoryId);
+    const isValid = await this.categoryService.validateBrandInCategory(
+      brandId,
+      categoryId,
+    );
     return { isValid, categoryId, brandId };
   }
 
@@ -478,7 +719,8 @@ export class CategoryController {
   @ApiOperation({ summary: 'Bulk update category status (Admin only)' })
   @ApiResponse({ status: 200, description: 'Categories updated successfully' })
   async bulkUpdateStatus(
-    @Body() bulkUpdate: {
+    @Body()
+    bulkUpdate: {
       categoryIds: string[];
       status: CategoryStatus;
       reason?: string;
@@ -491,7 +733,7 @@ export class CategoryController {
       bulkUpdate.status,
       updatedBy,
       userRole,
-      bulkUpdate.reason
+      bulkUpdate.reason,
     );
   }
 
@@ -501,8 +743,13 @@ export class CategoryController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Refresh tree statistics (Admin only)' })
-  @ApiResponse({ status: 204, description: 'Statistics refreshed successfully' })
-  async refreshStatistics(@Query('categoryId') categoryId?: string): Promise<void> {
+  @ApiResponse({
+    status: 204,
+    description: 'Statistics refreshed successfully',
+  })
+  async refreshStatistics(
+    @Query('categoryId') categoryId?: string,
+  ): Promise<void> {
     await this.categoryService.refreshTreeStatistics(categoryId);
   }
 
@@ -521,31 +768,64 @@ export class CategoryController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get category audit history (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Audit history retrieved successfully' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of entries to return' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Number of entries to skip' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit history retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of entries to return',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of entries to skip',
+  })
   async getCategoryAuditHistory(
     @Param('id', ParseUUIDPipe) categoryId: string,
     @Query('limit') limit: number = 50,
     @Query('offset') offset: number = 0,
   ) {
-    return this.categoryAuditService.getCategoryAuditHistory(categoryId, limit, offset);
+    return this.categoryAuditService.getCategoryAuditHistory(
+      categoryId,
+      limit,
+      offset,
+    );
   }
 
   @Get('audit/statistics')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get audit statistics (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Audit statistics retrieved successfully' })
-  @ApiQuery({ name: 'dateFrom', required: false, type: String, description: 'Start date (ISO string)' })
-  @ApiQuery({ name: 'dateTo', required: false, type: String, description: 'End date (ISO string)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit statistics retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'dateFrom',
+    required: false,
+    type: String,
+    description: 'Start date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: false,
+    type: String,
+    description: 'End date (ISO string)',
+  })
   async getAuditStatistics(
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
   ) {
     const dateFromParsed = dateFrom ? new Date(dateFrom) : undefined;
     const dateToParsed = dateTo ? new Date(dateTo) : undefined;
-    
-    return this.categoryAuditService.getAuditStatistics(dateFromParsed, dateToParsed);
+
+    return this.categoryAuditService.getAuditStatistics(
+      dateFromParsed,
+      dateToParsed,
+    );
   }
 }

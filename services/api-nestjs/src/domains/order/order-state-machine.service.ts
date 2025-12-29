@@ -19,10 +19,7 @@ export class OrderStateMachine {
       OrderStatus.CANCELLED,
       OrderStatus.REFUNDED,
     ],
-    [OrderStatus.SHIPPED]: [
-      OrderStatus.DELIVERED,
-      OrderStatus.RETURNED,
-    ],
+    [OrderStatus.SHIPPED]: [OrderStatus.DELIVERED, OrderStatus.RETURNED],
     [OrderStatus.DELIVERED]: [OrderStatus.RETURNED],
     [OrderStatus.CANCELLED]: [],
     [OrderStatus.REFUNDED]: [],

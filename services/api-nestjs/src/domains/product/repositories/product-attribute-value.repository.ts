@@ -1,13 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
-import { 
+import {
   ProductAttributeValueRepository as IProductAttributeValueRepository,
-  ProductValidationResult
+  ProductValidationResult,
 } from '../interfaces/product-repository.interface';
 import { ProductAttributeValue } from '../entities/product-attribute-value.entity';
 
 @Injectable()
-export class ProductAttributeValueRepository implements IProductAttributeValueRepository {
+export class ProductAttributeValueRepository
+  implements IProductAttributeValueRepository
+{
   constructor(private readonly prisma: PrismaService) {}
 
   async findByProduct(productId: string): Promise<ProductAttributeValue[]> {
@@ -16,17 +18,15 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
       include: {
         attribute: true,
       },
-      orderBy: [
-        { attribute: { name: 'asc' } },
-      ],
+      orderBy: [{ attribute: { name: 'asc' } }],
     });
 
     return values.map(this.mapToEntity);
   }
 
   async findByProductAndAttribute(
-    productId: string, 
-    attributeId: string
+    productId: string,
+    attributeId: string,
   ): Promise<ProductAttributeValue | null> {
     const value = await this.prisma.productAttributeValue.findFirst({
       where: { productId, attributeId },
@@ -38,7 +38,9 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return value ? this.mapToEntity(value) : null;
   }
 
-  async create(data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue> {
+  async create(
+    data: Partial<ProductAttributeValue>,
+  ): Promise<ProductAttributeValue> {
     const value = await this.prisma.productAttributeValue.create({
       data: {
         productId: data.productId!,
@@ -56,7 +58,10 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return this.mapToEntity(value);
   }
 
-  async update(id: string, data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue> {
+  async update(
+    id: string,
+    data: Partial<ProductAttributeValue>,
+  ): Promise<ProductAttributeValue> {
     const value = await this.prisma.productAttributeValue.update({
       where: { id },
       data: {
@@ -72,10 +77,12 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return this.mapToEntity(value);
   }
 
-  async upsert(data: Partial<ProductAttributeValue>): Promise<ProductAttributeValue> {
+  async upsert(
+    data: Partial<ProductAttributeValue>,
+  ): Promise<ProductAttributeValue> {
     const existing = await this.findByProductAndAttribute(
       data.productId!,
-      data.attributeId!
+      data.attributeId!,
     );
 
     if (existing) {
@@ -91,9 +98,11 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     });
   }
 
-  async createMany(values: Partial<ProductAttributeValue>[]): Promise<ProductAttributeValue[]> {
+  async createMany(
+    values: Partial<ProductAttributeValue>[],
+  ): Promise<ProductAttributeValue[]> {
     const created = await this.prisma.$transaction(
-      values.map(value => 
+      values.map((value) =>
         this.prisma.productAttributeValue.create({
           data: {
             productId: value.productId!,
@@ -106,16 +115,18 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
           include: {
             attribute: true,
           },
-        })
-      )
+        }),
+      ),
     );
 
     return created.map(this.mapToEntity);
   }
 
-  async updateMany(updates: { id: string; data: Partial<ProductAttributeValue> }[]): Promise<ProductAttributeValue[]> {
+  async updateMany(
+    updates: { id: string; data: Partial<ProductAttributeValue> }[],
+  ): Promise<ProductAttributeValue[]> {
     const updated = await this.prisma.$transaction(
-      updates.map(update => 
+      updates.map((update) =>
         this.prisma.productAttributeValue.update({
           where: { id: update.id },
           data: {
@@ -126,8 +137,8 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
           include: {
             attribute: true,
           },
-        })
-      )
+        }),
+      ),
     );
 
     return updated.map(this.mapToEntity);
@@ -145,31 +156,41 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     });
   }
 
-  async inheritFromCategory(productId: string, categoryId: string, createdBy: string): Promise<ProductAttributeValue[]> {
+  async inheritFromCategory(
+    productId: string,
+    categoryId: string,
+    createdBy: string,
+  ): Promise<ProductAttributeValue[]> {
     // This would integrate with the category attribute system
     // For now, return empty array as placeholder
     return [];
   }
 
-  async resolveInheritance(productId: string): Promise<ProductAttributeValue[]> {
+  async resolveInheritance(
+    productId: string,
+  ): Promise<ProductAttributeValue[]> {
     const values = await this.findByProduct(productId);
-    
+
     // Group by attribute, keeping only the most specific value
     const resolved = new Map<string, ProductAttributeValue>();
-    
+
     for (const value of values) {
       const key = value.attributeId;
       const existing = resolved.get(key);
-      
+
       if (!existing) {
         resolved.set(key, value);
       }
     }
-    
+
     return Array.from(resolved.values());
   }
 
-  async overrideInheritedValue(id: string, newValue: any, updatedBy: string): Promise<ProductAttributeValue> {
+  async overrideInheritedValue(
+    id: string,
+    newValue: any,
+    updatedBy: string,
+  ): Promise<ProductAttributeValue> {
     // First, get the current value to determine the correct field to update
     const current = await this.prisma.productAttributeValue.findUnique({
       where: { id },
@@ -182,7 +203,7 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
 
     // Determine which field to update based on attribute type
     const updateData: any = {};
-    
+
     switch (current.attribute.dataType) {
       case 'STRING':
       case 'TEXT':
@@ -218,7 +239,10 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return this.mapToEntity(updated);
   }
 
-  async findByAttributeValue(attributeId: string, value: any): Promise<ProductAttributeValue[]> {
+  async findByAttributeValue(
+    attributeId: string,
+    value: any,
+  ): Promise<ProductAttributeValue[]> {
     // This is a complex query that depends on the attribute type
     // For simplicity, we'll search in string values
     const values = await this.prisma.productAttributeValue.findMany({
@@ -238,9 +262,12 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return values.map(this.mapToEntity);
   }
 
-  async findProductsWithAttribute(attributeId: string, value?: any): Promise<string[]> {
+  async findProductsWithAttribute(
+    attributeId: string,
+    value?: any,
+  ): Promise<string[]> {
     const where: any = { attributeId };
-    
+
     if (value !== undefined) {
       where.OR = [
         { stringValue: String(value) },
@@ -255,10 +282,12 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
       distinct: ['productId'],
     });
 
-    return values.map(v => v.productId);
+    return values.map((v) => v.productId);
   }
 
-  async findVariantAttributes(productId: string): Promise<ProductAttributeValue[]> {
+  async findVariantAttributes(
+    productId: string,
+  ): Promise<ProductAttributeValue[]> {
     const values = await this.prisma.productAttributeValue.findMany({
       where: {
         productId,
@@ -274,7 +303,9 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     return values.map(this.mapToEntity);
   }
 
-  async validateAttributeValues(productId: string): Promise<ProductValidationResult> {
+  async validateAttributeValues(
+    productId: string,
+  ): Promise<ProductValidationResult> {
     const values = await this.findByProduct(productId);
     const errors: string[] = [];
     const warnings: string[] = [];
@@ -295,7 +326,10 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     };
   }
 
-  async validateRequiredAttributes(productId: string, categoryId: string): Promise<ProductValidationResult> {
+  async validateRequiredAttributes(
+    productId: string,
+    categoryId: string,
+  ): Promise<ProductValidationResult> {
     // This would integrate with category attribute requirements
     // For now, return valid
     return {
@@ -311,10 +345,12 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
     });
   }
 
-  async getValueDistribution(attributeId: string): Promise<Record<string, number>> {
+  async getValueDistribution(
+    attributeId: string,
+  ): Promise<Record<string, number>> {
     const values = await this.prisma.productAttributeValue.groupBy({
       by: ['stringValue'],
-      where: { 
+      where: {
         attributeId,
         stringValue: { not: null },
       },
@@ -323,17 +359,20 @@ export class ProductAttributeValueRepository implements IProductAttributeValueRe
       },
     });
 
-    return values.reduce((acc, item) => {
-      if (item.stringValue) {
-        acc[item.stringValue] = item._count.stringValue || 0;
-      }
-      return acc;
-    }, {} as Record<string, number>);
+    return values.reduce(
+      (acc, item) => {
+        if (item.stringValue) {
+          acc[item.stringValue] = item._count.stringValue || 0;
+        }
+        return acc;
+      },
+      {} as Record<string, number>,
+    );
   }
 
   private mapToEntity(prismaData: any): ProductAttributeValue {
     const value = new ProductAttributeValue();
-    
+
     value.id = prismaData.id;
     value.productId = prismaData.productId;
     value.attributeId = prismaData.attributeId;

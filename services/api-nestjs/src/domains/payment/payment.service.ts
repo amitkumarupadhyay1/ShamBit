@@ -19,12 +19,12 @@ import { LoggerService } from '../../infrastructure/observability/logger.service
 import { PaymentIntent } from './entities/payment-intent.entity.js';
 import { PaymentTransaction } from './entities/payment-transaction.entity.js';
 import { PaymentAttempt } from './entities/payment-attempt.entity.js';
-import { 
-  PaymentIntentStatus, 
+import {
+  PaymentIntentStatus,
   PaymentTransactionStatus,
   PaymentGatewayProvider,
   PaymentMethod,
-  canTransitionPaymentIntentStatus 
+  canTransitionPaymentIntentStatus,
 } from './enums/payment-status.enum';
 import { PaymentPolicies } from './payment.policies.js';
 import { PaymentValidators } from './payment.validators';
@@ -73,15 +73,23 @@ export class PaymentService {
     pagination: PaginationOptions = {},
     includes: PaymentIncludeOptions = {},
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<PaymentIntent[]> {
     this.logger.log('PaymentService.findAll', { filters, pagination, userId });
 
     try {
       // Apply access control filters
-      const enhancedFilters = this.applyAccessFilters(filters, userId, userRole);
-      
-      const paymentIntents = await this.paymentRepository.findAll(enhancedFilters, pagination, includes);
+      const enhancedFilters = this.applyAccessFilters(
+        filters,
+        userId,
+        userRole,
+      );
+
+      const paymentIntents = await this.paymentRepository.findAll(
+        enhancedFilters,
+        pagination,
+        includes,
+      );
       return paymentIntents || [];
     } catch (error) {
       this.logger.error('Failed to find payment intents', error);
@@ -93,7 +101,7 @@ export class PaymentService {
     id: string,
     includes: PaymentIncludeOptions = {},
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<PaymentIntent> {
     const paymentIntent = await this.paymentRepository.findById(id);
     if (!paymentIntent) {
@@ -110,7 +118,7 @@ export class PaymentService {
     orderId: string,
     includes: PaymentIncludeOptions = {},
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<PaymentIntent[]> {
     this.logger.log('PaymentService.findByOrderId', { orderId, userId });
 
@@ -132,7 +140,7 @@ export class PaymentService {
 
   async createPaymentIntent(
     createPaymentIntentDto: CreatePaymentIntentDto,
-    userId: string
+    userId: string,
   ): Promise<PaymentIntent> {
     this.logger.log('PaymentService.createPaymentIntent', {
       orderId: createPaymentIntentDto.orderId,
@@ -142,13 +150,18 @@ export class PaymentService {
 
     try {
       // Validate order exists and is eligible for payment
-      const order = await this.orderService.findById(createPaymentIntentDto.orderId);
+      const order = await this.orderService.findById(
+        createPaymentIntentDto.orderId,
+      );
       if (!order) {
         throw new NotFoundException('Order not found');
       }
 
       // Validate payment creation
-      const validationResult = await this.paymentValidationService.validatePaymentCreation(createPaymentIntentDto);
+      const validationResult =
+        await this.paymentValidationService.validatePaymentCreation(
+          createPaymentIntentDto,
+        );
       if (!validationResult.isValid) {
         throw new BadRequestException(validationResult.errors.join(', '));
       }
@@ -171,20 +184,24 @@ export class PaymentService {
         createdBy: userId,
       };
 
-      const paymentIntent = await this.paymentRepository.create(paymentIntentData);
+      const paymentIntent =
+        await this.paymentRepository.create(paymentIntentData);
       if (!paymentIntent) {
         throw new Error('Failed to create payment intent');
       }
 
       // Emit payment intent created event
-      this.eventEmitter.emit('payment.intent.created', new PaymentIntentCreatedEvent(
-        paymentIntent.id,
-        paymentIntent.orderId,
-        paymentIntent.amount,
-        paymentIntent.currency,
-        gatewayProvider,
-        userId
-      ));
+      this.eventEmitter.emit(
+        'payment.intent.created',
+        new PaymentIntentCreatedEvent(
+          paymentIntent.id,
+          paymentIntent.orderId,
+          paymentIntent.amount,
+          paymentIntent.currency,
+          gatewayProvider,
+          userId,
+        ),
+      );
 
       return paymentIntent;
     } catch (error) {
@@ -196,7 +213,7 @@ export class PaymentService {
   async confirmPaymentIntent(
     id: string,
     confirmPaymentIntentDto: ConfirmPaymentIntentDto,
-    userId: string
+    userId: string,
   ): Promise<PaymentIntent> {
     this.logger.log('PaymentService.confirmPaymentIntent', { id, userId });
 
@@ -207,10 +224,11 @@ export class PaymentService {
       }
 
       // Validate payment confirmation
-      const validationResult = await this.paymentValidationService.validatePaymentConfirmation({
-        paymentIntentId: id,
-        ...confirmPaymentIntentDto,
-      });
+      const validationResult =
+        await this.paymentValidationService.validatePaymentConfirmation({
+          paymentIntentId: id,
+          ...confirmPaymentIntentDto,
+        });
 
       if (!validationResult.isValid) {
         throw new BadRequestException(validationResult.errors.join(', '));
@@ -220,7 +238,7 @@ export class PaymentService {
       const updatedPaymentIntent = await this.paymentRepository.updateStatus(
         id,
         PaymentIntentStatus.PROCESSING,
-        userId
+        userId,
       );
 
       if (!updatedPaymentIntent) {
@@ -228,14 +246,17 @@ export class PaymentService {
       }
 
       // Emit payment intent confirmed event
-      this.eventEmitter.emit('payment.intent.confirmed', new PaymentIntentConfirmedEvent(
-        updatedPaymentIntent.id,
-        updatedPaymentIntent.orderId,
-        updatedPaymentIntent.amount || 0,
-        updatedPaymentIntent.currency || 'INR',
-        'CARD', // default payment method
-        userId
-      ));
+      this.eventEmitter.emit(
+        'payment.intent.confirmed',
+        new PaymentIntentConfirmedEvent(
+          updatedPaymentIntent.id,
+          updatedPaymentIntent.orderId,
+          updatedPaymentIntent.amount || 0,
+          updatedPaymentIntent.currency || 'INR',
+          'CARD', // default payment method
+          userId,
+        ),
+      );
 
       return updatedPaymentIntent;
     } catch (error) {
@@ -246,7 +267,7 @@ export class PaymentService {
 
   async createRefund(
     createRefundDto: CreateRefundDto,
-    userId: string
+    userId: string,
   ): Promise<any> {
     this.logger.log('PaymentService.createRefund', {
       paymentIntentId: createRefundDto.paymentIntentId,
@@ -256,7 +277,10 @@ export class PaymentService {
 
     try {
       // Validate refund creation
-      const validationResult = await this.paymentValidationService.validateRefundCreation(createRefundDto);
+      const validationResult =
+        await this.paymentValidationService.validateRefundCreation(
+          createRefundDto,
+        );
       if (!validationResult.isValid) {
         throw new BadRequestException(validationResult.errors.join(', '));
       }
@@ -272,14 +296,17 @@ export class PaymentService {
       const refund = await this.paymentRepository.createRefund(refundData);
 
       // Emit refund created event
-      this.eventEmitter.emit('payment.refund.created', new PaymentRefundCreatedEvent(
-        refund.id,
-        createRefundDto.paymentIntentId,
-        'order-id', // placeholder
-        createRefundDto.amount,
-        createRefundDto.reason || 'REQUESTED_BY_CUSTOMER',
-        userId
-      ));
+      this.eventEmitter.emit(
+        'payment.refund.created',
+        new PaymentRefundCreatedEvent(
+          refund.id,
+          createRefundDto.paymentIntentId,
+          'order-id', // placeholder
+          createRefundDto.amount,
+          createRefundDto.reason || 'REQUESTED_BY_CUSTOMER',
+          userId,
+        ),
+      );
 
       return refund;
     } catch (error) {
@@ -295,13 +322,14 @@ export class PaymentService {
   async handleWebhook(
     provider: string,
     signature: string,
-    payload: any
+    payload: any,
   ): Promise<void> {
     this.logger.log('PaymentService.handleWebhook', { provider });
 
     try {
       // Verify webhook signature
-      const webhookSecret = this.paymentGatewayService.getWebhookSecret(provider);
+      const webhookSecret =
+        this.paymentGatewayService.getWebhookSecret(provider);
       if (!webhookSecret) {
         throw new BadRequestException('Invalid webhook provider');
       }
@@ -330,13 +358,16 @@ export class PaymentService {
     this.logger.log('PaymentService.retryFailedPayments');
 
     try {
-      const failedPayments = await this.paymentRepository.findFailedPaymentsForRetry();
+      const failedPayments =
+        await this.paymentRepository.findFailedPaymentsForRetry();
 
       for (const payment of failedPayments) {
         try {
           await this.paymentRetryService.retryPayment(payment.id, 'system');
         } catch (error) {
-          this.logger.error('Failed to retry payment', error, { paymentId: payment.id });
+          this.logger.error('Failed to retry payment', error, {
+            paymentId: payment.id,
+          });
         }
       }
     } catch (error) {
@@ -351,7 +382,7 @@ export class PaymentService {
   private applyAccessFilters(
     filters: PaymentFilters,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): PaymentFilters {
     // Apply role-based filtering
     if (userRole === 'CUSTOMER' && userId) {
@@ -364,15 +395,23 @@ export class PaymentService {
   private checkPaymentAccess(
     paymentIntent: PaymentIntent,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): void {
-    if (!PaymentPolicies.canAccess(userId || '', userRole || '', paymentIntent)) {
+    if (
+      !PaymentPolicies.canAccess(userId || '', userRole || '', paymentIntent)
+    ) {
       throw new ForbiddenException('Access denied');
     }
   }
 
-  private async processWebhookPayload(provider: string, payload: any): Promise<void> {
+  private async processWebhookPayload(
+    provider: string,
+    payload: any,
+  ): Promise<void> {
     // Placeholder implementation for webhook processing
-    this.logger.log('Processing webhook payload', { provider, eventType: payload.type });
+    this.logger.log('Processing webhook payload', {
+      provider,
+      eventType: payload.type,
+    });
   }
 }

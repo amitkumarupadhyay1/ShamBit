@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsObject, IsNumber, IsDateString, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  IsNumber,
+  IsDateString,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { RefundJobType } from '../enums/refund-status.enum';
 

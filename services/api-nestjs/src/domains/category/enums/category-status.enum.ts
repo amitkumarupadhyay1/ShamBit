@@ -23,8 +23,15 @@ export const CategoryStatusDescriptions = {
 } as const;
 
 // State machine transitions
-export const CategoryStatusTransitions: Record<CategoryStatus, CategoryStatus[]> = {
-  [CategoryStatus.DRAFT]: [CategoryStatus.ACTIVE, CategoryStatus.REJECTED, CategoryStatus.ARCHIVED],
+export const CategoryStatusTransitions: Record<
+  CategoryStatus,
+  CategoryStatus[]
+> = {
+  [CategoryStatus.DRAFT]: [
+    CategoryStatus.ACTIVE,
+    CategoryStatus.REJECTED,
+    CategoryStatus.ARCHIVED,
+  ],
   [CategoryStatus.ACTIVE]: [CategoryStatus.INACTIVE, CategoryStatus.ARCHIVED],
   [CategoryStatus.INACTIVE]: [CategoryStatus.ACTIVE, CategoryStatus.ARCHIVED],
   [CategoryStatus.REJECTED]: [CategoryStatus.DRAFT, CategoryStatus.ARCHIVED],
@@ -35,7 +42,10 @@ export const CategoryStatusTransitions: Record<CategoryStatus, CategoryStatus[]>
 export const PRODUCT_ALLOWED_STATUSES = [CategoryStatus.ACTIVE];
 
 // Statuses that are visible to users
-export const VISIBLE_STATUSES = [CategoryStatus.ACTIVE, CategoryStatus.INACTIVE];
+export const VISIBLE_STATUSES = [
+  CategoryStatus.ACTIVE,
+  CategoryStatus.INACTIVE,
+];
 
 // Statuses that require admin approval
 export const ADMIN_ONLY_TRANSITIONS = [

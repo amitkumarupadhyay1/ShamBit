@@ -1,54 +1,66 @@
 export class OrderPolicies {
-  static canUserViewOrder(userId: string, order: any, userRole: string): boolean {
+  static canUserViewOrder(
+    userId: string,
+    order: any,
+    userRole: string,
+  ): boolean {
     // Customers can only view their own orders
     if (userRole === 'CUSTOMER') {
       return order.customerId === userId;
     }
-    
+
     // Sellers can view orders containing their products
     if (userRole === 'SELLER') {
       return order.items?.some((item: any) => item.sellerId === userId);
     }
-    
+
     // Admins can view all orders
     if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
       return true;
     }
-    
+
     return false;
   }
 
-  static canUserModifyOrder(userId: string, order: any, userRole: string): boolean {
+  static canUserModifyOrder(
+    userId: string,
+    order: any,
+    userRole: string,
+  ): boolean {
     // Only admins can modify orders after creation
     if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
       return true;
     }
-    
+
     // Customers can only modify their own pending orders
     if (userRole === 'CUSTOMER' && order.customerId === userId) {
       return order.status === 'PENDING';
     }
-    
+
     return false;
   }
 
-  static canUserCancelOrder(userId: string, order: any, userRole: string): boolean {
+  static canUserCancelOrder(
+    userId: string,
+    order: any,
+    userRole: string,
+  ): boolean {
     // Check if order can be cancelled based on status
     const cancellableStatuses = ['PENDING', 'CONFIRMED', 'PROCESSING'];
     if (!cancellableStatuses.includes(order.status)) {
       return false;
     }
-    
+
     // Customers can cancel their own orders
     if (userRole === 'CUSTOMER' && order.customerId === userId) {
       return true;
     }
-    
+
     // Admins can cancel any order
     if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
       return true;
     }
-    
+
     return false;
   }
 
@@ -85,17 +97,17 @@ export class OrderPolicies {
     if (userRole === 'CUSTOMER') {
       return order.customerId === userId;
     }
-    
+
     // Sellers can access orders containing their products
     if (userRole === 'SELLER') {
       return order.items?.some((item: any) => item.sellerId === userId);
     }
-    
+
     // Admins can access all orders
     if (userRole === 'ADMIN' || userRole === 'SUPER_ADMIN') {
       return true;
     }
-    
+
     return false;
   }
 }

@@ -11,7 +11,10 @@ export class InventoryValidators {
     }
   }
 
-  static validateInventoryNonNegative(quantity: number, productId: string): void {
+  static validateInventoryNonNegative(
+    quantity: number,
+    productId: string,
+  ): void {
     if (quantity < 0) {
       throw new Error(`Inventory cannot be negative for product ${productId}`);
     }

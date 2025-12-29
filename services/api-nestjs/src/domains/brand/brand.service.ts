@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
-import { BrandRepository, BrandFilters, PaginationOptions } from './repositories/brand.repository';
+import {
+  BrandRepository,
+  BrandFilters,
+  PaginationOptions,
+} from './repositories/brand.repository';
 import { BrandAuditService } from './services/brand-audit.service';
 import { LoggerService } from '../../infrastructure/observability/logger.service';
 import { Brand } from './entities/brand.entity';
@@ -26,10 +30,10 @@ export class BrandService {
 
   async findAll(
     filters: BrandFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ) {
     this.logger.log('BrandService.findAll', { filters, pagination });
-    
+
     return this.brandRepository.findAll(filters, pagination);
   }
 
@@ -49,11 +53,16 @@ export class BrandService {
     return brand;
   }
 
-  async create(createBrandDto: CreateBrandDto, createdBy: string): Promise<Brand> {
+  async create(
+    createBrandDto: CreateBrandDto,
+    createdBy: string,
+  ): Promise<Brand> {
     this.logger.log('BrandService.create', { createBrandDto, createdBy });
 
     // Check if slug already exists
-    const existingBrand = await this.brandRepository.findBySlug(createBrandDto.slug);
+    const existingBrand = await this.brandRepository.findBySlug(
+      createBrandDto.slug,
+    );
     if (existingBrand) {
       throw new ConflictException('Brand with this slug already exists');
     }
@@ -79,7 +88,7 @@ export class BrandService {
       createdBy,
       null,
       brand,
-      'Brand created'
+      'Brand created',
     );
 
     // Emit brand created event
@@ -100,7 +109,7 @@ export class BrandService {
     id: string,
     updateBrandDto: UpdateBrandDto,
     updatedBy: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<Brand> {
     this.logger.log('BrandService.update', { id, updateBrandDto, updatedBy });
 
@@ -116,7 +125,10 @@ export class BrandService {
 
     // Validate status change if provided
     if (updateBrandDto.status) {
-      this.validateStatusTransition(existingBrand.status, updateBrandDto.status);
+      this.validateStatusTransition(
+        existingBrand.status,
+        updateBrandDto.status,
+      );
     }
 
     const updatedBrand = await this.brandRepository.update(id, {
@@ -131,7 +143,7 @@ export class BrandService {
       updatedBy,
       existingBrand,
       updatedBrand,
-      'Brand updated'
+      'Brand updated',
     );
 
     // Emit brand updated event
@@ -151,9 +163,13 @@ export class BrandService {
     id: string,
     statusUpdate: BrandStatusUpdateDto,
     updatedBy: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<Brand> {
-    this.logger.log('BrandService.updateStatus', { id, statusUpdate, updatedBy });
+    this.logger.log('BrandService.updateStatus', {
+      id,
+      statusUpdate,
+      updatedBy,
+    });
 
     const existingBrand = await this.findById(id);
 
@@ -166,7 +182,7 @@ export class BrandService {
     const updatedBrand = await this.brandRepository.updateStatus(
       id,
       statusUpdate.status,
-      updatedBy
+      updatedBy,
     );
 
     // Create audit log
@@ -176,7 +192,7 @@ export class BrandService {
       updatedBy,
       { status: existingBrand.status },
       { status: statusUpdate.status },
-      statusUpdate.reason || 'Status changed'
+      statusUpdate.reason || 'Status changed',
     );
 
     // Emit status change event
@@ -190,11 +206,18 @@ export class BrandService {
       timestamp: new Date(),
     });
 
-    this.logger.log('Brand status updated successfully', { brandId: id, status: statusUpdate.status });
+    this.logger.log('Brand status updated successfully', {
+      brandId: id,
+      status: statusUpdate.status,
+    });
     return updatedBrand;
   }
 
-  async delete(id: string, deletedBy: string, userRole?: string): Promise<void> {
+  async delete(
+    id: string,
+    deletedBy: string,
+    userRole?: string,
+  ): Promise<void> {
     this.logger.log('BrandService.delete', { id, deletedBy });
 
     const existingBrand = await this.findById(id);
@@ -214,7 +237,7 @@ export class BrandService {
       deletedBy,
       existingBrand,
       null,
-      'Brand deleted'
+      'Brand deleted',
     );
 
     // Emit brand deleted event
@@ -237,7 +260,9 @@ export class BrandService {
   }
 
   // Validation methods
-  private async validateCategoryAssignments(categoryIds: string[]): Promise<void> {
+  private async validateCategoryAssignments(
+    categoryIds: string[],
+  ): Promise<void> {
     // TODO: Implement category validation
     // This would check if all category IDs exist and are active
     if (categoryIds.length === 0) {
@@ -253,7 +278,7 @@ export class BrandService {
   private async validateUpdatePermissions(
     brand: Brand,
     userId: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<void> {
     // Admins can update any brand
     if (userRole === 'ADMIN') {
@@ -265,13 +290,15 @@ export class BrandService {
       return;
     }
 
-    throw new ForbiddenException('Insufficient permissions to update this brand');
+    throw new ForbiddenException(
+      'Insufficient permissions to update this brand',
+    );
   }
 
   private async validateDeletePermissions(
     brand: Brand,
     userId: string,
-    userRole?: string
+    userRole?: string,
   ): Promise<void> {
     // Only admins can delete brands
     if (userRole !== 'ADMIN') {
@@ -281,18 +308,21 @@ export class BrandService {
 
   private validateStatusTransition(
     currentStatus: BrandStatus,
-    newStatus: BrandStatus
+    newStatus: BrandStatus,
   ): void {
     const validTransitions: Record<BrandStatus, BrandStatus[]> = {
       [BrandStatus.ACTIVE]: [BrandStatus.INACTIVE, BrandStatus.SUSPENDED],
       [BrandStatus.INACTIVE]: [BrandStatus.ACTIVE],
       [BrandStatus.SUSPENDED]: [BrandStatus.ACTIVE, BrandStatus.INACTIVE],
-      [BrandStatus.PENDING_APPROVAL]: [BrandStatus.ACTIVE, BrandStatus.REJECTED],
+      [BrandStatus.PENDING_APPROVAL]: [
+        BrandStatus.ACTIVE,
+        BrandStatus.REJECTED,
+      ],
     };
 
     if (!validTransitions[currentStatus]?.includes(newStatus)) {
       throw new BadRequestException(
-        `Invalid status transition from ${currentStatus} to ${newStatus}`
+        `Invalid status transition from ${currentStatus} to ${newStatus}`,
       );
     }
   }

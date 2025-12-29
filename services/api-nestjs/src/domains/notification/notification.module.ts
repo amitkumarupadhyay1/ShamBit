@@ -17,10 +17,6 @@ import { NotificationPreferenceService } from './notification-preference.service
     NotificationTemplateService,
     NotificationPreferenceService,
   ],
-  exports: [
-    NotificationService,
-    EmailService,
-    PushNotificationService,
-  ],
+  exports: [NotificationService, EmailService, PushNotificationService],
 })
 export class NotificationModule {}

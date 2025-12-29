@@ -47,7 +47,7 @@ export class CategoryAuditService {
     userAgent?: string,
     userRole: string = 'UNKNOWN',
     metadata?: any,
-    batchId?: string
+    batchId?: string,
   ): Promise<void> {
     const changes = this.calculateChanges(oldValues, newValues);
 
@@ -92,7 +92,7 @@ export class CategoryAuditService {
     userId: string,
     reason?: string,
     metadata?: any,
-    userRole: string = 'ADMIN'
+    userRole: string = 'ADMIN',
   ): Promise<string> {
     const batchId = this.generateBatchId();
 
@@ -118,7 +118,7 @@ export class CategoryAuditService {
   async getCategoryAuditHistory(
     categoryId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     const [data, total] = await Promise.all([
       this.prisma.categoryAuditLog.findMany({
@@ -148,7 +148,7 @@ export class CategoryAuditService {
   async getUserAuditHistory(
     userId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     const [data, total] = await Promise.all([
       this.prisma.categoryAuditLog.findMany({
@@ -212,10 +212,10 @@ export class CategoryAuditService {
   async getAuditStatistics(
     dateFrom?: Date,
     dateTo?: Date,
-    categoryId?: string
+    categoryId?: string,
   ): Promise<AuditStatistics> {
     const where: any = {};
-    
+
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = dateFrom;
@@ -274,26 +274,35 @@ export class CategoryAuditService {
 
     return {
       totalActions,
-      actionsByType: actionsByType.reduce((acc, item) => {
-        acc[item.action] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
-      actionsByUser: actionsByUser.reduce((acc, item) => {
-        acc[item.userId] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
-      actionsByDay: actionsByDay.reduce((acc, item) => {
-        const day = item.createdAt.toISOString().split('T')[0];
-        acc[day] = (acc[day] || 0) + item._count;
-        return acc;
-      }, {} as Record<string, number>),
+      actionsByType: actionsByType.reduce(
+        (acc, item) => {
+          acc[item.action] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      actionsByUser: actionsByUser.reduce(
+        (acc, item) => {
+          acc[item.userId] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      actionsByDay: actionsByDay.reduce(
+        (acc, item) => {
+          const day = item.createdAt.toISOString().split('T')[0];
+          acc[day] = (acc[day] || 0) + item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
       recentActions: recentActions.map(this.mapToAuditLogEntry),
     };
   }
 
   async getTreeOperationHistory(
     categoryId: string,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<AuditLogEntry[]> {
     const data = await this.prisma.categoryAuditLog.findMany({
       where: {
@@ -318,19 +327,19 @@ export class CategoryAuditService {
 
   async getAttributeAuditHistory(
     categoryId: string,
-    limit: number = 20
+    limit: number = 20,
   ): Promise<AuditLogEntry[]> {
     const data = await this.prisma.categoryAuditLog.findMany({
       where: {
         categoryId,
-        action: { 
+        action: {
           in: [
-            'ATTRIBUTE_CREATE', 
-            'ATTRIBUTE_UPDATE', 
+            'ATTRIBUTE_CREATE',
+            'ATTRIBUTE_UPDATE',
             'ATTRIBUTE_DELETE',
             'ATTRIBUTE_INHERIT',
-            'ATTRIBUTE_OVERRIDE'
-          ] 
+            'ATTRIBUTE_OVERRIDE',
+          ],
         },
       },
       include: {
@@ -353,10 +362,10 @@ export class CategoryAuditService {
     categoryId?: string,
     dateFrom?: Date,
     dateTo?: Date,
-    format: 'json' | 'csv' = 'json'
+    format: 'json' | 'csv' = 'json',
   ): Promise<string> {
     const where: any = {};
-    
+
     if (categoryId) {
       where.categoryId = categoryId;
     }
@@ -400,7 +409,7 @@ export class CategoryAuditService {
 
   async cleanupOldAuditLogs(
     retentionDays: number = 365,
-    dryRun: boolean = true
+    dryRun: boolean = true,
   ): Promise<{ deletedCount: number; oldestRetainedDate: Date }> {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
@@ -437,7 +446,10 @@ export class CategoryAuditService {
     }
 
     const changes: any = {};
-    const allKeys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)]);
+    const allKeys = new Set([
+      ...Object.keys(oldValues),
+      ...Object.keys(newValues),
+    ]);
 
     for (const key of allKeys) {
       const oldValue = oldValues[key];
@@ -499,7 +511,7 @@ export class CategoryAuditService {
       'Batch ID',
     ];
 
-    const rows = auditEntries.map(entry => [
+    const rows = auditEntries.map((entry) => [
       entry.id,
       entry.categoryId,
       entry.action,
@@ -514,7 +526,7 @@ export class CategoryAuditService {
 
     const csvContent = [
       headers.join(','),
-      ...rows.map(row => row.map(cell => `"${cell}"`).join(',')),
+      ...rows.map((row) => row.map((cell) => `"${cell}"`).join(',')),
     ].join('\n');
 
     return csvContent;

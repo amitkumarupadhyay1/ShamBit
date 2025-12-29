@@ -31,7 +31,7 @@ export class BrandAuditService {
     reason?: string,
     ipAddress?: string,
     userAgent?: string,
-    userRole: string = 'UNKNOWN'
+    userRole: string = 'UNKNOWN',
   ): Promise<void> {
     const changes = this.calculateChanges(oldValues, newValues);
 
@@ -60,7 +60,7 @@ export class BrandAuditService {
     reason?: string,
     ipAddress?: string,
     userAgent?: string,
-    userRole: string = 'ADMIN'
+    userRole: string = 'ADMIN',
   ): Promise<void> {
     // For brand requests, we create a special audit entry
     // This could be extended to have a separate BrandRequestAuditLog table
@@ -85,7 +85,7 @@ export class BrandAuditService {
   async getBrandAuditHistory(
     brandId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     const [data, total] = await Promise.all([
       this.prisma.brandAuditLog.findMany({
@@ -115,7 +115,7 @@ export class BrandAuditService {
   async getUserAuditHistory(
     userId: string,
     limit: number = 50,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{ data: AuditLogEntry[]; total: number }> {
     const [data, total] = await Promise.all([
       this.prisma.brandAuditLog.findMany({
@@ -151,7 +151,7 @@ export class BrandAuditService {
 
   async getAuditStatistics(
     dateFrom?: Date,
-    dateTo?: Date
+    dateTo?: Date,
   ): Promise<{
     totalActions: number;
     actionsByType: Record<string, number>;
@@ -159,52 +159,57 @@ export class BrandAuditService {
     actionsByDay: Record<string, number>;
   }> {
     const where: any = {};
-    
+
     if (dateFrom || dateTo) {
       where.createdAt = {};
       if (dateFrom) where.createdAt.gte = dateFrom;
       if (dateTo) where.createdAt.lte = dateTo;
     }
 
-    const [
-      totalActions,
-      actionsByType,
-      actionsByUser,
-      actionsByDay,
-    ] = await Promise.all([
-      this.prisma.brandAuditLog.count({ where }),
-      this.prisma.brandAuditLog.groupBy({
-        by: ['action'],
-        where,
-        _count: true,
-      }),
-      this.prisma.brandAuditLog.groupBy({
-        by: ['userId'],
-        where,
-        _count: true,
-      }),
-      this.prisma.brandAuditLog.groupBy({
-        by: ['createdAt'],
-        where,
-        _count: true,
-      }),
-    ]);
+    const [totalActions, actionsByType, actionsByUser, actionsByDay] =
+      await Promise.all([
+        this.prisma.brandAuditLog.count({ where }),
+        this.prisma.brandAuditLog.groupBy({
+          by: ['action'],
+          where,
+          _count: true,
+        }),
+        this.prisma.brandAuditLog.groupBy({
+          by: ['userId'],
+          where,
+          _count: true,
+        }),
+        this.prisma.brandAuditLog.groupBy({
+          by: ['createdAt'],
+          where,
+          _count: true,
+        }),
+      ]);
 
     return {
       totalActions,
-      actionsByType: actionsByType.reduce((acc, item) => {
-        acc[item.action] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
-      actionsByUser: actionsByUser.reduce((acc, item) => {
-        acc[item.userId] = item._count;
-        return acc;
-      }, {} as Record<string, number>),
-      actionsByDay: actionsByDay.reduce((acc, item) => {
-        const day = item.createdAt.toISOString().split('T')[0];
-        acc[day] = (acc[day] || 0) + item._count;
-        return acc;
-      }, {} as Record<string, number>),
+      actionsByType: actionsByType.reduce(
+        (acc, item) => {
+          acc[item.action] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      actionsByUser: actionsByUser.reduce(
+        (acc, item) => {
+          acc[item.userId] = item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
+      actionsByDay: actionsByDay.reduce(
+        (acc, item) => {
+          const day = item.createdAt.toISOString().split('T')[0];
+          acc[day] = (acc[day] || 0) + item._count;
+          return acc;
+        },
+        {} as Record<string, number>,
+      ),
     };
   }
 
@@ -214,7 +219,10 @@ export class BrandAuditService {
     }
 
     const changes: any = {};
-    const allKeys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)]);
+    const allKeys = new Set([
+      ...Object.keys(oldValues),
+      ...Object.keys(newValues),
+    ]);
 
     for (const key of allKeys) {
       const oldValue = oldValues[key];

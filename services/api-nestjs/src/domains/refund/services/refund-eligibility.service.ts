@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { RefundRepository } from '../repositories/refund.repository.js';
 import { OrderService } from '../../order/order.service';
 import { RefundPolicies } from '../refund.policies';
-import { RefundType, RefundStatus, RefundReason } from '../enums/refund-status.enum';
+import {
+  RefundType,
+  RefundStatus,
+  RefundReason,
+} from '../enums/refund-status.enum';
 import { LoggerService } from '../../../infrastructure/observability/logger.service';
 import { Order } from '../../order/entities/order.entity';
 import { OrderItem } from '../../order/entities/order-item.entity';
@@ -43,7 +47,7 @@ export class RefundEligibilityService {
 
   async checkOrderEligibility(
     orderId: string,
-    options: RefundEligibilityOptions = {}
+    options: RefundEligibilityOptions = {},
   ): Promise<RefundEligibilityResult> {
     this.logger.log('RefundEligibilityService.checkOrderEligibility', {
       orderId,
@@ -66,17 +70,19 @@ export class RefundEligibilityService {
       }
 
       // Get existing refunds for this order
-      const existingRefunds = await this.refundRepository.findByOrderId(orderId);
+      const existingRefunds =
+        await this.refundRepository.findByOrderId(orderId);
 
       // Get applicable policy
-      const policy = options.customPolicy || await this.getApplicablePolicy(order);
+      const policy =
+        options.customPolicy || (await this.getApplicablePolicy(order));
 
       // Perform eligibility checks
       const eligibilityResult = await this.performEligibilityChecks(
         order,
         existingRefunds,
         policy,
-        options
+        options,
       );
 
       this.logger.log('Order eligibility check completed', {
@@ -86,9 +92,10 @@ export class RefundEligibilityService {
       });
 
       return eligibilityResult;
-
     } catch (error) {
-      this.logger.error('Failed to check order eligibility', error, { orderId });
+      this.logger.error('Failed to check order eligibility', error, {
+        orderId,
+      });
       return {
         isEligible: false,
         reason: 'Error checking eligibility',
@@ -100,7 +107,7 @@ export class RefundEligibilityService {
     orderId: string,
     itemId: string,
     quantity: number,
-    options: RefundEligibilityOptions = {}
+    options: RefundEligibilityOptions = {},
   ): Promise<RefundEligibilityResult> {
     this.logger.log('RefundEligibilityService.checkItemEligibility', {
       orderId,
@@ -127,7 +134,7 @@ export class RefundEligibilityService {
         includeRefunds: true,
       });
 
-      const orderItem = order.items?.find(item => item.id === itemId);
+      const orderItem = order.items?.find((item) => item.id === itemId);
       if (!orderItem) {
         return {
           isEligible: false,
@@ -140,11 +147,10 @@ export class RefundEligibilityService {
         order,
         orderItem,
         quantity,
-        options
+        options,
       );
 
       return itemEligibility;
-
     } catch (error) {
       this.logger.error('Failed to check item eligibility', error, {
         orderId,
@@ -160,26 +166,28 @@ export class RefundEligibilityService {
 
   async getMaxRefundableAmount(
     orderId: string,
-    options: RefundEligibilityOptions = {}
+    options: RefundEligibilityOptions = {},
   ): Promise<number> {
     try {
       const eligibility = await this.checkOrderEligibility(orderId, options);
       return eligibility.maxRefundAmount || 0;
     } catch (error) {
-      this.logger.error('Failed to get max refundable amount', error, { orderId });
+      this.logger.error('Failed to get max refundable amount', error, {
+        orderId,
+      });
       return 0;
     }
   }
 
   async getRefundWindow(
     orderId: string,
-    policy?: any
+    policy?: any,
   ): Promise<{ windowEnd: Date; daysRemaining: number } | null> {
     try {
       const order = await this.orderService.findById(orderId);
       if (!order) return null;
 
-      const appliedPolicy = policy || await this.getApplicablePolicy(order);
+      const appliedPolicy = policy || (await this.getApplicablePolicy(order));
       const refundWindowDays = appliedPolicy?.refundWindowDays || 30;
 
       // Calculate window end based on delivery or confirmation date
@@ -190,13 +198,14 @@ export class RefundEligibilityService {
       windowEnd.setDate(windowEnd.getDate() + refundWindowDays);
 
       const now = new Date();
-      const daysRemaining = Math.ceil((windowEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+      const daysRemaining = Math.ceil(
+        (windowEnd.getTime() - now.getTime()) / (1000 * 60 * 60 * 24),
+      );
 
       return {
         windowEnd,
         daysRemaining: Math.max(0, daysRemaining),
       };
-
     } catch (error) {
       this.logger.error('Failed to get refund window', error, { orderId });
       return null;
@@ -211,7 +220,7 @@ export class RefundEligibilityService {
     order: Order,
     existingRefunds: Refund[],
     policy: any,
-    options: RefundEligibilityOptions
+    options: RefundEligibilityOptions,
   ): Promise<RefundEligibilityResult> {
     // Check order status eligibility
     const statusCheck = this.checkOrderStatusEligibility(order);
@@ -234,13 +243,19 @@ export class RefundEligibilityService {
     }
 
     // Check existing refunds
-    const existingRefundCheck = this.checkExistingRefunds(order, existingRefunds);
+    const existingRefundCheck = this.checkExistingRefunds(
+      order,
+      existingRefunds,
+    );
     if (!existingRefundCheck.isEligible) {
       return existingRefundCheck;
     }
 
     // Calculate maximum refundable amount
-    const maxRefundAmount = this.calculateMaxRefundAmount(order, existingRefunds);
+    const maxRefundAmount = this.calculateMaxRefundAmount(
+      order,
+      existingRefunds,
+    );
     if (maxRefundAmount <= 0) {
       return {
         isEligible: false,
@@ -249,18 +264,20 @@ export class RefundEligibilityService {
     }
 
     // Check item-level eligibility if specific items requested
-    let eligibleItems: Array<{
-      orderItemId: string;
-      maxQuantity: number;
-      maxAmount: number;
-    }> | undefined;
+    let eligibleItems:
+      | Array<{
+          orderItemId: string;
+          maxQuantity: number;
+          maxAmount: number;
+        }>
+      | undefined;
 
     if (options.itemIds && options.itemIds.length > 0) {
       const itemEligibilityResults = await this.checkItemsEligibility(
         order,
         options.itemIds,
         existingRefunds,
-        options
+        options,
       );
 
       if (itemEligibilityResults.length === 0) {
@@ -298,7 +315,7 @@ export class RefundEligibilityService {
 
   private checkPaymentEligibility(order: Order): RefundEligibilityResult {
     const totalPaid = order.getTotalPaid();
-    
+
     if (totalPaid <= 0) {
       return {
         isEligible: false,
@@ -316,7 +333,10 @@ export class RefundEligibilityService {
     return { isEligible: true };
   }
 
-  private checkRefundTimeWindow(order: Order, policy: any): RefundEligibilityResult {
+  private checkRefundTimeWindow(
+    order: Order,
+    policy: any,
+  ): RefundEligibilityResult {
     const refundWindowDays = policy?.refundWindowDays || 30;
     const referenceDate = order.deliveredAt || order.confirmedAt;
 
@@ -340,12 +360,16 @@ export class RefundEligibilityService {
     return { isEligible: true };
   }
 
-  private checkExistingRefunds(order: Order, existingRefunds: Refund[]): RefundEligibilityResult {
+  private checkExistingRefunds(
+    order: Order,
+    existingRefunds: Refund[],
+  ): RefundEligibilityResult {
     // Check for pending refunds
-    const pendingRefunds = existingRefunds.filter(r => 
-      r.status === RefundStatus.PENDING || 
-      r.status === RefundStatus.APPROVED || 
-      r.status === RefundStatus.PROCESSING
+    const pendingRefunds = existingRefunds.filter(
+      (r) =>
+        r.status === RefundStatus.PENDING ||
+        r.status === RefundStatus.APPROVED ||
+        r.status === RefundStatus.PROCESSING,
     );
 
     if (pendingRefunds.length > 0) {
@@ -357,7 +381,7 @@ export class RefundEligibilityService {
 
     // Check if order is already fully refunded
     const totalRefunded = existingRefunds
-      .filter(r => r.status === RefundStatus.COMPLETED)
+      .filter((r) => r.status === RefundStatus.COMPLETED)
       .reduce((sum, r) => sum + (r.processedAmount || r.approvedAmount), 0);
 
     const totalPaid = order.getTotalPaid();
@@ -372,10 +396,13 @@ export class RefundEligibilityService {
     return { isEligible: true };
   }
 
-  private calculateMaxRefundAmount(order: Order, existingRefunds: Refund[]): number {
+  private calculateMaxRefundAmount(
+    order: Order,
+    existingRefunds: Refund[],
+  ): number {
     const totalPaid = order.getTotalPaid();
     const totalRefunded = existingRefunds
-      .filter(r => r.status === RefundStatus.COMPLETED)
+      .filter((r) => r.status === RefundStatus.COMPLETED)
       .reduce((sum, r) => sum + (r.processedAmount || r.approvedAmount), 0);
 
     return Math.max(0, totalPaid - totalRefunded);
@@ -385,12 +412,14 @@ export class RefundEligibilityService {
     order: Order,
     itemIds: string[],
     existingRefunds: Refund[],
-    options: RefundEligibilityOptions
-  ): Promise<Array<{
-    orderItemId: string;
-    maxQuantity: number;
-    maxAmount: number;
-  }>> {
+    options: RefundEligibilityOptions,
+  ): Promise<
+    Array<{
+      orderItemId: string;
+      maxQuantity: number;
+      maxAmount: number;
+    }>
+  > {
     const eligibleItems: Array<{
       orderItemId: string;
       maxQuantity: number;
@@ -398,11 +427,14 @@ export class RefundEligibilityService {
     }> = [];
 
     for (const itemId of itemIds) {
-      const orderItem = order.items?.find(item => item.id === itemId);
+      const orderItem = order.items?.find((item) => item.id === itemId);
       if (!orderItem) continue;
 
       // Calculate already refunded quantity for this item
-      const refundedQuantity = this.getRefundedQuantityForItem(itemId, existingRefunds);
+      const refundedQuantity = this.getRefundedQuantityForItem(
+        itemId,
+        existingRefunds,
+      );
       const maxQuantity = Math.max(0, orderItem.quantity - refundedQuantity);
 
       if (maxQuantity > 0) {
@@ -422,11 +454,14 @@ export class RefundEligibilityService {
     order: Order,
     orderItem: OrderItem,
     requestedQuantity: number,
-    options: RefundEligibilityOptions
+    options: RefundEligibilityOptions,
   ): Promise<RefundEligibilityResult> {
     // Get existing refunds for this item
     const existingRefunds = await this.refundRepository.findByOrderId(order.id);
-    const refundedQuantity = this.getRefundedQuantityForItem(orderItem.id, existingRefunds);
+    const refundedQuantity = this.getRefundedQuantityForItem(
+      orderItem.id,
+      existingRefunds,
+    );
 
     const availableQuantity = orderItem.quantity - refundedQuantity;
 
@@ -439,7 +474,10 @@ export class RefundEligibilityService {
 
     // Check inventory availability if restocking is required
     if (options.checkInventory) {
-      const inventoryCheck = await this.checkInventoryForRestock(orderItem, requestedQuantity);
+      const inventoryCheck = await this.checkInventoryForRestock(
+        orderItem,
+        requestedQuantity,
+      );
       if (!inventoryCheck.isEligible) {
         return inventoryCheck;
       }
@@ -450,24 +488,26 @@ export class RefundEligibilityService {
     return {
       isEligible: true,
       maxRefundAmount: maxAmount,
-      eligibleItems: [{
-        orderItemId: orderItem.id,
-        maxQuantity: requestedQuantity,
-        maxAmount,
-      }],
+      eligibleItems: [
+        {
+          orderItemId: orderItem.id,
+          maxQuantity: requestedQuantity,
+          maxAmount,
+        },
+      ],
     };
   }
 
   private async checkInventoryForRestock(
     orderItem: OrderItem,
-    quantity: number
+    quantity: number,
   ): Promise<RefundEligibilityResult> {
     // This would integrate with inventory service to check if items can be restocked
     // For now, we'll assume items can be restocked unless they're damaged/defective
-    
+
     // Check if the refund reason would prevent restocking
     // This would typically be passed in the options or determined by business rules
-    
+
     return { isEligible: true };
   }
 
@@ -475,11 +515,16 @@ export class RefundEligibilityService {
   // PRIVATE HELPER METHODS
   // ============================================================================
 
-  private getRefundedQuantityForItem(itemId: string, refunds: Refund[]): number {
+  private getRefundedQuantityForItem(
+    itemId: string,
+    refunds: Refund[],
+  ): number {
     return refunds
-      .filter(r => r.status === RefundStatus.COMPLETED)
+      .filter((r) => r.status === RefundStatus.COMPLETED)
       .reduce((total, refund) => {
-        const refundItem = refund.items?.find(item => item.orderItemId === itemId);
+        const refundItem = refund.items?.find(
+          (item) => item.orderItemId === itemId,
+        );
         return total + (refundItem?.approvedQuantity || 0);
       }, 0);
   }
@@ -489,7 +534,7 @@ export class RefundEligibilityService {
     // - Seller-specific policies
     // - Product category policies
     // - Global policies
-    
+
     // For now, return default policy
     return RefundPolicies.getDefaultRefundPolicy();
   }
@@ -502,7 +547,7 @@ export class RefundEligibilityService {
     orderId: string,
     customerId: string,
     refundAmount: number,
-    refundReason: RefundReason
+    refundReason: RefundReason,
   ): Promise<{
     isFraudulent: boolean;
     riskScore: number;
@@ -514,12 +559,12 @@ export class RefundEligibilityService {
       const customerRefundsResult = await this.refundRepository.findAll(
         { customerId },
         { limit: 100 },
-        {}
+        {},
       );
       // Handle both array and object return types
-      const customerRefunds = Array.isArray(customerRefundsResult) 
-        ? customerRefundsResult 
-        : (customerRefundsResult as any)?.refunds || [];
+      const customerRefunds = Array.isArray(customerRefundsResult)
+        ? customerRefundsResult
+        : customerRefundsResult?.refunds || [];
 
       // Create a mock refund object for fraud detection
       const mockRefund = new Refund({
@@ -532,8 +577,14 @@ export class RefundEligibilityService {
       });
 
       // Run fraud detection
-      const fraudResult = RefundPolicies.detectRefundFraud(mockRefund, customerRefunds);
-      const shouldBlock = RefundPolicies.shouldBlockRefund(mockRefund, fraudResult);
+      const fraudResult = RefundPolicies.detectRefundFraud(
+        mockRefund,
+        customerRefunds,
+      );
+      const shouldBlock = RefundPolicies.shouldBlockRefund(
+        mockRefund,
+        fraudResult,
+      );
 
       return {
         isFraudulent: fraudResult.isFraudulent,
@@ -541,7 +592,6 @@ export class RefundEligibilityService {
         reasons: fraudResult.reasons,
         shouldBlock,
       };
-
     } catch (error) {
       this.logger.error('Failed to check refund fraud', error, {
         orderId,
@@ -565,7 +615,7 @@ export class RefundEligibilityService {
 
   async checkBulkEligibility(
     orderIds: string[],
-    options: RefundEligibilityOptions = {}
+    options: RefundEligibilityOptions = {},
   ): Promise<Record<string, RefundEligibilityResult>> {
     const results: Record<string, RefundEligibilityResult> = {};
 
@@ -573,13 +623,15 @@ export class RefundEligibilityService {
     const batchSize = 10;
     for (let i = 0; i < orderIds.length; i += batchSize) {
       const batch = orderIds.slice(i, i + batchSize);
-      
+
       const batchPromises = batch.map(async (orderId) => {
         try {
           const result = await this.checkOrderEligibility(orderId, options);
           return { orderId, result };
         } catch (error) {
-          this.logger.error('Failed to check eligibility in batch', error, { orderId });
+          this.logger.error('Failed to check eligibility in batch', error, {
+            orderId,
+          });
           return {
             orderId,
             result: {
@@ -591,7 +643,7 @@ export class RefundEligibilityService {
       });
 
       const batchResults = await Promise.all(batchPromises);
-      
+
       for (const { orderId, result } of batchResults) {
         results[orderId] = result;
       }
@@ -607,37 +659,43 @@ export class RefundEligibilityService {
   async cacheEligibilityResult(
     orderId: string,
     result: RefundEligibilityResult,
-    ttlMinutes: number = 60
+    ttlMinutes: number = 60,
   ): Promise<void> {
     try {
       // This would cache the eligibility result in Redis or similar
       // Implementation depends on caching infrastructure
-      
+
       this.logger.log('Eligibility result cached', {
         orderId,
         isEligible: result.isEligible,
         ttlMinutes,
       });
     } catch (error) {
-      this.logger.error('Failed to cache eligibility result', error, { orderId });
+      this.logger.error('Failed to cache eligibility result', error, {
+        orderId,
+      });
     }
   }
 
-  async getCachedEligibilityResult(orderId: string): Promise<RefundEligibilityResult | null> {
+  async getCachedEligibilityResult(
+    orderId: string,
+  ): Promise<RefundEligibilityResult | null> {
     try {
       // This would retrieve cached eligibility result
       // Implementation depends on caching infrastructure
-      
+
       return null; // No cache implementation for now
     } catch (error) {
-      this.logger.error('Failed to get cached eligibility result', error, { orderId });
+      this.logger.error('Failed to get cached eligibility result', error, {
+        orderId,
+      });
       return null;
     }
   }
 
   async checkEligibility(
     orderId: string,
-    options: RefundEligibilityOptions = {}
+    options: RefundEligibilityOptions = {},
   ): Promise<RefundEligibilityResult> {
     // This is an alias for checkOrderEligibility for backward compatibility
     return this.checkOrderEligibility(orderId, options);

@@ -52,8 +52,14 @@ export class CategoryAttributeService {
   ) {}
 
   // Basic CRUD operations
-  async findByCategoryId(categoryId: string, includeInherited: boolean = true): Promise<CategoryAttribute[]> {
-    return this.categoryAttributeRepository.findByCategoryId(categoryId, includeInherited);
+  async findByCategoryId(
+    categoryId: string,
+    includeInherited: boolean = true,
+  ): Promise<CategoryAttribute[]> {
+    return this.categoryAttributeRepository.findByCategoryId(
+      categoryId,
+      includeInherited,
+    );
   }
 
   async findById(id: string): Promise<CategoryAttribute> {
@@ -64,8 +70,14 @@ export class CategoryAttributeService {
     return attribute;
   }
 
-  async findBySlug(categoryId: string, slug: string): Promise<CategoryAttribute> {
-    const attribute = await this.categoryAttributeRepository.findBySlug(categoryId, slug);
+  async findBySlug(
+    categoryId: string,
+    slug: string,
+  ): Promise<CategoryAttribute> {
+    const attribute = await this.categoryAttributeRepository.findBySlug(
+      categoryId,
+      slug,
+    );
     if (!attribute) {
       throw new NotFoundException('Category attribute not found');
     }
@@ -77,9 +89,13 @@ export class CategoryAttributeService {
     categoryId: string,
     createAttributeDto: CreateCategoryAttributeDto,
     createdBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<CategoryAttribute> {
-    this.logger.log('CategoryAttributeService.create', { categoryId, createAttributeDto, createdBy });
+    this.logger.log('CategoryAttributeService.create', {
+      categoryId,
+      createAttributeDto,
+      createdBy,
+    });
 
     // Validate permissions
     const category = await this.categoryRepository.findById(categoryId);
@@ -87,22 +103,39 @@ export class CategoryAttributeService {
       throw new NotFoundException('Category not found');
     }
 
-    if (!CategoryPolicies.canAddAttributeToCategory(category, createdBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to add attributes to this category');
+    if (
+      !CategoryPolicies.canAddAttributeToCategory(category, createdBy, userRole)
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to add attributes to this category',
+      );
     }
 
     // Validate input data
     CategoryValidators.validateAttributeName(createAttributeDto.name);
-    const normalizedSlug = CategoryValidators.validateAttributeSlug(createAttributeDto.slug);
+    const normalizedSlug = CategoryValidators.validateAttributeSlug(
+      createAttributeDto.slug,
+    );
 
-    if (createAttributeDto.allowedValues && createAttributeDto.allowedValues.length > 0) {
-      CategoryValidators.validateAllowedValues(createAttributeDto.allowedValues, createAttributeDto.type);
+    if (
+      createAttributeDto.allowedValues &&
+      createAttributeDto.allowedValues.length > 0
+    ) {
+      CategoryValidators.validateAllowedValues(
+        createAttributeDto.allowedValues,
+        createAttributeDto.type,
+      );
     }
 
     // Check slug uniqueness within category
-    const existingAttribute = await this.categoryAttributeRepository.findBySlug(categoryId, normalizedSlug);
+    const existingAttribute = await this.categoryAttributeRepository.findBySlug(
+      categoryId,
+      normalizedSlug,
+    );
     if (existingAttribute) {
-      throw new ConflictException('Attribute with this slug already exists in this category');
+      throw new ConflictException(
+        'Attribute with this slug already exists in this category',
+      );
     }
 
     // Validate type-specific requirements
@@ -115,7 +148,8 @@ export class CategoryAttributeService {
       createdBy,
     };
 
-    const attribute = await this.categoryAttributeRepository.create(attributeData);
+    const attribute =
+      await this.categoryAttributeRepository.create(attributeData);
 
     // Create audit log
     await this.categoryAuditService.logAction(
@@ -124,7 +158,7 @@ export class CategoryAttributeService {
       createdBy,
       null,
       attribute,
-      `Attribute ${attribute.name} created`
+      `Attribute ${attribute.name} created`,
     );
 
     // Emit event
@@ -136,8 +170,8 @@ export class CategoryAttributeService {
         attribute.name,
         attribute.slug,
         attribute.type,
-        createdBy
-      )
+        createdBy,
+      ),
     );
 
     // Auto-inherit to child categories if inheritable
@@ -145,7 +179,9 @@ export class CategoryAttributeService {
       await this.inheritToChildren(categoryId, attribute.id, createdBy);
     }
 
-    this.logger.log('Category attribute created successfully', { attributeId: attribute.id });
+    this.logger.log('Category attribute created successfully', {
+      attributeId: attribute.id,
+    });
     return attribute;
   }
 
@@ -154,16 +190,30 @@ export class CategoryAttributeService {
     id: string,
     updateAttributeDto: UpdateCategoryAttributeDto,
     updatedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<CategoryAttribute> {
-    this.logger.log('CategoryAttributeService.update', { id, updateAttributeDto, updatedBy });
+    this.logger.log('CategoryAttributeService.update', {
+      id,
+      updateAttributeDto,
+      updatedBy,
+    });
 
     const existingAttribute = await this.findById(id);
-    const category = await this.categoryRepository.findById(existingAttribute.categoryId);
+    const category = await this.categoryRepository.findById(
+      existingAttribute.categoryId,
+    );
 
     // Check permissions
-    if (!CategoryPolicies.canAddAttributeToCategory(category!, updatedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to update this attribute');
+    if (
+      !CategoryPolicies.canAddAttributeToCategory(
+        category!,
+        updatedBy,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to update this attribute',
+      );
     }
 
     // Validate input data
@@ -173,13 +223,16 @@ export class CategoryAttributeService {
 
     if (updateAttributeDto.allowedValues) {
       CategoryValidators.validateAllowedValues(
-        updateAttributeDto.allowedValues, 
-        updateAttributeDto.type || existingAttribute.type
+        updateAttributeDto.allowedValues,
+        updateAttributeDto.type || existingAttribute.type,
       );
     }
 
     // Validate type-specific requirements if type is changing
-    if (updateAttributeDto.type && updateAttributeDto.type !== existingAttribute.type) {
+    if (
+      updateAttributeDto.type &&
+      updateAttributeDto.type !== existingAttribute.type
+    ) {
       this.validateAttributeTypeRequirements({
         ...existingAttribute,
         ...updateAttributeDto,
@@ -198,7 +251,7 @@ export class CategoryAttributeService {
       updatedBy,
       existingAttribute,
       updatedAttribute,
-      `Attribute ${updatedAttribute.name} updated`
+      `Attribute ${updatedAttribute.name} updated`,
     );
 
     // Emit event
@@ -209,37 +262,62 @@ export class CategoryAttributeService {
         id,
         updatedAttribute.name,
         this.calculateAttributeChanges(existingAttribute, updatedAttribute),
-        updatedBy
-      )
+        updatedBy,
+      ),
     );
 
     // Update inherited attributes if inheritance properties changed
-    if (updateAttributeDto.isInheritable !== undefined || 
-        updateAttributeDto.allowedValues !== undefined ||
-        updateAttributeDto.defaultValue !== undefined) {
-      await this.updateInheritedAttributes(existingAttribute.categoryId, id, updatedBy);
+    if (
+      updateAttributeDto.isInheritable !== undefined ||
+      updateAttributeDto.allowedValues !== undefined ||
+      updateAttributeDto.defaultValue !== undefined
+    ) {
+      await this.updateInheritedAttributes(
+        existingAttribute.categoryId,
+        id,
+        updatedBy,
+      );
     }
 
-    this.logger.log('Category attribute updated successfully', { attributeId: id });
+    this.logger.log('Category attribute updated successfully', {
+      attributeId: id,
+    });
     return updatedAttribute;
   }
 
   // Delete operations
-  async delete(id: string, deletedBy: string, userRole: UserRole): Promise<void> {
+  async delete(
+    id: string,
+    deletedBy: string,
+    userRole: UserRole,
+  ): Promise<void> {
     this.logger.log('CategoryAttributeService.delete', { id, deletedBy });
 
     const attribute = await this.findById(id);
-    const category = await this.categoryRepository.findById(attribute.categoryId);
+    const category = await this.categoryRepository.findById(
+      attribute.categoryId,
+    );
 
     // Check permissions
-    if (!CategoryPolicies.canAddAttributeToCategory(category!, deletedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to delete this attribute');
+    if (
+      !CategoryPolicies.canAddAttributeToCategory(
+        category!,
+        deletedBy,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to delete this attribute',
+      );
     }
 
     // Check if attribute is being used in products
-    const isUsedInProducts = await this.categoryAttributeRepository.isAttributeUsedInProducts(id);
+    const isUsedInProducts =
+      await this.categoryAttributeRepository.isAttributeUsedInProducts(id);
     if (isUsedInProducts) {
-      throw new BadRequestException('Cannot delete attribute that is being used in products');
+      throw new BadRequestException(
+        'Cannot delete attribute that is being used in products',
+      );
     }
 
     await this.categoryAttributeRepository.delete(id);
@@ -254,7 +332,7 @@ export class CategoryAttributeService {
       deletedBy,
       attribute,
       null,
-      `Attribute ${attribute.name} deleted`
+      `Attribute ${attribute.name} deleted`,
     );
 
     // Emit event
@@ -264,11 +342,13 @@ export class CategoryAttributeService {
         attribute.categoryId,
         id,
         attribute.name,
-        deletedBy
-      )
+        deletedBy,
+      ),
     );
 
-    this.logger.log('Category attribute deleted successfully', { attributeId: id });
+    this.logger.log('Category attribute deleted successfully', {
+      attributeId: id,
+    });
   }
 
   // Inheritance operations
@@ -276,35 +356,51 @@ export class CategoryAttributeService {
     targetCategoryId: string,
     inheritDto: InheritAttributeDto,
     inheritedBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<AttributeInheritanceResult> {
-    this.logger.log('CategoryAttributeService.inheritAttributes', { 
-      targetCategoryId, 
-      inheritDto, 
-      inheritedBy 
+    this.logger.log('CategoryAttributeService.inheritAttributes', {
+      targetCategoryId,
+      inheritDto,
+      inheritedBy,
     });
 
-    const targetCategory = await this.categoryRepository.findById(targetCategoryId);
-    const sourceCategory = await this.categoryRepository.findById(inheritDto.sourceCategoryId);
+    const targetCategory =
+      await this.categoryRepository.findById(targetCategoryId);
+    const sourceCategory = await this.categoryRepository.findById(
+      inheritDto.sourceCategoryId,
+    );
 
     if (!targetCategory || !sourceCategory) {
       throw new NotFoundException('Category not found');
     }
 
     // Validate inheritance relationship
-    if (!CategoryPolicies.canInheritAttribute(sourceCategory, targetCategory, '')) {
-      throw new BadRequestException('Cannot inherit attributes from this category');
+    if (
+      !CategoryPolicies.canInheritAttribute(sourceCategory, targetCategory, '')
+    ) {
+      throw new BadRequestException(
+        'Cannot inherit attributes from this category',
+      );
     }
 
     // Check permissions
-    if (!CategoryPolicies.canAddAttributeToCategory(targetCategory, inheritedBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to inherit attributes');
+    if (
+      !CategoryPolicies.canAddAttributeToCategory(
+        targetCategory,
+        inheritedBy,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to inherit attributes',
+      );
     }
 
-    const sourceAttributes = await this.categoryAttributeRepository.findByCategoryId(
-      inheritDto.sourceCategoryId, 
-      false // Don't include inherited attributes
-    );
+    const sourceAttributes =
+      await this.categoryAttributeRepository.findByCategoryId(
+        inheritDto.sourceCategoryId,
+        false, // Don't include inherited attributes
+      );
 
     const inherited: CategoryAttribute[] = [];
     const skipped: string[] = [];
@@ -313,7 +409,10 @@ export class CategoryAttributeService {
     for (const sourceAttribute of sourceAttributes) {
       try {
         // Check if we should inherit this attribute
-        if (inheritDto.attributeSlugs && !inheritDto.attributeSlugs.includes(sourceAttribute.slug)) {
+        if (
+          inheritDto.attributeSlugs &&
+          !inheritDto.attributeSlugs.includes(sourceAttribute.slug)
+        ) {
           continue;
         }
 
@@ -323,10 +422,11 @@ export class CategoryAttributeService {
         }
 
         // Check if attribute already exists in target category
-        const existingAttribute = await this.categoryAttributeRepository.findBySlug(
-          targetCategoryId, 
-          sourceAttribute.slug
-        );
+        const existingAttribute =
+          await this.categoryAttributeRepository.findBySlug(
+            targetCategoryId,
+            sourceAttribute.slug,
+          );
 
         if (existingAttribute && !inheritDto.overrideExisting) {
           skipped.push(`${sourceAttribute.name}: already exists`);
@@ -337,7 +437,7 @@ export class CategoryAttributeService {
         const inheritedAttribute = await this.createInheritedAttribute(
           targetCategoryId,
           sourceAttribute,
-          inheritedBy
+          inheritedBy,
         );
 
         inherited.push(inheritedAttribute);
@@ -358,19 +458,18 @@ export class CategoryAttributeService {
             targetCategoryId,
             inheritedAttribute.id,
             inheritedAttribute.name,
-            inheritedBy
-          )
+            inheritedBy,
+          ),
         );
-
       } catch (error) {
         errors.push(`${sourceAttribute.name}: ${error.message}`);
       }
     }
 
-    this.logger.log('Attribute inheritance completed', { 
-      inherited: inherited.length, 
-      skipped: skipped.length, 
-      errors: errors.length 
+    this.logger.log('Attribute inheritance completed', {
+      inherited: inherited.length,
+      skipped: skipped.length,
+      errors: errors.length,
     });
 
     return { inherited, skipped, errors };
@@ -380,12 +479,12 @@ export class CategoryAttributeService {
     categoryId: string,
     overrideDto: OverrideAttributeDto,
     overriddenBy: string,
-    userRole: UserRole
+    userRole: UserRole,
   ): Promise<CategoryAttribute> {
-    this.logger.log('CategoryAttributeService.overrideAttribute', { 
-      categoryId, 
-      overrideDto, 
-      overriddenBy 
+    this.logger.log('CategoryAttributeService.overrideAttribute', {
+      categoryId,
+      overrideDto,
+      overriddenBy,
     });
 
     const category = await this.categoryRepository.findById(categoryId);
@@ -394,18 +493,30 @@ export class CategoryAttributeService {
     }
 
     // Check permissions
-    if (!CategoryPolicies.canOverrideAttribute(category, overrideDto.attributeSlug, overriddenBy, userRole)) {
-      throw new ForbiddenException('Insufficient permissions to override this attribute');
+    if (
+      !CategoryPolicies.canOverrideAttribute(
+        category,
+        overrideDto.attributeSlug,
+        overriddenBy,
+        userRole,
+      )
+    ) {
+      throw new ForbiddenException(
+        'Insufficient permissions to override this attribute',
+      );
     }
 
     // Find the inherited attribute
-    const inheritedAttribute = await this.categoryAttributeRepository.findBySlug(
-      categoryId, 
-      overrideDto.attributeSlug
-    );
+    const inheritedAttribute =
+      await this.categoryAttributeRepository.findBySlug(
+        categoryId,
+        overrideDto.attributeSlug,
+      );
 
     if (!inheritedAttribute || !inheritedAttribute.inheritedFrom) {
-      throw new BadRequestException('Attribute is not inherited or does not exist');
+      throw new BadRequestException(
+        'Attribute is not inherited or does not exist',
+      );
     }
 
     if (!inheritedAttribute.isOverridable) {
@@ -431,13 +542,13 @@ export class CategoryAttributeService {
     }
 
     const overriddenAttribute = await this.categoryAttributeRepository.update(
-      inheritedAttribute.id, 
-      overrideData
+      inheritedAttribute.id,
+      overrideData,
     );
 
     // Update inheritance rule
     await this.categoryAttributeRepository.updateInheritanceRule(
-      inheritedAttribute.inheritedFrom!,
+      inheritedAttribute.inheritedFrom,
       categoryId,
       {
         isOverridden: true,
@@ -446,7 +557,7 @@ export class CategoryAttributeService {
           defaultValue: overrideDto.defaultValue,
           validationRules: overrideDto.validationRules,
         },
-      }
+      },
     );
 
     // Create audit log
@@ -456,7 +567,7 @@ export class CategoryAttributeService {
       overriddenBy,
       inheritedAttribute,
       overriddenAttribute,
-      overrideDto.reason || `Attribute ${overriddenAttribute.name} overridden`
+      overrideDto.reason || `Attribute ${overriddenAttribute.name} overridden`,
     );
 
     // Emit event
@@ -472,46 +583,54 @@ export class CategoryAttributeService {
           validationRules: overrideDto.validationRules,
         },
         overriddenBy,
-        overrideDto.reason
-      )
+        overrideDto.reason,
+      ),
     );
 
-    this.logger.log('Attribute overridden successfully', { attributeId: overriddenAttribute.id });
+    this.logger.log('Attribute overridden successfully', {
+      attributeId: overriddenAttribute.id,
+    });
     return overriddenAttribute;
   }
 
   // Query operations
-  async getEffectiveAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getEffectiveAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     return this.categoryAttributeRepository.getEffectiveAttributes(categoryId);
   }
 
   async getVariantAttributes(categoryId: string): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isVariant);
+    return attributes.filter((attr) => attr.isVariant);
   }
 
-  async getFilterableAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getFilterableAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isFilterable);
+    return attributes.filter((attr) => attr.isFilterable);
   }
 
-  async getRequiredAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getRequiredAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isRequired);
+    return attributes.filter((attr) => attr.isRequired);
   }
 
   // Validation operations
   async validateAttributeValue(
-    attributeId: string, 
-    value: any
+    attributeId: string,
+    value: any,
   ): Promise<{ isValid: boolean; errors: string[] }> {
     const attribute = await this.findById(attributeId);
     return attribute.validateValue(value);
   }
 
   async validateProductAttributes(
-    categoryId: string, 
-    attributeValues: Record<string, any>
+    categoryId: string,
+    attributeValues: Record<string, any>,
   ): Promise<{ isValid: boolean; errors: string[] }> {
     const attributes = await this.getEffectiveAttributes(categoryId);
     const errors: string[] = [];
@@ -519,7 +638,7 @@ export class CategoryAttributeService {
     for (const attribute of attributes) {
       const value = attributeValues[attribute.slug];
       const validation = attribute.validateValue(value);
-      
+
       if (!validation.isValid) {
         errors.push(...validation.errors);
       }
@@ -532,20 +651,29 @@ export class CategoryAttributeService {
   }
 
   // Private helper methods
-  private validateAttributeTypeRequirements(attributeDto: CreateCategoryAttributeDto): void {
+  private validateAttributeTypeRequirements(
+    attributeDto: CreateCategoryAttributeDto,
+  ): void {
     switch (attributeDto.type) {
       case AttributeType.SELECT:
       case AttributeType.MULTI_SELECT:
-        if (!attributeDto.allowedValues || attributeDto.allowedValues.length === 0) {
-          throw new BadRequestException('Select attributes must have allowed values');
+        if (
+          !attributeDto.allowedValues ||
+          attributeDto.allowedValues.length === 0
+        ) {
+          throw new BadRequestException(
+            'Select attributes must have allowed values',
+          );
         }
         break;
-      
+
       case AttributeType.DIMENSION:
       case AttributeType.WEIGHT:
       case AttributeType.CURRENCY:
         if (!attributeDto.validationRules) {
-          throw new BadRequestException(`${attributeDto.type} attributes must have validation rules`);
+          throw new BadRequestException(
+            `${attributeDto.type} attributes must have validation rules`,
+          );
         }
         break;
     }
@@ -554,7 +682,7 @@ export class CategoryAttributeService {
   private async createInheritedAttribute(
     targetCategoryId: string,
     sourceAttribute: CategoryAttribute,
-    inheritedBy: string
+    inheritedBy: string,
   ): Promise<CategoryAttribute> {
     const inheritedData = {
       categoryId: targetCategoryId,
@@ -583,17 +711,25 @@ export class CategoryAttributeService {
   }
 
   private async inheritToChildren(
-    categoryId: string, 
-    attributeId: string, 
-    inheritedBy: string
+    categoryId: string,
+    attributeId: string,
+    inheritedBy: string,
   ): Promise<void> {
-    const children = await this.categoryRepository.findChildren(categoryId, {}, { limit: 1000 });
-    
+    const children = await this.categoryRepository.findChildren(
+      categoryId,
+      {},
+      { limit: 1000 },
+    );
+
     for (const child of children.data) {
       try {
         const sourceAttribute = await this.findById(attributeId);
-        await this.createInheritedAttribute(child.id, sourceAttribute, inheritedBy);
-        
+        await this.createInheritedAttribute(
+          child.id,
+          sourceAttribute,
+          inheritedBy,
+        );
+
         // Recursively inherit to grandchildren
         await this.inheritToChildren(child.id, attributeId, inheritedBy);
       } catch (error) {
@@ -607,29 +743,39 @@ export class CategoryAttributeService {
   }
 
   private async updateInheritedAttributes(
-    categoryId: string, 
-    attributeId: string, 
-    updatedBy: string
+    categoryId: string,
+    attributeId: string,
+    updatedBy: string,
   ): Promise<void> {
     // Update all inherited instances of this attribute
-    await this.categoryAttributeRepository.updateInheritedAttributes(attributeId, updatedBy);
+    await this.categoryAttributeRepository.updateInheritedAttributes(
+      attributeId,
+      updatedBy,
+    );
   }
 
   private calculateAttributeChanges(
-    oldAttribute: CategoryAttribute, 
-    newAttribute: CategoryAttribute
+    oldAttribute: CategoryAttribute,
+    newAttribute: CategoryAttribute,
   ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     const fields = [
-      'name', 'description', 'type', 'isRequired', 'isVariant', 'isFilterable',
-      'defaultValue', 'allowedValues', 'displayOrder'
+      'name',
+      'description',
+      'type',
+      'isRequired',
+      'isVariant',
+      'isFilterable',
+      'defaultValue',
+      'allowedValues',
+      'displayOrder',
     ];
-    
+
     for (const field of fields) {
       const oldValue = (oldAttribute as any)[field];
       const newValue = (newAttribute as any)[field];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changes[field] = { from: oldValue, to: newValue };
       }

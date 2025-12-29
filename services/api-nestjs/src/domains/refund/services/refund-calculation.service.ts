@@ -16,11 +16,12 @@ export interface RefundCalculationResult {
 
 @Injectable()
 export class RefundCalculationService {
-  constructor(
-    private readonly logger: LoggerService,
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
-  async calculateRefundAmount(order: any, refundItems?: any[]): Promise<RefundCalculationResult> {
+  async calculateRefundAmount(
+    order: any,
+    refundItems?: any[],
+  ): Promise<RefundCalculationResult> {
     try {
       let itemsTotal = 0;
       let taxRefund = 0;
@@ -28,11 +29,14 @@ export class RefundCalculationService {
       if (refundItems && refundItems.length > 0) {
         // Calculate partial refund for specific items
         for (const refundItem of refundItems) {
-          const orderItem = order.items?.find((item: any) => item.id === refundItem.orderItemId);
+          const orderItem = order.items?.find(
+            (item: any) => item.id === refundItem.orderItemId,
+          );
           if (orderItem) {
-            const itemRefundAmount = (orderItem.unitPrice || 0) * refundItem.quantity;
+            const itemRefundAmount =
+              (orderItem.unitPrice || 0) * refundItem.quantity;
             itemsTotal += itemRefundAmount;
-            
+
             // Calculate proportional tax refund
             const taxRate = order.taxAmount / order.subtotal || 0;
             taxRefund += itemRefundAmount * taxRate;
@@ -45,14 +49,18 @@ export class RefundCalculationService {
       }
 
       // Calculate shipping refund (only for full refunds or if explicitly requested)
-      const shippingRefund = refundItems ? 0 : Number(order.shippingAmount || 0);
+      const shippingRefund = refundItems
+        ? 0
+        : Number(order.shippingAmount || 0);
 
       // Calculate discount adjustment (proportional to refunded items)
-      const discountRate = Number(order.discountAmount || 0) / Number(order.subtotal || 1);
+      const discountRate =
+        Number(order.discountAmount || 0) / Number(order.subtotal || 1);
       const discountAdjustment = itemsTotal * discountRate;
 
       // Calculate fees (typically a percentage of the refund amount)
-      const grossRefundAmount = itemsTotal + shippingRefund + taxRefund - discountAdjustment;
+      const grossRefundAmount =
+        itemsTotal + shippingRefund + taxRefund - discountAdjustment;
       const refundFees = this.calculateRefundFees(grossRefundAmount);
 
       const netRefundAmount = grossRefundAmount - refundFees;
@@ -70,17 +78,24 @@ export class RefundCalculationService {
         },
       };
     } catch (error) {
-      this.logger.error('Failed to calculate refund amount', error, { orderId: order.id });
+      this.logger.error('Failed to calculate refund amount', error, {
+        orderId: order.id,
+      });
       throw error;
     }
   }
 
-  async calculatePartialRefundAmount(order: any, amount: number): Promise<RefundCalculationResult> {
+  async calculatePartialRefundAmount(
+    order: any,
+    amount: number,
+  ): Promise<RefundCalculationResult> {
     try {
       const maxPossibleRefund = Number(order.totalAmount || 0);
-      
+
       if (amount > maxPossibleRefund) {
-        throw new Error(`Refund amount ${amount} exceeds order total ${maxPossibleRefund}`);
+        throw new Error(
+          `Refund amount ${amount} exceeds order total ${maxPossibleRefund}`,
+        );
       }
 
       const refundFees = this.calculateRefundFees(amount);
@@ -103,7 +118,10 @@ export class RefundCalculationService {
         },
       };
     } catch (error) {
-      this.logger.error('Failed to calculate partial refund amount', error, { orderId: order.id, amount });
+      this.logger.error('Failed to calculate partial refund amount', error, {
+        orderId: order.id,
+        amount,
+      });
       throw error;
     }
   }
@@ -116,33 +134,49 @@ export class RefundCalculationService {
     return Math.round(amount * feePercentage + fixedFee);
   }
 
-  async validateRefundAmount(order: any, requestedAmount: number): Promise<boolean> {
+  async validateRefundAmount(
+    order: any,
+    requestedAmount: number,
+  ): Promise<boolean> {
     try {
       const calculation = await this.calculateRefundAmount(order);
       return requestedAmount <= calculation.maxRefundAmount;
     } catch (error) {
-      this.logger.error('Failed to validate refund amount', error, { orderId: order.id, requestedAmount });
+      this.logger.error('Failed to validate refund amount', error, {
+        orderId: order.id,
+        requestedAmount,
+      });
       return false;
     }
   }
 
-  async getRefundBreakdown(order: any, refundType: string, refundData: any): Promise<RefundCalculationResult> {
+  async getRefundBreakdown(
+    order: any,
+    refundType: string,
+    refundData: any,
+  ): Promise<RefundCalculationResult> {
     try {
       switch (refundType) {
         case 'FULL':
           return await this.calculateRefundAmount(order);
-        
+
         case 'PARTIAL':
-          return await this.calculatePartialRefundAmount(order, refundData.amount);
-        
+          return await this.calculatePartialRefundAmount(
+            order,
+            refundData.amount,
+          );
+
         case 'ITEM_LEVEL':
           return await this.calculateRefundAmount(order, refundData.items);
-        
+
         default:
           throw new Error(`Unsupported refund type: ${refundType}`);
       }
     } catch (error) {
-      this.logger.error('Failed to get refund breakdown', error, { orderId: order.id, refundType });
+      this.logger.error('Failed to get refund breakdown', error, {
+        orderId: order.id,
+        refundType,
+      });
       throw error;
     }
   }

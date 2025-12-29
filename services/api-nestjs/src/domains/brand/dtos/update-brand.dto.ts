@@ -5,7 +5,7 @@ import { CreateBrandDto } from './create-brand.dto';
 import { BrandStatus } from '../enums/brand-status.enum';
 
 export class UpdateBrandDto extends PartialType(
-  OmitType(CreateBrandDto, ['slug'] as const)
+  OmitType(CreateBrandDto, ['slug'] as const),
 ) {
   @ApiPropertyOptional({
     description: 'Brand status',

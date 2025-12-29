@@ -5,14 +5,18 @@ export enum VariantStatus {
   ARCHIVED = 'ARCHIVED',
 }
 
-export const VariantStatusTransitions: Record<VariantStatus, VariantStatus[]> = {
-  [VariantStatus.DRAFT]: [VariantStatus.ACTIVE, VariantStatus.ARCHIVED],
-  [VariantStatus.ACTIVE]: [VariantStatus.DISABLED, VariantStatus.ARCHIVED],
-  [VariantStatus.DISABLED]: [VariantStatus.ACTIVE, VariantStatus.ARCHIVED],
-  [VariantStatus.ARCHIVED]: [], // Terminal state
-};
+export const VariantStatusTransitions: Record<VariantStatus, VariantStatus[]> =
+  {
+    [VariantStatus.DRAFT]: [VariantStatus.ACTIVE, VariantStatus.ARCHIVED],
+    [VariantStatus.ACTIVE]: [VariantStatus.DISABLED, VariantStatus.ARCHIVED],
+    [VariantStatus.DISABLED]: [VariantStatus.ACTIVE, VariantStatus.ARCHIVED],
+    [VariantStatus.ARCHIVED]: [], // Terminal state
+  };
 
-export function canTransitionTo(from: VariantStatus, to: VariantStatus): boolean {
+export function canTransitionTo(
+  from: VariantStatus,
+  to: VariantStatus,
+): boolean {
   return VariantStatusTransitions[from].includes(to);
 }
 

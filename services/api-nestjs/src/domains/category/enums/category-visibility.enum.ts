@@ -1,6 +1,6 @@
 export enum CategoryVisibility {
-  PUBLIC = 'PUBLIC',       // Visible to all users
-  INTERNAL = 'INTERNAL',   // Visible to sellers only
+  PUBLIC = 'PUBLIC', // Visible to all users
+  INTERNAL = 'INTERNAL', // Visible to sellers only
   RESTRICTED = 'RESTRICTED', // Admin-only visibility
 }
 

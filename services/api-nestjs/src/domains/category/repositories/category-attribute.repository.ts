@@ -62,7 +62,10 @@ export class CategoryAttributeRepository {
     return attribute ? this.mapToDomain(attribute) : null;
   }
 
-  async findBySlug(categoryId: string, slug: string): Promise<CategoryAttribute | null> {
+  async findBySlug(
+    categoryId: string,
+    slug: string,
+  ): Promise<CategoryAttribute | null> {
     const attribute = await this.prisma.categoryAttribute.findUnique({
       where: {
         categoryId_slug: {
@@ -76,8 +79,8 @@ export class CategoryAttributeRepository {
   }
 
   async findByCategoryId(
-    categoryId: string, 
-    includeInherited: boolean = true
+    categoryId: string,
+    includeInherited: boolean = true,
   ): Promise<CategoryAttribute[]> {
     const where: any = { categoryId };
 
@@ -92,7 +95,7 @@ export class CategoryAttributeRepository {
       // Get inherited attributes from parent categories
       const inheritedAttributes = await this.getInheritedAttributes(categoryId);
       result = [...result, ...inheritedAttributes];
-      
+
       // Sort by display order
       result.sort((a, b) => a.displayOrder - b.displayOrder);
     }
@@ -111,7 +114,10 @@ export class CategoryAttributeRepository {
     return this.mapToDomain(attribute);
   }
 
-  async update(id: string, data: Partial<CategoryAttribute>): Promise<CategoryAttribute> {
+  async update(
+    id: string,
+    data: Partial<CategoryAttribute>,
+  ): Promise<CategoryAttribute> {
     const attribute = await this.prisma.categoryAttribute.update({
       where: { id },
       data: {
@@ -129,7 +135,9 @@ export class CategoryAttributeRepository {
     });
   }
 
-  async getEffectiveAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getEffectiveAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     // Get category with its path to find all ancestor categories
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId },
@@ -142,7 +150,7 @@ export class CategoryAttributeRepository {
 
     // Get all attributes from this category and its ancestors
     const allCategoryIds = [...category.pathIds, categoryId];
-    
+
     const attributes = await this.prisma.categoryAttribute.findMany({
       where: {
         categoryId: { in: allCategoryIds },
@@ -155,7 +163,7 @@ export class CategoryAttributeRepository {
 
     // Remove duplicates (child attributes override parent attributes with same slug)
     const uniqueAttributes = new Map<string, any>();
-    
+
     for (const attribute of attributes) {
       if (!uniqueAttributes.has(attribute.slug)) {
         uniqueAttributes.set(attribute.slug, attribute);
@@ -177,7 +185,7 @@ export class CategoryAttributeRepository {
   async updateInheritanceRule(
     sourceAttributeId: string,
     targetCategoryId: string,
-    data: Partial<InheritanceRuleData>
+    data: Partial<InheritanceRuleData>,
   ): Promise<void> {
     await this.prisma.categoryAttributeInheritance.update({
       where: {
@@ -199,7 +207,10 @@ export class CategoryAttributeRepository {
     });
   }
 
-  async updateInheritedAttributes(sourceAttributeId: string, updatedBy: string): Promise<void> {
+  async updateInheritedAttributes(
+    sourceAttributeId: string,
+    updatedBy: string,
+  ): Promise<void> {
     // Get the source attribute
     const sourceAttribute = await this.findById(sourceAttributeId);
     if (!sourceAttribute) {
@@ -256,20 +267,26 @@ export class CategoryAttributeRepository {
 
   async getVariantAttributes(categoryId: string): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isVariant);
+    return attributes.filter((attr) => attr.isVariant);
   }
 
-  async getFilterableAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getFilterableAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isFilterable);
+    return attributes.filter((attr) => attr.isFilterable);
   }
 
-  async getRequiredAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getRequiredAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     const attributes = await this.getEffectiveAttributes(categoryId);
-    return attributes.filter(attr => attr.isRequired);
+    return attributes.filter((attr) => attr.isRequired);
   }
 
-  async bulkCreate(attributes: CreateCategoryAttributeData[]): Promise<CategoryAttribute[]> {
+  async bulkCreate(
+    attributes: CreateCategoryAttributeData[],
+  ): Promise<CategoryAttribute[]> {
     const results: CategoryAttribute[] = [];
 
     await this.prisma.$transaction(async (tx) => {
@@ -288,7 +305,7 @@ export class CategoryAttributeRepository {
   }
 
   async bulkUpdate(
-    updates: Array<{ id: string; data: Partial<CategoryAttribute> }>
+    updates: Array<{ id: string; data: Partial<CategoryAttribute> }>,
   ): Promise<CategoryAttribute[]> {
     const results: CategoryAttribute[] = [];
 
@@ -349,10 +366,13 @@ export class CategoryAttributeRepository {
       }),
     ]);
 
-    const typeCountsMap = Object.values(AttributeType).reduce((acc, type) => {
-      acc[type] = 0;
-      return acc;
-    }, {} as Record<AttributeType, number>);
+    const typeCountsMap = Object.values(AttributeType).reduce(
+      (acc, type) => {
+        acc[type] = 0;
+        return acc;
+      },
+      {} as Record<AttributeType, number>,
+    );
 
     attributesByType.forEach(({ type, _count }) => {
       typeCountsMap[type] = _count;
@@ -369,7 +389,9 @@ export class CategoryAttributeRepository {
   }
 
   // Private helper methods
-  private async getInheritedAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  private async getInheritedAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     // Get category path to find ancestors
     const category = await this.prisma.category.findUnique({
       where: { id: categoryId },
@@ -390,15 +412,19 @@ export class CategoryAttributeRepository {
     });
 
     // Filter out attributes that are already defined in the target category
-    const existingAttributeSlugs = await this.prisma.categoryAttribute.findMany({
-      where: { categoryId },
-      select: { slug: true },
-    });
+    const existingAttributeSlugs = await this.prisma.categoryAttribute.findMany(
+      {
+        where: { categoryId },
+        select: { slug: true },
+      },
+    );
 
-    const existingSlugs = new Set(existingAttributeSlugs.map(attr => attr.slug));
+    const existingSlugs = new Set(
+      existingAttributeSlugs.map((attr) => attr.slug),
+    );
 
     return inheritableAttributes
-      .filter(attr => !existingSlugs.has(attr.slug))
+      .filter((attr) => !existingSlugs.has(attr.slug))
       .map(this.mapToDomain);
   }
 

@@ -41,36 +41,36 @@ export interface PromotionRule {
   type: PromotionType;
   scope: PromotionScope;
   status: PromotionStatus;
-  
+
   // Discount configuration
   discountValue: number; // Percentage or fixed amount
   maxDiscountAmount?: number; // Cap for percentage discounts
   minOrderAmount?: number; // Minimum order value
-  
+
   // Usage limits
   usageLimit?: number; // Total usage limit
   usageLimitPerUser?: number; // Per-user usage limit
   currentUsage: number;
-  
+
   // Validity
   validFrom: Date;
   validTo: Date;
-  
+
   // Scope filters
   applicableCategories?: string[];
   applicableProducts?: string[];
   applicableSellers?: string[];
   applicableUsers?: string[];
-  
+
   // Buy X Get Y specific
   buyQuantity?: number;
   getQuantity?: number;
   getDiscountPercentage?: number;
-  
+
   // Bundle specific
   bundleProducts?: string[];
   bundleMinQuantity?: number;
-  
+
   // Metadata
   priority: number;
   isStackable: boolean;
@@ -146,7 +146,10 @@ export class PromotionService {
     createPromotionDto: CreatePromotionDto,
     createdBy: string,
   ): Promise<PromotionRule> {
-    this.logger.log('PromotionService.createPromotion', { createPromotionDto, createdBy });
+    this.logger.log('PromotionService.createPromotion', {
+      createPromotionDto,
+      createdBy,
+    });
 
     // Validate promotion data
     this.validatePromotionData(createPromotionDto);
@@ -178,20 +181,33 @@ export class PromotionService {
       timestamp: new Date(),
     });
 
-    this.logger.log('Promotion created successfully', { promotionId: promotion.id });
+    this.logger.log('Promotion created successfully', {
+      promotionId: promotion.id,
+    });
     return promotion;
   }
 
-  async activatePromotion(promotionId: string, activatedBy: string): Promise<PromotionRule> {
-    this.logger.log('PromotionService.activatePromotion', { promotionId, activatedBy });
+  async activatePromotion(
+    promotionId: string,
+    activatedBy: string,
+  ): Promise<PromotionRule> {
+    this.logger.log('PromotionService.activatePromotion', {
+      promotionId,
+      activatedBy,
+    });
 
     const promotion = await this.promotionRepository.findById(promotionId);
     if (!promotion) {
       throw new NotFoundException('Promotion not found');
     }
 
-    if (promotion.status !== PromotionStatus.DRAFT && promotion.status !== PromotionStatus.PAUSED) {
-      throw new BadRequestException('Promotion cannot be activated from current status');
+    if (
+      promotion.status !== PromotionStatus.DRAFT &&
+      promotion.status !== PromotionStatus.PAUSED
+    ) {
+      throw new BadRequestException(
+        'Promotion cannot be activated from current status',
+      );
     }
 
     // Validate promotion is within valid date range
@@ -200,9 +216,12 @@ export class PromotionService {
       throw new BadRequestException('Promotion is outside valid date range');
     }
 
-    const updatedPromotion = await this.promotionRepository.update(promotionId, {
-      status: PromotionStatus.ACTIVE,
-    });
+    const updatedPromotion = await this.promotionRepository.update(
+      promotionId,
+      {
+        status: PromotionStatus.ACTIVE,
+      },
+    );
 
     // Emit promotion activated event
     this.eventEmitter.emit('promotion.activated', {
@@ -219,20 +238,22 @@ export class PromotionService {
   async getEligiblePromotions(
     eligibilityCheck: PromotionEligibilityCheck,
   ): Promise<PromotionRule[]> {
-    this.logger.log('PromotionService.getEligiblePromotions', { 
+    this.logger.log('PromotionService.getEligiblePromotions', {
       userId: eligibilityCheck.userId,
       itemCount: eligibilityCheck.items.length,
       totalAmount: eligibilityCheck.totalAmount,
     });
 
     const now = new Date();
-    
+
     // Get all active promotions
     let promotions = await this.promotionRepository.findActive(now);
 
     // Filter by promotion code if provided
     if (eligibilityCheck.promotionCode) {
-      promotions = promotions.filter(p => p.code === eligibilityCheck.promotionCode);
+      promotions = promotions.filter(
+        (p) => p.code === eligibilityCheck.promotionCode,
+      );
     }
 
     // Filter eligible promotions
@@ -250,7 +271,7 @@ export class PromotionService {
     this.logger.log('Eligible promotions found', {
       userId: eligibilityCheck.userId,
       eligibleCount: eligiblePromotions.length,
-      promotionIds: eligiblePromotions.map(p => p.id),
+      promotionIds: eligiblePromotions.map((p) => p.id),
     });
 
     return eligiblePromotions;
@@ -265,7 +286,8 @@ export class PromotionService {
       maxPromotions,
     });
 
-    const eligiblePromotions = await this.getEligiblePromotions(eligibilityCheck);
+    const eligiblePromotions =
+      await this.getEligiblePromotions(eligibilityCheck);
     const applications: PromotionApplication[] = [];
     let remainingItems = [...eligibilityCheck.items];
     let remainingAmount = eligibilityCheck.totalAmount;
@@ -298,7 +320,10 @@ export class PromotionService {
     this.logger.log('Promotions applied', {
       userId: eligibilityCheck.userId,
       applicationsCount: applications.length,
-      totalDiscount: applications.reduce((sum, app) => sum + app.discountAmount, 0),
+      totalDiscount: applications.reduce(
+        (sum, app) => sum + app.discountAmount,
+        0,
+      ),
     });
 
     return applications;
@@ -337,7 +362,10 @@ export class PromotionService {
     });
 
     // Check if promotion has reached usage limit
-    if (promotion.usageLimit && promotion.currentUsage + 1 >= promotion.usageLimit) {
+    if (
+      promotion.usageLimit &&
+      promotion.currentUsage + 1 >= promotion.usageLimit
+    ) {
       await this.promotionRepository.update(promotionId, {
         status: PromotionStatus.EXPIRED,
       });
@@ -367,12 +395,18 @@ export class PromotionService {
     eligibilityCheck: PromotionEligibilityCheck,
   ): Promise<boolean> {
     // Check minimum order amount
-    if (promotion.minOrderAmount && eligibilityCheck.totalAmount < promotion.minOrderAmount) {
+    if (
+      promotion.minOrderAmount &&
+      eligibilityCheck.totalAmount < promotion.minOrderAmount
+    ) {
       return false;
     }
 
     // Check usage limits
-    if (promotion.usageLimit && promotion.currentUsage >= promotion.usageLimit) {
+    if (
+      promotion.usageLimit &&
+      promotion.currentUsage >= promotion.usageLimit
+    ) {
       return false;
     }
 
@@ -394,19 +428,19 @@ export class PromotionService {
 
       case PromotionScope.CATEGORY:
         if (!promotion.applicableCategories?.length) return false;
-        return eligibilityCheck.items.some(item =>
+        return eligibilityCheck.items.some((item) =>
           promotion.applicableCategories!.includes(item.categoryId),
         );
 
       case PromotionScope.PRODUCT:
         if (!promotion.applicableProducts?.length) return false;
-        return eligibilityCheck.items.some(item =>
+        return eligibilityCheck.items.some((item) =>
           promotion.applicableProducts!.includes(item.productId),
         );
 
       case PromotionScope.SELLER:
         if (!promotion.applicableSellers?.length) return false;
-        return eligibilityCheck.items.some(item =>
+        return eligibilityCheck.items.some((item) =>
           promotion.applicableSellers!.includes(item.sellerId),
         );
 
@@ -440,13 +474,13 @@ export class PromotionService {
           const cappedDiscount = promotion.maxDiscountAmount
             ? Math.min(itemDiscount, promotion.maxDiscountAmount)
             : itemDiscount;
-          
+
           discountAmount += cappedDiscount;
           discountedItems.push({
             variantId: item.variantId,
             quantity: item.quantity,
             originalPrice: item.unitPrice,
-            discountedPrice: item.unitPrice - (cappedDiscount / item.quantity),
+            discountedPrice: item.unitPrice - cappedDiscount / item.quantity,
             discountAmount: cappedDiscount,
           });
         }
@@ -456,20 +490,20 @@ export class PromotionService {
         discountAmount = Math.min(promotion.discountValue, totalAmount);
         // Distribute discount proportionally across applicable items
         const applicableTotal = applicableItems.reduce(
-          (sum, item) => sum + (item.quantity * item.unitPrice),
+          (sum, item) => sum + item.quantity * item.unitPrice,
           0,
         );
-        
+
         for (const item of applicableItems) {
           const itemTotal = item.quantity * item.unitPrice;
           const itemDiscountRatio = itemTotal / applicableTotal;
           const itemDiscount = discountAmount * itemDiscountRatio;
-          
+
           discountedItems.push({
             variantId: item.variantId,
             quantity: item.quantity,
             originalPrice: item.unitPrice,
-            discountedPrice: item.unitPrice - (itemDiscount / item.quantity),
+            discountedPrice: item.unitPrice - itemDiscount / item.quantity,
             discountAmount: itemDiscount,
           });
         }
@@ -477,7 +511,10 @@ export class PromotionService {
 
       case PromotionType.BUY_X_GET_Y:
         // Implementation for Buy X Get Y logic
-        discountAmount = this.calculateBuyXGetYDiscount(promotion, applicableItems);
+        discountAmount = this.calculateBuyXGetYDiscount(
+          promotion,
+          applicableItems,
+        );
         break;
 
       case PromotionType.FREE_SHIPPING:
@@ -511,17 +548,17 @@ export class PromotionService {
         return items;
 
       case PromotionScope.CATEGORY:
-        return items.filter(item =>
+        return items.filter((item) =>
           promotion.applicableCategories?.includes(item.categoryId),
         );
 
       case PromotionScope.PRODUCT:
-        return items.filter(item =>
+        return items.filter((item) =>
           promotion.applicableProducts?.includes(item.productId),
         );
 
       case PromotionScope.SELLER:
-        return items.filter(item =>
+        return items.filter((item) =>
           promotion.applicableSellers?.includes(item.sellerId),
         );
 
@@ -540,7 +577,7 @@ export class PromotionService {
 
     // Sort items by price (ascending) to give discount on cheapest items
     const sortedItems = [...items].sort((a, b) => a.unitPrice - b.unitPrice);
-    
+
     let totalQuantity = 0;
     let discountAmount = 0;
 
@@ -558,9 +595,10 @@ export class PromotionService {
 
       const itemsToDiscount = Math.min(remainingFreeItems, item.quantity);
       const itemDiscount = itemsToDiscount * item.unitPrice;
-      
+
       if (promotion.getDiscountPercentage) {
-        discountAmount += (itemDiscount * promotion.getDiscountPercentage) / 100;
+        discountAmount +=
+          (itemDiscount * promotion.getDiscountPercentage) / 100;
       } else {
         discountAmount += itemDiscount; // 100% discount (free)
       }
@@ -582,12 +620,16 @@ export class PromotionService {
 
   private validatePromotionData(data: CreatePromotionDto): void {
     if (data.validFrom >= data.validTo) {
-      throw new BadRequestException('Valid from date must be before valid to date');
+      throw new BadRequestException(
+        'Valid from date must be before valid to date',
+      );
     }
 
     if (data.type === PromotionType.PERCENTAGE_DISCOUNT) {
       if (data.discountValue <= 0 || data.discountValue > 100) {
-        throw new BadRequestException('Percentage discount must be between 0 and 100');
+        throw new BadRequestException(
+          'Percentage discount must be between 0 and 100',
+        );
       }
     }
 
@@ -596,8 +638,15 @@ export class PromotionService {
     }
 
     if (data.type === PromotionType.BUY_X_GET_Y) {
-      if (!data.buyQuantity || !data.getQuantity || data.buyQuantity <= 0 || data.getQuantity <= 0) {
-        throw new BadRequestException('Buy X Get Y promotions require valid buy and get quantities');
+      if (
+        !data.buyQuantity ||
+        !data.getQuantity ||
+        data.buyQuantity <= 0 ||
+        data.getQuantity <= 0
+      ) {
+        throw new BadRequestException(
+          'Buy X Get Y promotions require valid buy and get quantities',
+        );
       }
     }
   }

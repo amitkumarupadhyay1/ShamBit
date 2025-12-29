@@ -1,4 +1,16 @@
-import { IsString, IsOptional, IsBoolean, IsArray, IsUrl, Length, IsEnum, IsInt, Min, Max, IsUUID } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsArray,
+  IsUrl,
+  Length,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsUUID,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { CategoryVisibility } from '../enums/category-visibility.enum';
@@ -64,7 +76,8 @@ export class CreateCategoryDto {
 
   @ApiPropertyOptional({
     description: 'SEO description for search engines',
-    example: 'Shop the latest electronics including smartphones, laptops, and accessories at great prices.',
+    example:
+      'Shop the latest electronics including smartphones, laptops, and accessories at great prices.',
     maxLength: 160,
   })
   @IsOptional()

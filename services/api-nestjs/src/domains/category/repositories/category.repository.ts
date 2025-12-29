@@ -32,9 +32,12 @@ export class CategoryRepository implements ICategoryRepository {
   ) {}
 
   // Basic CRUD operations
-  async findById(id: string, options: TreeOptions = {}): Promise<Category | null> {
+  async findById(
+    id: string,
+    options: TreeOptions = {},
+  ): Promise<Category | null> {
     const include = this.buildIncludeOptions(options);
-    
+
     const category = await this.prisma.category.findFirst({
       where: {
         id,
@@ -46,9 +49,12 @@ export class CategoryRepository implements ICategoryRepository {
     return category ? this.mapToDomain(category) : null;
   }
 
-  async findBySlug(slug: string, options: TreeOptions = {}): Promise<Category | null> {
+  async findBySlug(
+    slug: string,
+    options: TreeOptions = {},
+  ): Promise<Category | null> {
     const include = this.buildIncludeOptions(options);
-    
+
     const category = await this.prisma.category.findFirst({
       where: {
         slug,
@@ -60,9 +66,12 @@ export class CategoryRepository implements ICategoryRepository {
     return category ? this.mapToDomain(category) : null;
   }
 
-  async findByPath(path: string, options: TreeOptions = {}): Promise<Category | null> {
+  async findByPath(
+    path: string,
+    options: TreeOptions = {},
+  ): Promise<Category | null> {
     const include = this.buildIncludeOptions(options);
-    
+
     const category = await this.prisma.category.findFirst({
       where: {
         path,
@@ -77,7 +86,7 @@ export class CategoryRepository implements ICategoryRepository {
   // List and search operations
   async findAll(
     filters: CategoryFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: Category[]; total: number }> {
     const {
       page = 1,
@@ -117,27 +126,24 @@ export class CategoryRepository implements ICategoryRepository {
 
   async findRoots(
     filters: CategoryFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: Category[]; total: number }> {
-    return this.findAll(
-      { ...filters, parentId: null },
-      pagination
-    );
+    return this.findAll({ ...filters, parentId: null }, pagination);
   }
 
   async findChildren(
     parentId: string,
     filters: CategoryFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: Category[]; total: number }> {
-    return this.findAll(
-      { ...filters, parentId },
-      pagination
-    );
+    return this.findAll({ ...filters, parentId }, pagination);
   }
 
   // Tree traversal operations
-  async findAncestors(categoryId: string, includeRoot: boolean = true): Promise<Category[]> {
+  async findAncestors(
+    categoryId: string,
+    includeRoot: boolean = true,
+  ): Promise<Category[]> {
     const category = await this.findById(categoryId);
     if (!category) {
       return [];
@@ -146,7 +152,7 @@ export class CategoryRepository implements ICategoryRepository {
     // Parse path to get ancestor IDs
     const pathParts = category.path.split('/').filter(Boolean);
     const ancestorIds = includeRoot ? pathParts : pathParts.slice(1);
-    
+
     if (ancestorIds.length === 0) {
       return [];
     }
@@ -161,7 +167,7 @@ export class CategoryRepository implements ICategoryRepository {
 
     // Maintain order based on path
     const orderedAncestors = ancestorIds
-      .map(id => ancestors.find(a => a.id === id))
+      .map((id) => ancestors.find((a) => a.id === id))
       .filter(Boolean)
       .map(this.mapToDomain);
 
@@ -171,7 +177,7 @@ export class CategoryRepository implements ICategoryRepository {
   async findDescendants(
     categoryId: string,
     maxDepth?: number,
-    activeOnly: boolean = false
+    activeOnly: boolean = false,
   ): Promise<Category[]> {
     const category = await this.findById(categoryId);
     if (!category) {
@@ -193,16 +199,16 @@ export class CategoryRepository implements ICategoryRepository {
 
     const descendants = await this.prisma.category.findMany({
       where,
-      orderBy: [
-        { level: 'asc' },
-        { sortOrder: 'asc' },
-      ],
+      orderBy: [{ level: 'asc' }, { sortOrder: 'asc' }],
     });
 
     return descendants.map(this.mapToDomain);
   }
 
-  async findSiblings(categoryId: string, filters: CategoryFilters = {}): Promise<Category[]> {
+  async findSiblings(
+    categoryId: string,
+    filters: CategoryFilters = {},
+  ): Promise<Category[]> {
     const category = await this.findById(categoryId);
     if (!category) {
       return [];
@@ -229,7 +235,7 @@ export class CategoryRepository implements ICategoryRepository {
   async findSubtree(
     rootId: string,
     maxDepth?: number,
-    activeOnly: boolean = false
+    activeOnly: boolean = false,
   ): Promise<Category[]> {
     const root = await this.findById(rootId);
     if (!root) {
@@ -237,10 +243,7 @@ export class CategoryRepository implements ICategoryRepository {
     }
 
     const where: any = {
-      OR: [
-        { id: rootId },
-        { path: { startsWith: root.path + '/' } },
-      ],
+      OR: [{ id: rootId }, { path: { startsWith: root.path + '/' } }],
       isActive: true,
     };
 
@@ -254,17 +257,17 @@ export class CategoryRepository implements ICategoryRepository {
 
     const subtree = await this.prisma.category.findMany({
       where,
-      orderBy: [
-        { level: 'asc' },
-        { sortOrder: 'asc' },
-      ],
+      orderBy: [{ level: 'asc' }, { sortOrder: 'asc' }],
     });
 
     return subtree.map(this.mapToDomain);
   }
 
   // Path-based operations
-  async findByPathPrefix(pathPrefix: string, filters: CategoryFilters = {}): Promise<Category[]> {
+  async findByPathPrefix(
+    pathPrefix: string,
+    filters: CategoryFilters = {},
+  ): Promise<Category[]> {
     const where = this.buildWhereClause({
       ...filters,
       pathPrefix,
@@ -272,10 +275,7 @@ export class CategoryRepository implements ICategoryRepository {
 
     const categories = await this.prisma.category.findMany({
       where,
-      orderBy: [
-        { level: 'asc' },
-        { sortOrder: 'asc' },
-      ],
+      orderBy: [{ level: 'asc' }, { sortOrder: 'asc' }],
     });
 
     return categories.map(this.mapToDomain);
@@ -294,11 +294,16 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   // Create and update operations
-  async create(data: Partial<Category> & { createdBy: string }): Promise<Category> {
+  async create(
+    data: Partial<Category> & { createdBy: string },
+  ): Promise<Category> {
     this.logger.log('CategoryRepository.create', { data });
 
     // Generate path and depth
-    const { path, depth } = await this.generatePathInfo(data.parentId, data.slug!);
+    const { path, depth } = await this.generatePathInfo(
+      data.parentId,
+      data.slug!,
+    );
 
     const categoryData = {
       name: data.name!,
@@ -341,15 +346,20 @@ export class CategoryRepository implements ICategoryRepository {
         category.parentId,
         category.path,
         category.level,
-        data.createdBy
-      )
+        data.createdBy,
+      ),
     );
 
-    this.logger.log('Category created successfully', { categoryId: category.id });
+    this.logger.log('Category created successfully', {
+      categoryId: category.id,
+    });
     return domainCategory;
   }
 
-  async update(id: string, data: Partial<Category> & { updatedBy: string }): Promise<Category> {
+  async update(
+    id: string,
+    data: Partial<Category> & { updatedBy: string },
+  ): Promise<Category> {
     this.logger.log('CategoryRepository.update', { id, data });
 
     const existingCategory = await this.findById(id);
@@ -388,8 +398,8 @@ export class CategoryRepository implements ICategoryRepository {
         category.id,
         category.name,
         this.calculateChanges(existingCategory, domainCategory),
-        data.updatedBy
-      )
+        data.updatedBy,
+      ),
     );
 
     this.logger.log('Category updated successfully', { categoryId: id });
@@ -400,7 +410,7 @@ export class CategoryRepository implements ICategoryRepository {
     id: string,
     status: CategoryStatus,
     updatedBy: string,
-    reason?: string
+    reason?: string,
   ): Promise<Category> {
     return this.update(id, { status, updatedBy });
   }
@@ -410,9 +420,13 @@ export class CategoryRepository implements ICategoryRepository {
     categoryId: string,
     newParentId: string | null,
     movedBy: string,
-    reason?: string
+    reason?: string,
   ): Promise<MoveResult> {
-    this.logger.log('CategoryRepository.move', { categoryId, newParentId, movedBy });
+    this.logger.log('CategoryRepository.move', {
+      categoryId,
+      newParentId,
+      movedBy,
+    });
 
     const category = await this.findById(categoryId);
     if (!category) {
@@ -423,8 +437,10 @@ export class CategoryRepository implements ICategoryRepository {
     const oldParentId = category.parentId;
 
     // Generate new path information
-    const { path: newPath, depth: newDepth } = 
-      await this.generatePathInfo(newParentId, category.slug);
+    const { path: newPath, depth: newDepth } = await this.generatePathInfo(
+      newParentId,
+      category.slug,
+    );
 
     const result = await this.prisma.$transaction(async (tx) => {
       // Update the category itself
@@ -448,7 +464,8 @@ export class CategoryRepository implements ICategoryRepository {
       let affectedDescendants = 0;
       for (const descendant of descendants) {
         const descendantNewPath = descendant.path.replace(oldPath, newPath);
-        const descendantNewDepth = newDepth + (descendant.level - category.depth);
+        const descendantNewDepth =
+          newDepth + (descendant.level - category.depth);
 
         await tx.category.update({
           where: { id: descendant.id },
@@ -501,8 +518,8 @@ export class CategoryRepository implements ICategoryRepository {
         newParentId,
         result.affectedDescendants,
         movedBy,
-        reason
-      )
+        reason,
+      ),
     );
 
     this.logger.log('Category moved successfully', result);
@@ -512,7 +529,7 @@ export class CategoryRepository implements ICategoryRepository {
   async reorderChildren(
     parentId: string | null,
     childrenOrder: { id: string; displayOrder: number }[],
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       for (const { id, displayOrder } of childrenOrder) {
@@ -527,7 +544,11 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   // Soft delete operations
-  async softDelete(id: string, deletedBy: string, reason?: string): Promise<void> {
+  async softDelete(
+    id: string,
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     this.logger.log('CategoryRepository.softDelete', { id, deletedBy });
 
     const category = await this.findById(id);
@@ -553,18 +574,17 @@ export class CategoryRepository implements ICategoryRepository {
     // Emit event
     this.eventEmitter.emit(
       CategoryDeletedEvent.eventName,
-      new CategoryDeletedEvent(
-        id,
-        category.name,
-        category.path,
-        deletedBy
-      )
+      new CategoryDeletedEvent(id, category.name, category.path, deletedBy),
     );
 
     this.logger.log('Category soft deleted successfully', { categoryId: id });
   }
 
-  async restore(id: string, restoredBy: string, reason?: string): Promise<Category> {
+  async restore(
+    id: string,
+    restoredBy: string,
+    reason?: string,
+  ): Promise<Category> {
     const category = await this.prisma.category.update({
       where: { id },
       data: {
@@ -576,14 +596,16 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   // Bulk operations
-  async bulkCreate(categories: Array<Partial<Category> & { createdBy: string }>): Promise<Category[]> {
+  async bulkCreate(
+    categories: Array<Partial<Category> & { createdBy: string }>,
+  ): Promise<Category[]> {
     const results: Category[] = [];
 
     await this.prisma.$transaction(async (tx) => {
       for (const categoryData of categories) {
         const { path, depth } = await this.generatePathInfo(
           categoryData.parentId,
-          categoryData.slug!
+          categoryData.slug!,
         );
 
         const category = await tx.category.create({
@@ -608,7 +630,7 @@ export class CategoryRepository implements ICategoryRepository {
   }
 
   async bulkUpdate(
-    updates: Array<{ id: string; data: Partial<Category>; updatedBy: string }>
+    updates: Array<{ id: string; data: Partial<Category>; updatedBy: string }>,
   ): Promise<Category[]> {
     const results: Category[] = [];
 
@@ -635,7 +657,11 @@ export class CategoryRepository implements ICategoryRepository {
     return results;
   }
 
-  async bulkDelete(ids: string[], deletedBy: string, reason?: string): Promise<void> {
+  async bulkDelete(
+    ids: string[],
+    deletedBy: string,
+    reason?: string,
+  ): Promise<void> {
     await this.prisma.$transaction(async (tx) => {
       await tx.category.updateMany({
         where: { id: { in: ids } },
@@ -684,7 +710,9 @@ export class CategoryRepository implements ICategoryRepository {
     };
 
     statusCounts.forEach(({ isActive, _count }) => {
-      statusCountsMap[isActive ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE] = _count;
+      statusCountsMap[
+        isActive ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE
+      ] = _count;
     });
 
     return {
@@ -756,7 +784,7 @@ export class CategoryRepository implements ICategoryRepository {
 
   async validateMove(
     categoryId: string,
-    newParentId: string | null
+    newParentId: string | null,
   ): Promise<{ isValid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
@@ -801,7 +829,10 @@ export class CategoryRepository implements ICategoryRepository {
     return [];
   }
 
-  async validateBrandInCategory(brandId: string, categoryId: string): Promise<boolean> {
+  async validateBrandInCategory(
+    brandId: string,
+    categoryId: string,
+  ): Promise<boolean> {
     const category = await this.findById(categoryId);
     if (!category) {
       return false;
@@ -833,7 +864,7 @@ export class CategoryRepository implements ICategoryRepository {
     // Implementation for rebuilding materialized paths
     // This would be used for data migration or corruption recovery
     this.logger.log('Rebuilding materialized paths', { rootId });
-    
+
     // Implementation details would go here
     // This is a complex operation that should be run during maintenance windows
   }
@@ -911,7 +942,7 @@ export class CategoryRepository implements ICategoryRepository {
 
   private async generatePathInfo(
     parentId: string | null,
-    slug: string
+    slug: string,
   ): Promise<{ path: string; depth: number }> {
     if (!parentId) {
       return {
@@ -931,7 +962,10 @@ export class CategoryRepository implements ICategoryRepository {
     };
   }
 
-  private async updateTreeStatistics(tx: any, categoryId: string): Promise<void> {
+  private async updateTreeStatistics(
+    tx: any,
+    categoryId: string,
+  ): Promise<void> {
     const [childCount, descendantCount, productCount] = await Promise.all([
       tx.category.count({
         where: { parentId: categoryId, isActive: true },
@@ -955,20 +989,23 @@ export class CategoryRepository implements ICategoryRepository {
         childCount,
         descendantCount,
         productCount,
-        'system'
-      )
+        'system',
+      ),
     );
   }
 
-  private calculateChanges(oldCategory: Category, newCategory: Category): Record<string, { from: any; to: any }> {
+  private calculateChanges(
+    oldCategory: Category,
+    newCategory: Category,
+  ): Record<string, { from: any; to: any }> {
     const changes: Record<string, { from: any; to: any }> = {};
 
     const fields = ['name', 'description', 'status', 'displayOrder'];
-    
+
     for (const field of fields) {
       const oldValue = (oldCategory as any)[field];
       const newValue = (newCategory as any)[field];
-      
+
       if (JSON.stringify(oldValue) !== JSON.stringify(newValue)) {
         changes[field] = { from: oldValue, to: newValue };
       }
@@ -990,7 +1027,9 @@ export class CategoryRepository implements ICategoryRepository {
       childCount: 0, // Will be calculated when needed
       descendantCount: 0, // Will be calculated when needed
       productCount: 0, // Will be calculated when needed
-      status: prismaData.isActive ? CategoryStatus.ACTIVE : CategoryStatus.INACTIVE,
+      status: prismaData.isActive
+        ? CategoryStatus.ACTIVE
+        : CategoryStatus.INACTIVE,
       visibility: CategoryVisibility.PUBLIC, // Default value
       seoTitle: prismaData.seoTitle,
       seoDescription: prismaData.seoDescription,

@@ -9,7 +9,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { MediaService, UploadSignedUrlDto } from './media.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -51,7 +56,10 @@ export class MediaController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.NO_CONTENT)
   @ApiOperation({ summary: 'Delete media file' })
-  async deleteMedia(@Param('id') id: string, @CurrentUser('id') userId: string) {
+  async deleteMedia(
+    @Param('id') id: string,
+    @CurrentUser('id') userId: string,
+  ) {
     await this.mediaService.deleteMedia(id, userId);
   }
 

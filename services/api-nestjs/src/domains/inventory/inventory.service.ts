@@ -13,7 +13,11 @@ import { InventoryReservationService } from './services/inventory-reservation.se
 import { LoggerService } from '../../infrastructure/observability/logger.service';
 
 import { Inventory } from './entities/inventory.entity';
-import { InventoryLedger, LedgerEntryType, ReferenceType } from './entities/inventory-ledger.entity';
+import {
+  InventoryLedger,
+  LedgerEntryType,
+  ReferenceType,
+} from './entities/inventory-ledger.entity';
 import { InventoryPolicies } from './inventory.policies';
 import { InventoryValidators } from './inventory.validators';
 
@@ -64,21 +68,33 @@ export class InventoryService {
     pagination: PaginationOptions = {},
     includes: InventoryIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ) {
-    this.logger.log('InventoryService.findAll', { filters, pagination, userId });
+    this.logger.log('InventoryService.findAll', {
+      filters,
+      pagination,
+      userId,
+    });
 
     // Apply access control filters
-    const enhancedFilters = await this.applyAccessFilters(filters, userId, userRole);
+    const enhancedFilters = await this.applyAccessFilters(
+      filters,
+      userId,
+      userRole,
+    );
 
-    return this.inventoryRepository.findAll(enhancedFilters, pagination, includes);
+    return this.inventoryRepository.findAll(
+      enhancedFilters,
+      pagination,
+      includes,
+    );
   }
 
   async findById(
     id: string,
     includes: InventoryIncludeOptions = {},
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Inventory> {
     const inventory = await this.inventoryRepository.findById(id, includes);
     if (!inventory) {
@@ -94,26 +110,41 @@ export class InventoryService {
   async findByVariant(
     variantId: string,
     sellerId?: string,
-    warehouseId?: string
+    warehouseId?: string,
   ): Promise<Inventory | null> {
-    return this.inventoryRepository.findByVariant(variantId, sellerId, warehouseId);
+    return this.inventoryRepository.findByVariant(
+      variantId,
+      sellerId,
+      warehouseId,
+    );
   }
 
   async findBySeller(
     sellerId: string,
     filters: InventoryFilters = {},
     pagination: PaginationOptions = {},
-    includes: InventoryIncludeOptions = {}
+    includes: InventoryIncludeOptions = {},
   ) {
-    return this.inventoryRepository.findBySeller(sellerId, filters, pagination, includes);
+    return this.inventoryRepository.findBySeller(
+      sellerId,
+      filters,
+      pagination,
+      includes,
+    );
   }
 
   // ============================================================================
   // INVENTORY CREATION & SETUP
   // ============================================================================
 
-  async create(createInventoryDto: CreateInventoryDto, createdBy: string): Promise<Inventory> {
-    this.logger.log('InventoryService.create', { createInventoryDto, createdBy });
+  async create(
+    createInventoryDto: CreateInventoryDto,
+    createdBy: string,
+  ): Promise<Inventory> {
+    this.logger.log('InventoryService.create', {
+      createInventoryDto,
+      createdBy,
+    });
 
     // Validate variant exists and user has access
     await this.validateVariantAccess(createInventoryDto.variantId, createdBy);
@@ -122,11 +153,13 @@ export class InventoryService {
     const existingInventory = await this.findByVariant(
       createInventoryDto.variantId,
       createInventoryDto.sellerId,
-      createInventoryDto.warehouseId
+      createInventoryDto.warehouseId,
     );
 
     if (existingInventory) {
-      throw new ConflictException('Inventory already exists for this variant/seller/warehouse combination');
+      throw new ConflictException(
+        'Inventory already exists for this variant/seller/warehouse combination',
+      );
     }
 
     // Create inventory with zero quantities
@@ -145,18 +178,23 @@ export class InventoryService {
       createdBy,
       null,
       inventory,
-      'Inventory created'
+      'Inventory created',
     );
 
     // Emit event
-    this.eventEmitter.emit('inventory.created', new InventoryCreatedEvent(
-      inventory.id,
-      inventory.variantId,
-      inventory.sellerId,
-      createdBy
-    ));
+    this.eventEmitter.emit(
+      'inventory.created',
+      new InventoryCreatedEvent(
+        inventory.id,
+        inventory.variantId,
+        inventory.sellerId,
+        createdBy,
+      ),
+    );
 
-    this.logger.log('Inventory created successfully', { inventoryId: inventory.id });
+    this.logger.log('Inventory created successfully', {
+      inventoryId: inventory.id,
+    });
     return inventory;
   }
 
@@ -167,9 +205,13 @@ export class InventoryService {
   async increaseStock(
     inventoryId: string,
     movementDto: InventoryMovementDto,
-    createdBy: string
+    createdBy: string,
   ): Promise<Inventory> {
-    this.logger.log('InventoryService.increaseStock', { inventoryId, movementDto, createdBy });
+    this.logger.log('InventoryService.increaseStock', {
+      inventoryId,
+      movementDto,
+      createdBy,
+    });
 
     return this.prisma.$transaction(async (tx) => {
       // SAFETY: Lock inventory for update - NEVER mutate stock directly
@@ -189,7 +231,7 @@ export class InventoryService {
         newAvailable,
         inventory.reservedQuantity,
         newTotal,
-        createdBy
+        createdBy,
       );
 
       // Create ledger entry
@@ -210,20 +252,26 @@ export class InventoryService {
         inventoryId,
         'INCREASE',
         createdBy,
-        { availableQuantity: inventory.availableQuantity, totalQuantity: inventory.totalQuantity },
+        {
+          availableQuantity: inventory.availableQuantity,
+          totalQuantity: inventory.totalQuantity,
+        },
         { availableQuantity: newAvailable, totalQuantity: newTotal },
-        movementDto.reason || 'Stock increased'
+        movementDto.reason || 'Stock increased',
       );
 
       // Check for restock events
       if (!inventory.isInStock() && updatedInventory.isInStock()) {
-        this.eventEmitter.emit('inventory.restocked', new InventoryRestockedEvent(
-          inventoryId,
-          inventory.variantId,
-          inventory.sellerId,
-          movementDto.quantity,
-          createdBy
-        ));
+        this.eventEmitter.emit(
+          'inventory.restocked',
+          new InventoryRestockedEvent(
+            inventoryId,
+            inventory.variantId,
+            inventory.sellerId,
+            movementDto.quantity,
+            createdBy,
+          ),
+        );
       }
 
       this.logger.log('Stock increased successfully', {
@@ -239,9 +287,13 @@ export class InventoryService {
   async decreaseStock(
     inventoryId: string,
     movementDto: InventoryMovementDto,
-    createdBy: string
+    createdBy: string,
   ): Promise<Inventory> {
-    this.logger.log('InventoryService.decreaseStock', { inventoryId, movementDto, createdBy });
+    this.logger.log('InventoryService.decreaseStock', {
+      inventoryId,
+      movementDto,
+      createdBy,
+    });
 
     return this.prisma.$transaction(async (tx) => {
       // Lock inventory for update
@@ -249,7 +301,10 @@ export class InventoryService {
       await this.checkInventoryAccess(inventory, createdBy);
 
       // Validate movement
-      InventoryValidators.validateStockDecrease(movementDto.quantity, inventory.availableQuantity);
+      InventoryValidators.validateStockDecrease(
+        movementDto.quantity,
+        inventory.availableQuantity,
+      );
 
       // Calculate new quantities
       const newAvailable = inventory.availableQuantity - movementDto.quantity;
@@ -261,7 +316,7 @@ export class InventoryService {
         newAvailable,
         inventory.reservedQuantity,
         newTotal,
-        createdBy
+        createdBy,
       );
 
       // Create ledger entry
@@ -282,9 +337,12 @@ export class InventoryService {
         inventoryId,
         'DECREASE',
         createdBy,
-        { availableQuantity: inventory.availableQuantity, totalQuantity: inventory.totalQuantity },
+        {
+          availableQuantity: inventory.availableQuantity,
+          totalQuantity: inventory.totalQuantity,
+        },
         { availableQuantity: newAvailable, totalQuantity: newTotal },
-        movementDto.reason || 'Stock decreased'
+        movementDto.reason || 'Stock decreased',
       );
 
       // Check for stock level events
@@ -305,9 +363,14 @@ export class InventoryService {
     newQuantity: number,
     reason: string,
     createdBy: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ): Promise<Inventory> {
-    this.logger.log('InventoryService.adjustStock', { inventoryId, newQuantity, reason, createdBy });
+    this.logger.log('InventoryService.adjustStock', {
+      inventoryId,
+      newQuantity,
+      reason,
+      createdBy,
+    });
 
     return this.prisma.$transaction(async (tx) => {
       // Lock inventory for update
@@ -319,7 +382,10 @@ export class InventoryService {
 
       // Calculate adjustment
       const adjustment = newQuantity - inventory.totalQuantity;
-      const newAvailable = Math.max(0, inventory.availableQuantity + adjustment);
+      const newAvailable = Math.max(
+        0,
+        inventory.availableQuantity + adjustment,
+      );
 
       // Update inventory
       const updatedInventory = await this.inventoryRepository.updateQuantities(
@@ -327,7 +393,7 @@ export class InventoryService {
         newAvailable,
         inventory.reservedQuantity,
         newQuantity,
-        createdBy
+        createdBy,
       );
 
       // Create ledger entry
@@ -349,20 +415,23 @@ export class InventoryService {
         createdBy,
         { totalQuantity: inventory.totalQuantity },
         { totalQuantity: newQuantity },
-        reason
+        reason,
       );
 
       // Emit adjustment event
-      this.eventEmitter.emit('inventory.adjusted', new InventoryAdjustedEvent(
-        inventoryId,
-        inventory.variantId,
-        inventory.sellerId,
-        inventory.totalQuantity,
-        newQuantity,
-        adjustment,
-        reason,
-        createdBy
-      ));
+      this.eventEmitter.emit(
+        'inventory.adjusted',
+        new InventoryAdjustedEvent(
+          inventoryId,
+          inventory.variantId,
+          inventory.sellerId,
+          inventory.totalQuantity,
+          newQuantity,
+          adjustment,
+          reason,
+          createdBy,
+        ),
+      );
 
       // Check for stock level events
       this.checkAndEmitStockLevelEvents(inventory, updatedInventory, createdBy);
@@ -390,7 +459,7 @@ export class InventoryService {
     referenceId: string,
     expiresAt: Date,
     createdBy: string,
-    metadata?: Record<string, any>
+    metadata?: Record<string, any>,
   ) {
     this.logger.log('InventoryService.reserveStock', {
       inventoryId,
@@ -413,25 +482,44 @@ export class InventoryService {
 
     if (result.success) {
       // Emit inventory-level event (use fallbacks if reservation lacks variant/seller)
-      this.eventEmitter.emit('inventory.reserved', new InventoryReservedEvent(
-        inventoryId,
-        result.reservation!.variantId ?? '',
-        result.reservation!.sellerId ?? '',
-        quantity,
-        reservationKey,
-        createdBy
-      ));
+      this.eventEmitter.emit(
+        'inventory.reserved',
+        new InventoryReservedEvent(
+          inventoryId,
+          result.reservation!.variantId ?? '',
+          result.reservation!.sellerId ?? '',
+          quantity,
+          reservationKey,
+          createdBy,
+        ),
+      );
     }
 
     return result;
   }
 
-  async releaseReservation(reservationKey: string, releasedBy: string, reason?: string) {
-    return this.inventoryReservationService.releaseReservation(reservationKey, releasedBy, reason);
+  async releaseReservation(
+    reservationKey: string,
+    releasedBy: string,
+    reason?: string,
+  ) {
+    return this.inventoryReservationService.releaseReservation(
+      reservationKey,
+      releasedBy,
+      reason,
+    );
   }
 
-  async commitReservation(reservationKey: string, committedBy: string, reason?: string) {
-    return this.inventoryReservationService.commitReservation(reservationKey, committedBy, reason);
+  async commitReservation(
+    reservationKey: string,
+    committedBy: string,
+    reason?: string,
+  ) {
+    return this.inventoryReservationService.commitReservation(
+      reservationKey,
+      committedBy,
+      reason,
+    );
   }
 
   // ============================================================================
@@ -440,9 +528,12 @@ export class InventoryService {
 
   async bulkAdjustment(
     adjustmentDto: BulkInventoryAdjustmentDto,
-    createdBy: string
+    createdBy: string,
   ): Promise<{ processed: number; errors: string[] }> {
-    this.logger.log('InventoryService.bulkAdjustment', { adjustmentDto, createdBy });
+    this.logger.log('InventoryService.bulkAdjustment', {
+      adjustmentDto,
+      createdBy,
+    });
 
     const results = { processed: 0, errors: [] as string[] };
 
@@ -453,11 +544,13 @@ export class InventoryService {
           adjustment.newQuantity,
           adjustment.reason || adjustmentDto.reason || 'Bulk adjustment',
           createdBy,
-          adjustment.metadata
+          adjustment.metadata,
         );
         results.processed++;
       } catch (error) {
-        results.errors.push(`Inventory ${adjustment.inventoryId}: ${error.message}`);
+        results.errors.push(
+          `Inventory ${adjustment.inventoryId}: ${error.message}`,
+        );
       }
     }
 
@@ -472,14 +565,18 @@ export class InventoryService {
   async getInventoryMovements(
     inventoryId: string,
     filters: MovementFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ): Promise<{ data: InventoryLedger[]; total: number }> {
-    return this.inventoryRepository.getMovements(inventoryId, filters, pagination);
+    return this.inventoryRepository.getMovements(
+      inventoryId,
+      filters,
+      pagination,
+    );
   }
 
   async getStockLevels(
     filters: InventoryFilters = {},
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ) {
     return this.inventoryRepository.getStockLevels(filters, pagination);
   }
@@ -487,14 +584,18 @@ export class InventoryService {
   async getLowStockItems(
     sellerId?: string,
     threshold?: number,
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ) {
-    return this.inventoryRepository.getLowStockItems(sellerId, threshold, pagination);
+    return this.inventoryRepository.getLowStockItems(
+      sellerId,
+      threshold,
+      pagination,
+    );
   }
 
   async getOutOfStockItems(
     sellerId?: string,
-    pagination: PaginationOptions = {}
+    pagination: PaginationOptions = {},
   ) {
     return this.inventoryRepository.getOutOfStockItems(sellerId, pagination);
   }
@@ -503,40 +604,59 @@ export class InventoryService {
   // MAINTENANCE OPERATIONS
   // ============================================================================
 
-  async cleanupExpiredReservations(): Promise<{ released: number; errors: string[] }> {
+  async cleanupExpiredReservations(): Promise<{
+    released: number;
+    errors: string[];
+  }> {
     return this.inventoryReservationService.cleanupExpiredReservations();
   }
 
-  async recalculateInventoryQuantities(inventoryId: string, updatedBy: string): Promise<Inventory> {
-    this.logger.log('InventoryService.recalculateInventoryQuantities', { inventoryId, updatedBy });
+  async recalculateInventoryQuantities(
+    inventoryId: string,
+    updatedBy: string,
+  ): Promise<Inventory> {
+    this.logger.log('InventoryService.recalculateInventoryQuantities', {
+      inventoryId,
+      updatedBy,
+    });
 
     const inventory = await this.findById(inventoryId);
-    
+
     // Get all ledger entries
     const movements = await this.inventoryRepository.getMovements(inventoryId);
-    
+
     // Calculate quantities from ledger
-    const totalFromLedger = movements.data.reduce((sum, entry) => sum + entry.quantity, 0);
-    
+    const totalFromLedger = movements.data.reduce(
+      (sum, entry) => sum + entry.quantity,
+      0,
+    );
+
     // Get active reservations
-    const reservations = await this.inventoryReservationService.getReservationsForInventory(inventoryId);
-    const activeReservations = reservations.filter(r => r.isActive());
-    const reservedQuantity = activeReservations.reduce((sum, r) => sum + r.quantity, 0);
-    
+    const reservations =
+      await this.inventoryReservationService.getReservationsForInventory(
+        inventoryId,
+      );
+    const activeReservations = reservations.filter((r) => r.isActive());
+    const reservedQuantity = activeReservations.reduce(
+      (sum, r) => sum + r.quantity,
+      0,
+    );
+
     // Calculate available quantity
     const availableQuantity = Math.max(0, totalFromLedger - reservedQuantity);
-    
+
     // Update inventory if there's a discrepancy
-    if (inventory.totalQuantity !== totalFromLedger || 
-        inventory.reservedQuantity !== reservedQuantity ||
-        inventory.availableQuantity !== availableQuantity) {
-      
+    if (
+      inventory.totalQuantity !== totalFromLedger ||
+      inventory.reservedQuantity !== reservedQuantity ||
+      inventory.availableQuantity !== availableQuantity
+    ) {
       const updatedInventory = await this.inventoryRepository.updateQuantities(
         inventoryId,
         availableQuantity,
         reservedQuantity,
         totalFromLedger,
-        updatedBy
+        updatedBy,
       );
 
       // Create audit log
@@ -554,7 +674,7 @@ export class InventoryService {
           reservedQuantity,
           totalQuantity: totalFromLedger,
         },
-        'Quantities recalculated from ledger'
+        'Quantities recalculated from ledger',
       );
 
       this.logger.log('Inventory quantities recalculated', {
@@ -578,7 +698,7 @@ export class InventoryService {
   private async applyAccessFilters(
     filters: InventoryFilters,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<InventoryFilters> {
     // Apply role-based filtering
     if (userRole === UserRole.SELLER) {
@@ -591,14 +711,17 @@ export class InventoryService {
   private async checkInventoryAccess(
     inventory: Inventory,
     userId?: string,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<void> {
     if (!InventoryPolicies.canAccess(inventory, userId, userRole)) {
       throw new ForbiddenException('Access denied to this inventory');
     }
   }
 
-  private async validateVariantAccess(variantId: string, userId: string): Promise<void> {
+  private async validateVariantAccess(
+    variantId: string,
+    userId: string,
+  ): Promise<void> {
     // This would typically check if the user owns the variant or has permission
     // Implementation depends on your variant access control logic
   }
@@ -620,29 +743,35 @@ export class InventoryService {
   private checkAndEmitStockLevelEvents(
     oldInventory: Inventory,
     newInventory: Inventory,
-    updatedBy: string
+    updatedBy: string,
   ): void {
     // Check for out of stock event
     if (oldInventory.isInStock() && !newInventory.isInStock()) {
-      this.eventEmitter.emit('inventory.out_of_stock', new InventoryOutOfStockEvent(
-        newInventory.id,
-        newInventory.variantId,
-        newInventory.sellerId,
-        newInventory.availableQuantity,
-        updatedBy
-      ));
+      this.eventEmitter.emit(
+        'inventory.out_of_stock',
+        new InventoryOutOfStockEvent(
+          newInventory.id,
+          newInventory.variantId,
+          newInventory.sellerId,
+          newInventory.availableQuantity,
+          updatedBy,
+        ),
+      );
     }
 
     // Check for low stock event
     if (!oldInventory.isLowStock() && newInventory.isLowStock()) {
-      this.eventEmitter.emit('inventory.low_stock', new InventoryLowStockEvent(
-        newInventory.id,
-        newInventory.variantId,
-        newInventory.sellerId,
-        newInventory.availableQuantity,
-        newInventory.lowStockThreshold || 10,
-        updatedBy
-      ));
+      this.eventEmitter.emit(
+        'inventory.low_stock',
+        new InventoryLowStockEvent(
+          newInventory.id,
+          newInventory.variantId,
+          newInventory.sellerId,
+          newInventory.availableQuantity,
+          newInventory.lowStockThreshold || 10,
+          updatedBy,
+        ),
+      );
     }
   }
 }

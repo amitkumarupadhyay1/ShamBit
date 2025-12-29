@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { NotificationService } from './notification.service.js';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -49,10 +54,7 @@ export class NotificationController {
   @ApiBearerAuth()
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Mark notification as read' })
-  async markAsRead(
-    @Param('id') id: string,
-    @CurrentUser('id') userId: string,
-  ) {
+  async markAsRead(@Param('id') id: string, @CurrentUser('id') userId: string) {
     return this.notificationService.markAsRead(id, userId);
   }
 
@@ -99,6 +101,10 @@ export class NotificationController {
   async sendTestNotification(
     @Body() body: { userId: string; type: string; message: string },
   ) {
-    return this.notificationService.sendTestNotification(body.userId, body.type, body.message);
+    return this.notificationService.sendTestNotification(
+      body.userId,
+      body.type,
+      body.message,
+    );
   }
 }

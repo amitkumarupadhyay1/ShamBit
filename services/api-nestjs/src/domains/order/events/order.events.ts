@@ -4,7 +4,7 @@ export class OrderUpdatedEvent {
     public readonly orderNumber: string,
     public readonly customerId: string,
     public readonly changes: Record<string, any>,
-    public readonly updatedBy: string
+    public readonly updatedBy: string,
   ) {}
 }
 
@@ -16,7 +16,7 @@ export class OrderStatusChangedEvent {
     public readonly oldStatus: string,
     public readonly newStatus: string,
     public readonly changedBy: string,
-    public readonly reason?: string
+    public readonly reason?: string,
   ) {}
 }
 
@@ -25,7 +25,7 @@ export class OrderConfirmedEvent {
     public readonly orderId: string,
     public readonly orderNumber: string,
     public readonly customerId: string,
-    public readonly paymentIdOrAmount: string | number
+    public readonly paymentIdOrAmount: string | number,
   ) {}
 }
 
@@ -35,7 +35,7 @@ export class OrderCancelledEvent {
     public readonly orderNumber: string,
     public readonly customerId: string,
     public readonly reason: string,
-    public readonly cancelledBy: string
+    public readonly cancelledBy: string,
   ) {}
 }
 
@@ -45,7 +45,7 @@ export class OrderShippedEvent {
     public readonly orderNumber: string,
     public readonly customerId: string,
     public readonly trackingNumber: string,
-    public readonly carrier: string
+    public readonly carrier: string,
   ) {}
 }
 
@@ -54,7 +54,7 @@ export class OrderDeliveredEvent {
     public readonly orderId: string,
     public readonly orderNumber: string,
     public readonly customerId: string,
-    public readonly deliveredAt: Date
+    public readonly deliveredAt: Date,
   ) {}
 }
 
@@ -63,6 +63,6 @@ export class OrderExpiredEvent {
     public readonly orderId: string,
     public readonly orderNumber: string,
     public readonly customerId: string,
-    public readonly expiredAt: Date
+    public readonly expiredAt: Date,
   ) {}
 }

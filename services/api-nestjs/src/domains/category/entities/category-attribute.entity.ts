@@ -1,4 +1,7 @@
-import { AttributeType, AttributeValidationRule } from '../enums/attribute-type.enum';
+import {
+  AttributeType,
+  AttributeValidationRule,
+} from '../enums/attribute-type.enum';
 
 export interface AttributeValidationRules {
   [AttributeValidationRule.REQUIRED]?: boolean;
@@ -34,13 +37,13 @@ export interface CurrencyConfig {
 export class CategoryAttribute {
   id: string;
   categoryId: string;
-  
+
   // Attribute definition
   name: string;
   slug: string;
   type: AttributeType;
   description?: string;
-  
+
   // Validation rules
   isRequired: boolean;
   isInheritable: boolean;
@@ -48,22 +51,22 @@ export class CategoryAttribute {
   isVariant: boolean;
   isFilterable: boolean;
   isSearchable: boolean;
-  
+
   // Type-specific configuration
   defaultValue?: string;
   allowedValues: string[];
   validationRules?: AttributeValidationRules;
-  
+
   // Display properties
   displayOrder: number;
   displayName?: string;
   helpText?: string;
   placeholder?: string;
-  
+
   // Inheritance tracking
   inheritedFrom?: string;
   overriddenAt?: string;
-  
+
   // Audit fields
   createdBy: string;
   updatedBy?: string;
@@ -99,7 +102,10 @@ export class CategoryAttribute {
     const errors: string[] = [];
 
     // Required validation
-    if (this.isRequired && (value === null || value === undefined || value === '')) {
+    if (
+      this.isRequired &&
+      (value === null || value === undefined || value === '')
+    ) {
       errors.push(`${this.name} is required`);
       return { isValid: false, errors };
     }
@@ -161,10 +167,14 @@ export class CategoryAttribute {
     const rules = this.validationRules;
     if (rules) {
       if (rules.MIN_LENGTH && value.length < rules.MIN_LENGTH) {
-        errors.push(`${this.name} must be at least ${rules.MIN_LENGTH} characters`);
+        errors.push(
+          `${this.name} must be at least ${rules.MIN_LENGTH} characters`,
+        );
       }
       if (rules.MAX_LENGTH && value.length > rules.MAX_LENGTH) {
-        errors.push(`${this.name} must not exceed ${rules.MAX_LENGTH} characters`);
+        errors.push(
+          `${this.name} must not exceed ${rules.MAX_LENGTH} characters`,
+        );
       }
       if (rules.REGEX_PATTERN && !new RegExp(rules.REGEX_PATTERN).test(value)) {
         errors.push(`${this.name} format is invalid`);
@@ -198,7 +208,9 @@ export class CategoryAttribute {
 
   private validateSelectValue(value: any, errors: string[]): void {
     if (!this.allowedValues.includes(value)) {
-      errors.push(`${this.name} must be one of: ${this.allowedValues.join(', ')}`);
+      errors.push(
+        `${this.name} must be one of: ${this.allowedValues.join(', ')}`,
+      );
     }
   }
 
@@ -239,7 +251,8 @@ export class CategoryAttribute {
 
   private validateColorValue(value: any, errors: string[]): void {
     // Support hex, rgb, rgba, hsl, hsla formats
-    const colorRegex = /^(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgb\(.*\)|rgba\(.*\)|hsl\(.*\)|hsla\(.*\))$/;
+    const colorRegex =
+      /^(#[0-9A-Fa-f]{6}|#[0-9A-Fa-f]{3}|rgb\(.*\)|rgba\(.*\)|hsl\(.*\)|hsla\(.*\))$/;
     if (!colorRegex.test(value)) {
       errors.push(`${this.name} must be a valid color format`);
     }
@@ -259,7 +272,9 @@ export class CategoryAttribute {
     // Validate unit against allowed units (would be in validation rules)
     const rules = this.validationRules as any;
     if (rules?.allowedUnits && !rules.allowedUnits.includes(value.unit)) {
-      errors.push(`${this.name} unit must be one of: ${rules.allowedUnits.join(', ')}`);
+      errors.push(
+        `${this.name} unit must be one of: ${rules.allowedUnits.join(', ')}`,
+      );
     }
   }
 
@@ -270,7 +285,12 @@ export class CategoryAttribute {
 
   private validateCurrencyValue(value: any, errors: string[]): void {
     // Expected format: { amount: number, currency: string }
-    if (!value || typeof value !== 'object' || !value.amount || !value.currency) {
+    if (
+      !value ||
+      typeof value !== 'object' ||
+      !value.amount ||
+      !value.currency
+    ) {
       errors.push(`${this.name} must have amount and currency properties`);
       return;
     }
@@ -281,8 +301,13 @@ export class CategoryAttribute {
 
     // Validate currency code
     const rules = this.validationRules as any;
-    if (rules?.allowedCurrencies && !rules.allowedCurrencies.includes(value.currency)) {
-      errors.push(`${this.name} currency must be one of: ${rules.allowedCurrencies.join(', ')}`);
+    if (
+      rules?.allowedCurrencies &&
+      !rules.allowedCurrencies.includes(value.currency)
+    ) {
+      errors.push(
+        `${this.name} currency must be one of: ${rules.allowedCurrencies.join(', ')}`,
+      );
     }
   }
 

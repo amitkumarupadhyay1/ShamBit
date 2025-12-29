@@ -20,9 +20,10 @@ async function bootstrap() {
 
   // CORS
   app.enableCors({
-    origin: process.env.NODE_ENV === 'production' 
-      ? ['https://yourdomain.com'] 
-      : ['http://localhost:3000', 'http://localhost:5173'],
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? ['https://yourdomain.com']
+        : ['http://localhost:3000', 'http://localhost:5173'],
     credentials: true,
   });
 
@@ -35,13 +36,13 @@ async function bootstrap() {
     .setDescription('ShamBit Quick Commerce Platform API')
     .setVersion('1.0')
     .build();
-  
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
   const port = configService.get<number>('PORT', 3001);
   await app.listen(port);
-  
+
   console.log(`🚀 NestJS API running on http://localhost:${port}`);
   console.log(`📚 Swagger docs available at http://localhost:${port}/api/docs`);
 }

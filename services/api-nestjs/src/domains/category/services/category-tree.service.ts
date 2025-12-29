@@ -34,12 +34,16 @@ export class CategoryTreeService {
     rootId?: string,
     maxDepth?: number,
     activeOnly: boolean = true,
-    userRole?: UserRole
+    userRole?: UserRole,
   ): Promise<Category[]> {
-    this.logger.log('CategoryTreeService.getCategoryTree', { rootId, maxDepth, activeOnly });
+    this.logger.log('CategoryTreeService.getCategoryTree', {
+      rootId,
+      maxDepth,
+      activeOnly,
+    });
 
     const filters: any = {};
-    
+
     if (activeOnly) {
       filters.status = CategoryStatus.ACTIVE;
     }
@@ -56,7 +60,9 @@ export class CategoryTreeService {
     if (rootId) {
       return this.categoryRepository.findSubtree(rootId, maxDepth, activeOnly);
     } else {
-      const result = await this.categoryRepository.findAll(filters, { limit: 10000 });
+      const result = await this.categoryRepository.findAll(filters, {
+        limit: 10000,
+      });
       return result.data;
     }
   }
@@ -64,12 +70,12 @@ export class CategoryTreeService {
   async buildNestedTree(
     categories: Category[],
     rootId?: string,
-    options: TreeTraversalOptions = {}
+    options: TreeTraversalOptions = {},
   ): Promise<CategoryTreeNode[]> {
-    this.logger.log('CategoryTreeService.buildNestedTree', { 
-      categoryCount: categories.length, 
-      rootId, 
-      options 
+    this.logger.log('CategoryTreeService.buildNestedTree', {
+      categoryCount: categories.length,
+      rootId,
+      options,
     });
 
     // Create a map for quick lookup
@@ -77,7 +83,7 @@ export class CategoryTreeService {
     const roots: CategoryTreeNode[] = [];
 
     // Initialize all nodes
-    categories.forEach(category => {
+    categories.forEach((category) => {
       if (this.shouldIncludeCategory(category, options)) {
         categoryMap.set(category.id, {
           category,
@@ -90,14 +96,18 @@ export class CategoryTreeService {
     });
 
     // Build tree structure
-    categories.forEach(category => {
+    categories.forEach((category) => {
       const categoryNode = categoryMap.get(category.id);
       if (!categoryNode) return;
 
       if (category.parentId && categoryMap.has(category.parentId)) {
         const parent = categoryMap.get(category.parentId)!;
         parent.children.push(categoryNode);
-      } else if (!rootId || category.id === rootId || category.parentId === null) {
+      } else if (
+        !rootId ||
+        category.id === rootId ||
+        category.parentId === null
+      ) {
         roots.push(categoryNode);
       }
     });
@@ -112,7 +122,10 @@ export class CategoryTreeService {
     return this.categoryRepository.findAncestors(categoryId, true);
   }
 
-  async getCategorySiblings(categoryId: string, activeOnly: boolean = true): Promise<Category[]> {
+  async getCategorySiblings(
+    categoryId: string,
+    activeOnly: boolean = true,
+  ): Promise<Category[]> {
     const filters: any = {};
     if (activeOnly) {
       filters.status = CategoryStatus.ACTIVE;
@@ -123,17 +136,21 @@ export class CategoryTreeService {
 
   async getChildrenWithCounts(
     parentId: string | null,
-    includeInactive: boolean = false
+    includeInactive: boolean = false,
   ): Promise<Array<Category & { directProductCount: number }>> {
     const filters: any = {};
     if (!includeInactive) {
       filters.status = CategoryStatus.ACTIVE;
     }
 
-    const result = await this.categoryRepository.findChildren(parentId, filters, { limit: 1000 });
-    
+    const result = await this.categoryRepository.findChildren(
+      parentId,
+      filters,
+      { limit: 1000 },
+    );
+
     // The productCount is already included in the category entity
-    return result.data.map(category => ({
+    return result.data.map((category) => ({
       ...category,
       directProductCount: category.productCount,
     }));
@@ -160,7 +177,7 @@ export class CategoryTreeService {
 
     try {
       // Get all categories to validate
-      const categories = rootId 
+      const categories = rootId
         ? await this.categoryRepository.findSubtree(rootId)
         : (await this.categoryRepository.findAll({}, { limit: 100000 })).data;
 
@@ -169,34 +186,48 @@ export class CategoryTreeService {
         // Check path consistency
         const expectedPath = await this.calculateExpectedPath(category);
         if (category.path !== expectedPath) {
-          errors.push(`Category ${category.id} has incorrect path: expected ${expectedPath}, got ${category.path}`);
+          errors.push(
+            `Category ${category.id} has incorrect path: expected ${expectedPath}, got ${category.path}`,
+          );
         }
 
         // Check depth consistency
         const expectedDepth = category.pathIds.length;
         if (category.depth !== expectedDepth) {
-          errors.push(`Category ${category.id} has incorrect depth: expected ${expectedDepth}, got ${category.depth}`);
+          errors.push(
+            `Category ${category.id} has incorrect depth: expected ${expectedDepth}, got ${category.depth}`,
+          );
         }
 
         // Check parent relationship
         if (category.parentId) {
-          const parent = await this.categoryRepository.findById(category.parentId);
+          const parent = await this.categoryRepository.findById(
+            category.parentId,
+          );
           if (!parent) {
-            errors.push(`Category ${category.id} has non-existent parent ${category.parentId}`);
+            errors.push(
+              `Category ${category.id} has non-existent parent ${category.parentId}`,
+            );
           } else if (!category.pathIds.includes(category.parentId)) {
-            errors.push(`Category ${category.id} parent ${category.parentId} not in pathIds`);
+            errors.push(
+              `Category ${category.id} parent ${category.parentId} not in pathIds`,
+            );
           }
         }
 
         // Check for circular references
         if (category.pathIds.includes(category.id)) {
-          errors.push(`Category ${category.id} has circular reference in pathIds`);
+          errors.push(
+            `Category ${category.id} has circular reference in pathIds`,
+          );
         }
 
         // Validate tree statistics
         const actualChildCount = await this.countDirectChildren(category.id);
         if (category.childCount !== actualChildCount) {
-          warnings.push(`Category ${category.id} has incorrect child count: expected ${actualChildCount}, got ${category.childCount}`);
+          warnings.push(
+            `Category ${category.id} has incorrect child count: expected ${actualChildCount}, got ${category.childCount}`,
+          );
         }
       }
 
@@ -205,7 +236,6 @@ export class CategoryTreeService {
       if (orphanedCategories.length > 0) {
         warnings.push(`Found ${orphanedCategories.length} orphaned categories`);
       }
-
     } catch (error) {
       errors.push(`Tree validation failed: ${error.message}`);
     }
@@ -217,12 +247,18 @@ export class CategoryTreeService {
     };
   }
 
-  async repairTreeIntegrity(rootId?: string, dryRun: boolean = true): Promise<{
+  async repairTreeIntegrity(
+    rootId?: string,
+    dryRun: boolean = true,
+  ): Promise<{
     repairsNeeded: number;
     repairsApplied: number;
     errors: string[];
   }> {
-    this.logger.log('CategoryTreeService.repairTreeIntegrity', { rootId, dryRun });
+    this.logger.log('CategoryTreeService.repairTreeIntegrity', {
+      rootId,
+      dryRun,
+    });
 
     const errors: string[] = [];
     let repairsNeeded = 0;
@@ -238,7 +274,6 @@ export class CategoryTreeService {
         await this.categoryRepository.refreshTreeStatistics(rootId);
         repairsApplied = repairsNeeded;
       }
-
     } catch (error) {
       errors.push(`Tree repair failed: ${error.message}`);
     }
@@ -258,18 +293,21 @@ export class CategoryTreeService {
     branchCategories: number;
     averageChildrenPerBranch: number;
   }> {
-    const categories = rootId 
+    const categories = rootId
       ? await this.categoryRepository.findSubtree(rootId)
       : (await this.categoryRepository.findAll({}, { limit: 100000 })).data;
 
     const totalCategories = categories.length;
-    const maxDepth = Math.max(...categories.map(c => c.depth));
-    const averageDepth = categories.reduce((sum, c) => sum + c.depth, 0) / totalCategories;
-    const leafCategories = categories.filter(c => c.isLeaf).length;
-    const branchCategories = categories.filter(c => !c.isLeaf).length;
-    const averageChildrenPerBranch = branchCategories > 0 
-      ? categories.reduce((sum, c) => sum + c.childCount, 0) / branchCategories 
-      : 0;
+    const maxDepth = Math.max(...categories.map((c) => c.depth));
+    const averageDepth =
+      categories.reduce((sum, c) => sum + c.depth, 0) / totalCategories;
+    const leafCategories = categories.filter((c) => c.isLeaf).length;
+    const branchCategories = categories.filter((c) => !c.isLeaf).length;
+    const averageChildrenPerBranch =
+      branchCategories > 0
+        ? categories.reduce((sum, c) => sum + c.childCount, 0) /
+          branchCategories
+        : 0;
 
     return {
       totalCategories,
@@ -309,7 +347,10 @@ export class CategoryTreeService {
   }
 
   // Private helper methods
-  private shouldIncludeCategory(category: Category, options: TreeTraversalOptions): boolean {
+  private shouldIncludeCategory(
+    category: Category,
+    options: TreeTraversalOptions,
+  ): boolean {
     if (options.activeOnly && category.status !== CategoryStatus.ACTIVE) {
       return false;
     }
@@ -325,7 +366,10 @@ export class CategoryTreeService {
     return true;
   }
 
-  private sortTreeNodes(nodes: CategoryTreeNode[], options: TreeTraversalOptions): void {
+  private sortTreeNodes(
+    nodes: CategoryTreeNode[],
+    options: TreeTraversalOptions,
+  ): void {
     const sortBy = options.sortBy || 'displayOrder';
     const sortOrder = options.sortOrder || 'asc';
 
@@ -349,7 +393,7 @@ export class CategoryTreeService {
     });
 
     // Recursively sort children
-    nodes.forEach(node => {
+    nodes.forEach((node) => {
       if (node.children.length > 0) {
         this.sortTreeNodes(node.children, options);
       }
@@ -370,7 +414,11 @@ export class CategoryTreeService {
   }
 
   private async countDirectChildren(categoryId: string): Promise<number> {
-    const result = await this.categoryRepository.findChildren(categoryId, {}, { limit: 1 });
+    const result = await this.categoryRepository.findChildren(
+      categoryId,
+      {},
+      { limit: 1 },
+    );
     return result.total;
   }
 

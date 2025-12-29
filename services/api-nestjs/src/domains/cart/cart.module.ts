@@ -10,12 +10,7 @@ import { PricingModule } from '../pricing/pricing.module';
 @Module({
   imports: [InventoryModule, PricingModule],
   controllers: [CartController],
-  providers: [
-    CartService,
-    CartRepository,
-    CartItemService,
-    CartItemRepository,
-  ],
+  providers: [CartService, CartRepository, CartItemService, CartItemRepository],
   exports: [CartService, CartItemService],
 })
 export class CartModule {}

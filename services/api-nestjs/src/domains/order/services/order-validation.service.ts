@@ -3,11 +3,11 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 
 @Injectable()
 export class OrderValidationService {
-  constructor(
-    private readonly logger: LoggerService
-  ) {}
+  constructor(private readonly logger: LoggerService) {}
 
-  async validateOrderStructure(createOrderDto: any): Promise<{ isValid: boolean; errors: string[] }> {
+  async validateOrderStructure(
+    createOrderDto: any,
+  ): Promise<{ isValid: boolean; errors: string[] }> {
     const errors: string[] = [];
 
     if (!createOrderDto.customerId) {
@@ -35,16 +35,22 @@ export class OrderValidationService {
 
   async validateVariants(items: any[]): Promise<void> {
     // TODO: Implement variant validation
-    this.logger.log('OrderValidationService.validateVariants', { itemCount: items.length });
+    this.logger.log('OrderValidationService.validateVariants', {
+      itemCount: items.length,
+    });
   }
 
   async validateInventoryAvailability(items: any[]): Promise<void> {
     // TODO: Implement inventory validation
-    this.logger.log('OrderValidationService.validateInventoryAvailability', { itemCount: items.length });
+    this.logger.log('OrderValidationService.validateInventoryAvailability', {
+      itemCount: items.length,
+    });
   }
 
   async validateBusinessRules(createOrderDto: any): Promise<void> {
     // TODO: Implement business rules validation
-    this.logger.log('OrderValidationService.validateBusinessRules', { customerId: createOrderDto.customerId });
+    this.logger.log('OrderValidationService.validateBusinessRules', {
+      customerId: createOrderDto.customerId,
+    });
   }
 }

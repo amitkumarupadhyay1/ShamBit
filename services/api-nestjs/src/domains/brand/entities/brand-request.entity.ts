@@ -1,10 +1,13 @@
-import { BrandRequestStatus, BrandRequestType } from '../enums/request-status.enum';
+import {
+  BrandRequestStatus,
+  BrandRequestType,
+} from '../enums/request-status.enum';
 
 export class BrandRequest {
   id: string;
   type: BrandRequestType;
   status: BrandRequestStatus;
-  
+
   // Request data
   brandName: string;
   brandSlug: string;
@@ -12,23 +15,23 @@ export class BrandRequest {
   logoUrl?: string;
   websiteUrl?: string;
   categoryIds: string[];
-  
+
   // Justification
   businessJustification: string;
   expectedUsage?: string;
-  
+
   // Existing brand (for updates/reactivation)
   brandId?: string;
-  
+
   // Requester
   requesterId: string;
-  
+
   // Admin handling
   handledBy?: string;
   handledAt?: Date;
   adminNotes?: string;
   rejectionReason?: string;
-  
+
   // Timestamps
   createdAt: Date;
   updatedAt: Date;
@@ -62,7 +65,7 @@ export class BrandRequest {
     if (!this.canBeHandled()) {
       throw new Error('Request cannot be approved in current status');
     }
-    
+
     this.status = BrandRequestStatus.APPROVED;
     this.handledBy = handledBy;
     this.handledAt = new Date();
@@ -70,11 +73,15 @@ export class BrandRequest {
     this.rejectionReason = undefined;
   }
 
-  reject(handledBy: string, rejectionReason: string, adminNotes?: string): void {
+  reject(
+    handledBy: string,
+    rejectionReason: string,
+    adminNotes?: string,
+  ): void {
     if (!this.canBeHandled()) {
       throw new Error('Request cannot be rejected in current status');
     }
-    
+
     this.status = BrandRequestStatus.REJECTED;
     this.handledBy = handledBy;
     this.handledAt = new Date();
@@ -86,7 +93,7 @@ export class BrandRequest {
     if (!this.canBeHandled()) {
       throw new Error('Request cannot be cancelled in current status');
     }
-    
+
     this.status = BrandRequestStatus.CANCELLED;
   }
 

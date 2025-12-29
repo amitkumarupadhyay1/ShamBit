@@ -5,7 +5,7 @@
 
 export class SettlementCreatedEvent {
   static readonly eventName = 'settlement.created';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -20,7 +20,7 @@ export class SettlementCreatedEvent {
 
 export class SettlementUpdatedEvent {
   static readonly eventName = 'settlement.updated';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -32,7 +32,7 @@ export class SettlementUpdatedEvent {
 
 export class SettlementStatusChangedEvent {
   static readonly eventName = 'settlement.status.changed';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -45,7 +45,7 @@ export class SettlementStatusChangedEvent {
 
 export class SettlementProcessedEvent {
   static readonly eventName = 'settlement.processed';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -59,7 +59,7 @@ export class SettlementProcessedEvent {
 
 export class SettlementSettledEvent {
   static readonly eventName = 'settlement.settled';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -74,7 +74,7 @@ export class SettlementSettledEvent {
 
 export class SettlementFailedEvent {
   static readonly eventName = 'settlement.failed';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -87,7 +87,7 @@ export class SettlementFailedEvent {
 
 export class SettlementRetriedEvent {
   static readonly eventName = 'settlement.retried';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -100,7 +100,7 @@ export class SettlementRetriedEvent {
 
 export class SettlementCancelledEvent {
   static readonly eventName = 'settlement.cancelled';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -116,7 +116,7 @@ export class SettlementCancelledEvent {
 
 export class SellerAccountCreatedEvent {
   static readonly eventName = 'seller.account.created';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -128,7 +128,7 @@ export class SellerAccountCreatedEvent {
 
 export class SellerAccountUpdatedEvent {
   static readonly eventName = 'seller.account.updated';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -141,7 +141,7 @@ export class SellerAccountUpdatedEvent {
 
 export class SellerAccountStatusChangedEvent {
   static readonly eventName = 'seller.account.status.changed';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -155,7 +155,7 @@ export class SellerAccountStatusChangedEvent {
 
 export class SellerAccountVerifiedEvent {
   static readonly eventName = 'seller.account.verified';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -167,7 +167,7 @@ export class SellerAccountVerifiedEvent {
 
 export class SellerAccountSuspendedEvent {
   static readonly eventName = 'seller.account.suspended';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -180,7 +180,7 @@ export class SellerAccountSuspendedEvent {
 
 export class SellerAccountRejectedEvent {
   static readonly eventName = 'seller.account.rejected';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -197,7 +197,7 @@ export class SellerAccountRejectedEvent {
 
 export class KycDocumentUploadedEvent {
   static readonly eventName = 'kyc.document.uploaded';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -210,7 +210,7 @@ export class KycDocumentUploadedEvent {
 
 export class KycStatusChangedEvent {
   static readonly eventName = 'kyc.status.changed';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -223,7 +223,7 @@ export class KycStatusChangedEvent {
 
 export class KycVerificationCompletedEvent {
   static readonly eventName = 'kyc.verification.completed';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -236,7 +236,7 @@ export class KycVerificationCompletedEvent {
 
 export class KycClarificationRequestedEvent {
   static readonly eventName = 'kyc.clarification.requested';
-  
+
   constructor(
     public readonly sellerAccountId: string,
     public readonly sellerId: string,
@@ -253,7 +253,7 @@ export class KycClarificationRequestedEvent {
 
 export class SettlementScheduleCreatedEvent {
   static readonly eventName = 'settlement.schedule.created';
-  
+
   constructor(
     public readonly scheduleId: string,
     public readonly sellerId: string,
@@ -266,7 +266,7 @@ export class SettlementScheduleCreatedEvent {
 
 export class SettlementScheduleUpdatedEvent {
   static readonly eventName = 'settlement.schedule.updated';
-  
+
   constructor(
     public readonly scheduleId: string,
     public readonly sellerId: string,
@@ -278,7 +278,7 @@ export class SettlementScheduleUpdatedEvent {
 
 export class SettlementScheduleActivatedEvent {
   static readonly eventName = 'settlement.schedule.activated';
-  
+
   constructor(
     public readonly scheduleId: string,
     public readonly sellerId: string,
@@ -289,7 +289,7 @@ export class SettlementScheduleActivatedEvent {
 
 export class SettlementScheduleDeactivatedEvent {
   static readonly eventName = 'settlement.schedule.deactivated';
-  
+
   constructor(
     public readonly scheduleId: string,
     public readonly sellerId: string,
@@ -305,7 +305,7 @@ export class SettlementScheduleDeactivatedEvent {
 
 export class SettlementJobCreatedEvent {
   static readonly eventName = 'settlement.job.created';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -318,7 +318,7 @@ export class SettlementJobCreatedEvent {
 
 export class SettlementJobStartedEvent {
   static readonly eventName = 'settlement.job.started';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -330,7 +330,7 @@ export class SettlementJobStartedEvent {
 
 export class SettlementJobCompletedEvent {
   static readonly eventName = 'settlement.job.completed';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -343,7 +343,7 @@ export class SettlementJobCompletedEvent {
 
 export class SettlementJobFailedEvent {
   static readonly eventName = 'settlement.job.failed';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -358,7 +358,7 @@ export class SettlementJobFailedEvent {
 
 export class SettlementJobRetryEvent {
   static readonly eventName = 'settlement.job.retry';
-  
+
   constructor(
     public readonly jobId: string,
     public readonly jobType: string,
@@ -376,7 +376,7 @@ export class SettlementJobRetryEvent {
 
 export class SettlementCalculationStartedEvent {
   static readonly eventName = 'settlement.calculation.started';
-  
+
   constructor(
     public readonly sellerId: string,
     public readonly periodStart: Date,
@@ -388,7 +388,7 @@ export class SettlementCalculationStartedEvent {
 
 export class SettlementCalculationCompletedEvent {
   static readonly eventName = 'settlement.calculation.completed';
-  
+
   constructor(
     public readonly sellerId: string,
     public readonly periodStart: Date,
@@ -405,7 +405,7 @@ export class SettlementCalculationCompletedEvent {
 
 export class SettlementCalculationFailedEvent {
   static readonly eventName = 'settlement.calculation.failed';
-  
+
   constructor(
     public readonly sellerId: string,
     public readonly periodStart: Date,
@@ -422,7 +422,7 @@ export class SettlementCalculationFailedEvent {
 
 export class SettlementReconciliationStartedEvent {
   static readonly eventName = 'settlement.reconciliation.started';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -434,7 +434,7 @@ export class SettlementReconciliationStartedEvent {
 
 export class SettlementReconciliationCompletedEvent {
   static readonly eventName = 'settlement.reconciliation.completed';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -455,7 +455,7 @@ export class SettlementReconciliationCompletedEvent {
 
 export class SettlementReconciliationFailedEvent {
   static readonly eventName = 'settlement.reconciliation.failed';
-  
+
   constructor(
     public readonly reconciliationId: string,
     public readonly gatewayProvider: string,
@@ -471,7 +471,7 @@ export class SettlementReconciliationFailedEvent {
 
 export class SettlementWebhookReceivedEvent {
   static readonly eventName = 'settlement.webhook.received';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -484,7 +484,7 @@ export class SettlementWebhookReceivedEvent {
 
 export class SettlementWebhookProcessedEvent {
   static readonly eventName = 'settlement.webhook.processed';
-  
+
   constructor(
     public readonly webhookId: string,
     public readonly eventType: string,
@@ -502,7 +502,7 @@ export class SettlementWebhookProcessedEvent {
 
 export class SettlementAuditLogCreatedEvent {
   static readonly eventName = 'settlement.audit.created';
-  
+
   constructor(
     public readonly auditLogId: string,
     public readonly settlementId: string,
@@ -518,11 +518,15 @@ export class SettlementAuditLogCreatedEvent {
 
 export class SettlementNotificationEvent {
   static readonly eventName = 'settlement.notification';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
-    public readonly notificationType: 'SETTLEMENT_PROCESSED' | 'SETTLEMENT_FAILED' | 'SETTLEMENT_DELAYED' | 'KYC_REQUIRED',
+    public readonly notificationType:
+      | 'SETTLEMENT_PROCESSED'
+      | 'SETTLEMENT_FAILED'
+      | 'SETTLEMENT_DELAYED'
+      | 'KYC_REQUIRED',
     public readonly notificationChannel: 'EMAIL' | 'SMS' | 'PUSH' | 'WEBHOOK',
     public readonly message: string,
     public readonly metadata?: Record<string, any>,
@@ -536,7 +540,7 @@ export class SettlementNotificationEvent {
 
 export class SettlementLimitExceededEvent {
   static readonly eventName = 'settlement.limit.exceeded';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -549,7 +553,7 @@ export class SettlementLimitExceededEvent {
 
 export class SettlementHoldAppliedEvent {
   static readonly eventName = 'settlement.hold.applied';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,
@@ -562,7 +566,7 @@ export class SettlementHoldAppliedEvent {
 
 export class SettlementHoldReleasedEvent {
   static readonly eventName = 'settlement.hold.released';
-  
+
   constructor(
     public readonly settlementId: string,
     public readonly sellerId: string,

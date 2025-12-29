@@ -35,7 +35,7 @@ export class SkuGeneratorService {
 
     // Get seller's SKU configuration
     const config = await this.getSkuConfiguration(options.sellerId);
-    
+
     switch (config.pattern) {
       case 'AUTO':
         return this.generateAutoSku(config, options);
@@ -65,7 +65,9 @@ export class SkuGeneratorService {
     await this.validateSkuUniqueness(sku);
   }
 
-  private async getSkuConfiguration(sellerId: string): Promise<SkuConfiguration> {
+  private async getSkuConfiguration(
+    sellerId: string,
+  ): Promise<SkuConfiguration> {
     try {
       // Get SKU configuration from key-value store
       const configs = await this.prisma.configuration.findMany({
@@ -73,20 +75,20 @@ export class SkuGeneratorService {
           key: {
             in: [
               `sku.${sellerId}.prefix`,
-              `sku.${sellerId}.suffix`, 
+              `sku.${sellerId}.suffix`,
               `sku.${sellerId}.pattern`,
               `sku.${sellerId}.template`,
               `sku.${sellerId}.counter`,
-              `sku.${sellerId}.isActive`
-            ]
-          }
-        }
+              `sku.${sellerId}.isActive`,
+            ],
+          },
+        },
       });
 
-      const configMap = new Map(configs.map(c => [c.key, c.value]));
-      
+      const configMap = new Map(configs.map((c) => [c.key, c.value]));
+
       const isActive = configMap.get(`sku.${sellerId}.isActive`) === 'true';
-      
+
       if (!isActive) {
         // Return default configuration
         return {
@@ -100,7 +102,11 @@ export class SkuGeneratorService {
       return {
         prefix: configMap.get(`sku.${sellerId}.prefix`) || '',
         suffix: configMap.get(`sku.${sellerId}.suffix`) || '',
-        pattern: (configMap.get(`sku.${sellerId}.pattern`) as 'AUTO' | 'CUSTOM' | 'TEMPLATE') || 'AUTO',
+        pattern:
+          (configMap.get(`sku.${sellerId}.pattern`) as
+            | 'AUTO'
+            | 'CUSTOM'
+            | 'TEMPLATE') || 'AUTO',
         template: configMap.get(`sku.${sellerId}.template`) || undefined,
         counter: parseInt(configMap.get(`sku.${sellerId}.counter`) || '1'),
       };
@@ -118,7 +124,7 @@ export class SkuGeneratorService {
 
   private async generateAutoSku(
     config: SkuConfiguration,
-    options: SkuGenerationOptions
+    options: SkuGenerationOptions,
   ): Promise<string> {
     const maxAttempts = 10;
     let attempt = 0;
@@ -141,7 +147,7 @@ export class SkuGeneratorService {
 
   private async generateTemplateSku(
     config: SkuConfiguration,
-    options: SkuGenerationOptions
+    options: SkuGenerationOptions,
   ): Promise<string> {
     if (!config.template) {
       throw new Error('Template pattern requires template configuration');
@@ -157,7 +163,7 @@ export class SkuGeneratorService {
   private buildAutoSku(
     config: SkuConfiguration,
     counter: number,
-    options: SkuGenerationOptions
+    options: SkuGenerationOptions,
   ): string {
     const parts: string[] = [];
 
@@ -173,7 +179,10 @@ export class SkuGeneratorService {
     parts.push(counter.toString().padStart(4, '0'));
 
     // Add attribute hash if variants exist
-    if (options.attributeValues && Object.keys(options.attributeValues).length > 0) {
+    if (
+      options.attributeValues &&
+      Object.keys(options.attributeValues).length > 0
+    ) {
       const hash = this.generateAttributeHash(options.attributeValues);
       parts.push(hash);
     }
@@ -189,14 +198,17 @@ export class SkuGeneratorService {
   private buildTemplateSku(
     config: SkuConfiguration,
     counter: number,
-    options: SkuGenerationOptions
+    options: SkuGenerationOptions,
   ): string {
     let sku = config.template!;
 
     // Replace template variables
     sku = sku.replace('{PREFIX}', config.prefix || '');
     sku = sku.replace('{SUFFIX}', config.suffix || '');
-    sku = sku.replace('{PRODUCT_ID}', options.productId.substring(0, 8).toUpperCase());
+    sku = sku.replace(
+      '{PRODUCT_ID}',
+      options.productId.substring(0, 8).toUpperCase(),
+    );
     sku = sku.replace('{COUNTER}', counter.toString().padStart(4, '0'));
     sku = sku.replace('{COUNTER_6}', counter.toString().padStart(6, '0'));
     sku = sku.replace('{TIMESTAMP}', Date.now().toString().slice(-8));
@@ -225,17 +237,17 @@ export class SkuGeneratorService {
     try {
       // Atomic counter increment using transaction
       const counterKey = `sku.${sellerId}.counter`;
-      
+
       return await this.prisma.$transaction(async (tx) => {
         // Get current counter value
         const currentConfig = await tx.configuration.findUnique({
-          where: { 
+          where: {
             key_tenantId_environment: {
               key: counterKey,
               tenantId: '',
-              environment: 'production'
-            }
-          }
+              environment: 'production',
+            },
+          },
         });
 
         const currentValue = currentConfig ? parseInt(currentConfig.value) : 0;
@@ -243,23 +255,23 @@ export class SkuGeneratorService {
 
         // Update counter
         await tx.configuration.upsert({
-          where: { 
+          where: {
             key_tenantId_environment: {
               key: counterKey,
               tenantId: '',
-              environment: 'production'
-            }
+              environment: 'production',
+            },
           },
           create: {
             key: counterKey,
             value: nextValue.toString(),
             type: 'number',
             tenantId: '',
-            environment: 'production'
+            environment: 'production',
           },
           update: {
-            value: nextValue.toString()
-          }
+            value: nextValue.toString(),
+          },
         });
 
         return nextValue;
@@ -271,11 +283,14 @@ export class SkuGeneratorService {
     }
   }
 
-  private generateAttributeHash(attributeValues: Record<string, string>): string {
+  private generateAttributeHash(
+    attributeValues: Record<string, string>,
+  ): string {
     // Create a deterministic hash from attribute values
-    const sortedEntries = Object.entries(attributeValues)
-      .sort(([a], [b]) => a.localeCompare(b));
-    
+    const sortedEntries = Object.entries(attributeValues).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
+
     const combined = sortedEntries
       .map(([key, value]) => `${key}:${value}`)
       .join('|');
@@ -284,7 +299,7 @@ export class SkuGeneratorService {
     let hash = 0;
     for (let i = 0; i < combined.length; i++) {
       const char = combined.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
 
@@ -302,36 +317,52 @@ export class SkuGeneratorService {
   async updateSkuConfiguration(
     sellerId: string,
     config: Partial<SkuConfiguration>,
-    updatedBy: string
+    updatedBy: string,
   ): Promise<void> {
     try {
       // Update each configuration value separately
       const updates: Promise<void>[] = [];
-      
+
       if (config.prefix !== undefined) {
-        updates.push(this.upsertConfigValue(`sku.${sellerId}.prefix`, config.prefix));
+        updates.push(
+          this.upsertConfigValue(`sku.${sellerId}.prefix`, config.prefix),
+        );
       }
       if (config.suffix !== undefined) {
-        updates.push(this.upsertConfigValue(`sku.${sellerId}.suffix`, config.suffix));
+        updates.push(
+          this.upsertConfigValue(`sku.${sellerId}.suffix`, config.suffix),
+        );
       }
       if (config.pattern !== undefined) {
-        updates.push(this.upsertConfigValue(`sku.${sellerId}.pattern`, config.pattern));
+        updates.push(
+          this.upsertConfigValue(`sku.${sellerId}.pattern`, config.pattern),
+        );
       }
       if (config.template !== undefined) {
-        updates.push(this.upsertConfigValue(`sku.${sellerId}.template`, config.template));
+        updates.push(
+          this.upsertConfigValue(`sku.${sellerId}.template`, config.template),
+        );
       }
       if (config.counter !== undefined) {
-        updates.push(this.upsertConfigValue(`sku.${sellerId}.counter`, config.counter.toString()));
+        updates.push(
+          this.upsertConfigValue(
+            `sku.${sellerId}.counter`,
+            config.counter.toString(),
+          ),
+        );
       }
-      
+
       // Set as active
       updates.push(this.upsertConfigValue(`sku.${sellerId}.isActive`, 'true'));
-      
+
       await Promise.all(updates);
-      
+
       this.logger.log('SKU configuration updated', { sellerId, config });
     } catch (error) {
-      this.logger.error('Failed to update SKU configuration', error, { sellerId, config });
+      this.logger.error('Failed to update SKU configuration', error, {
+        sellerId,
+        config,
+      });
       throw error;
     }
   }
@@ -342,55 +373,63 @@ export class SkuGeneratorService {
         key_tenantId_environment: {
           key,
           tenantId: '',
-          environment: 'production'
-        }
+          environment: 'production',
+        },
       },
       create: {
         key,
         value,
         type: 'string',
         tenantId: '',
-        environment: 'production'
+        environment: 'production',
       },
       update: {
-        value
-      }
+        value,
+      },
     });
   }
 
-  async getSkuConfigurationForSeller(sellerId: string): Promise<SkuConfiguration | null> {
+  async getSkuConfigurationForSeller(
+    sellerId: string,
+  ): Promise<SkuConfiguration | null> {
     try {
       const configs = await this.prisma.configuration.findMany({
         where: {
           key: {
             in: [
               `sku.${sellerId}.prefix`,
-              `sku.${sellerId}.suffix`, 
+              `sku.${sellerId}.suffix`,
               `sku.${sellerId}.pattern`,
               `sku.${sellerId}.template`,
               `sku.${sellerId}.counter`,
-              `sku.${sellerId}.isActive`
-            ]
-          }
-        }
+              `sku.${sellerId}.isActive`,
+            ],
+          },
+        },
       });
 
       if (configs.length === 0) return null;
 
-      const configMap = new Map(configs.map(c => [c.key, c.value]));
-      
+      const configMap = new Map(configs.map((c) => [c.key, c.value]));
+
       const isActive = configMap.get(`sku.${sellerId}.isActive`) === 'true';
       if (!isActive) return null;
 
       return {
         prefix: configMap.get(`sku.${sellerId}.prefix`) || '',
         suffix: configMap.get(`sku.${sellerId}.suffix`) || '',
-        pattern: (configMap.get(`sku.${sellerId}.pattern`) as 'AUTO' | 'CUSTOM' | 'TEMPLATE') || 'AUTO',
+        pattern:
+          (configMap.get(`sku.${sellerId}.pattern`) as
+            | 'AUTO'
+            | 'CUSTOM'
+            | 'TEMPLATE') || 'AUTO',
         template: configMap.get(`sku.${sellerId}.template`) || undefined,
         counter: parseInt(configMap.get(`sku.${sellerId}.counter`) || '1'),
       };
     } catch (error) {
-      this.logger.error('Failed to get SKU configuration for seller', error, { sellerId });
+      this.logger.error('Failed to get SKU configuration for seller', error, {
+        sellerId,
+      });
       return null;
     }
   }

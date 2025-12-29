@@ -13,7 +13,13 @@ import {
   ParseUUIDPipe,
   ValidationPipe,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+} from '@nestjs/swagger';
 
 import { ProductService } from './product.service';
 import { ProductAuditService } from './services/product-audit.service';
@@ -34,7 +40,10 @@ import {
   ProductCloneDto,
 } from './dtos/update-product.dto';
 
-import { ProductResponseDto, ProductListResponseDto } from './dtos/product-response.dto';
+import {
+  ProductResponseDto,
+  ProductListResponseDto,
+} from './dtos/product-response.dto';
 
 import { ProductStatus } from './enums/product-status.enum';
 import { ProductModerationStatus } from './enums/product-moderation-status.enum';
@@ -79,15 +88,59 @@ export class ProductController {
 
   @Get()
   @ApiOperation({ summary: 'Get all products with filtering and pagination' })
-  @ApiResponse({ status: 200, description: 'Products retrieved successfully', type: ProductListResponseDto })
-  @ApiQuery({ name: 'page', required: false, type: Number, description: 'Page number' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Items per page' })
-  @ApiQuery({ name: 'status', required: false, enum: ProductStatus, description: 'Filter by status' })
-  @ApiQuery({ name: 'visibility', required: false, enum: ProductVisibility, description: 'Filter by visibility' })
-  @ApiQuery({ name: 'categoryId', required: false, type: String, description: 'Filter by category' })
-  @ApiQuery({ name: 'brandId', required: false, type: String, description: 'Filter by brand' })
-  @ApiQuery({ name: 'sellerId', required: false, type: String, description: 'Filter by seller' })
-  @ApiQuery({ name: 'search', required: false, type: String, description: 'Search in name and description' })
+  @ApiResponse({
+    status: 200,
+    description: 'Products retrieved successfully',
+    type: ProductListResponseDto,
+  })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Page number',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Items per page',
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ProductStatus,
+    description: 'Filter by status',
+  })
+  @ApiQuery({
+    name: 'visibility',
+    required: false,
+    enum: ProductVisibility,
+    description: 'Filter by visibility',
+  })
+  @ApiQuery({
+    name: 'categoryId',
+    required: false,
+    type: String,
+    description: 'Filter by category',
+  })
+  @ApiQuery({
+    name: 'brandId',
+    required: false,
+    type: String,
+    description: 'Filter by brand',
+  })
+  @ApiQuery({
+    name: 'sellerId',
+    required: false,
+    type: String,
+    description: 'Filter by seller',
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: 'Search in name and description',
+  })
   async findAll(
     @Query() query: ProductQueryFilters,
     @CurrentUser('id') userId?: string,
@@ -138,7 +191,13 @@ export class ProductController {
       includeSeller: false,
     };
 
-    const result = await this.productService.findAll(filters, pagination, includes, userId, userRole);
+    const result = await this.productService.findAll(
+      filters,
+      pagination,
+      includes,
+      userId,
+      userRole,
+    );
 
     return {
       data: result.data as ProductResponseDto[],
@@ -151,21 +210,44 @@ export class ProductController {
 
   @Get('featured')
   @ApiOperation({ summary: 'Get featured products' })
-  @ApiResponse({ status: 200, description: 'Featured products retrieved successfully' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of products to return' })
+  @ApiResponse({
+    status: 200,
+    description: 'Featured products retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of products to return',
+  })
   async getFeaturedProducts(
     @Query('limit') limit: number = 10,
     @CurrentUser('role') userRole?: UserRole,
   ): Promise<ProductResponseDto[]> {
     const filters = { isFeatured: true, status: ProductStatus.PUBLISHED };
-    const result = await this.productService.findAll(filters, { limit }, {}, undefined, userRole);
+    const result = await this.productService.findAll(
+      filters,
+      { limit },
+      {},
+      undefined,
+      userRole,
+    );
     return result.data as ProductResponseDto[];
   }
 
   @Get('search')
   @ApiOperation({ summary: 'Search products' })
-  @ApiResponse({ status: 200, description: 'Search results retrieved successfully', type: ProductListResponseDto })
-  @ApiQuery({ name: 'q', required: true, type: String, description: 'Search query' })
+  @ApiResponse({
+    status: 200,
+    description: 'Search results retrieved successfully',
+    type: ProductListResponseDto,
+  })
+  @ApiQuery({
+    name: 'q',
+    required: true,
+    type: String,
+    description: 'Search query',
+  })
   async searchProducts(
     @Query('q') query: string,
     @Query() filters: ProductQueryFilters,
@@ -186,7 +268,13 @@ export class ProductController {
       sortOrder: filters.sortOrder || 'desc',
     };
 
-    const result = await this.productService.searchProducts(query, searchFilters, pagination, userId, userRole);
+    const result = await this.productService.searchProducts(
+      query,
+      searchFilters,
+      pagination,
+      userId,
+      userRole,
+    );
 
     return {
       data: result as ProductResponseDto[],
@@ -201,7 +289,10 @@ export class ProductController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get product statistics (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Statistics retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Statistics retrieved successfully',
+  })
   async getStatistics() {
     return this.productService.getStatistics();
   }
@@ -209,20 +300,24 @@ export class ProductController {
   @Get('my-products')
   @Roles(UserRole.SELLER)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current seller\'s products' })
-  @ApiResponse({ status: 200, description: 'Seller products retrieved successfully', type: ProductListResponseDto })
+  @ApiOperation({ summary: "Get current seller's products" })
+  @ApiResponse({
+    status: 200,
+    description: 'Seller products retrieved successfully',
+    type: ProductListResponseDto,
+  })
   async getMyProducts(
     @Query() query: ProductQueryFilters,
     @CurrentUser('id') sellerId: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductListResponseDto> {
     const filters: any = { ...query, sellerId };
-    
+
     // Parse tags if provided
     if (query.tags) {
       filters.tags = query.tags.split(',');
     }
-    
+
     const pagination = {
       page: query.page || 1,
       limit: query.limit || 20,
@@ -230,7 +325,13 @@ export class ProductController {
       sortOrder: query.sortOrder || 'desc',
     };
 
-    const result = await this.productService.findAll(filters, pagination, {}, sellerId, userRole);
+    const result = await this.productService.findAll(
+      filters,
+      pagination,
+      {},
+      sellerId,
+      userRole,
+    );
 
     return {
       data: result.data as ProductResponseDto[],
@@ -244,17 +345,29 @@ export class ProductController {
   @Get('my-statistics')
   @Roles(UserRole.SELLER)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get current seller\'s product statistics' })
-  @ApiResponse({ status: 200, description: 'Seller statistics retrieved successfully' })
+  @ApiOperation({ summary: "Get current seller's product statistics" })
+  @ApiResponse({
+    status: 200,
+    description: 'Seller statistics retrieved successfully',
+  })
   async getMyStatistics(@CurrentUser('id') sellerId: string) {
     return this.productService.getSellerStatistics(sellerId);
   }
 
   @Get(':id')
   @ApiOperation({ summary: 'Get product by ID' })
-  @ApiResponse({ status: 200, description: 'Product retrieved successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product retrieved successfully',
+    type: ProductResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  @ApiQuery({ name: 'includeAttributes', required: false, type: Boolean, description: 'Include attribute values' })
+  @ApiQuery({
+    name: 'includeAttributes',
+    required: false,
+    type: Boolean,
+    description: 'Include attribute values',
+  })
   async findById(
     @Param('id', ParseUUIDPipe) id: string,
     @Query('includeAttributes') includeAttributes?: boolean,
@@ -267,12 +380,21 @@ export class ProductController {
       includeBrand: true,
       includeSeller: true,
     };
-    return this.productService.findById(id, includes, userId, userRole) as Promise<ProductResponseDto>;
+    return this.productService.findById(
+      id,
+      includes,
+      userId,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Get('slug/:slug')
   @ApiOperation({ summary: 'Get product by slug' })
-  @ApiResponse({ status: 200, description: 'Product retrieved successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product retrieved successfully',
+    type: ProductResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Product not found' })
   async findBySlug(
     @Param('slug') slug: string,
@@ -286,28 +408,45 @@ export class ProductController {
       includeBrand: true,
       includeSeller: true,
     };
-    return this.productService.findBySlug(slug, includes, userId, userRole) as Promise<ProductResponseDto>;
+    return this.productService.findBySlug(
+      slug,
+      includes,
+      userId,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Post()
   @Roles(UserRole.SELLER, UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create new product' })
-  @ApiResponse({ status: 201, description: 'Product created successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Product created successfully',
+    type: ProductResponseDto,
+  })
   @ApiResponse({ status: 409, description: 'Product with slug already exists' })
   async create(
     @Body(ValidationPipe) createProductDto: CreateProductDto,
     @CurrentUser('id') createdBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.create(createProductDto, createdBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.create(
+      createProductDto,
+      createdBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Put(':id')
   @UseGuards(ProductOwnershipGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product' })
-  @ApiResponse({ status: 200, description: 'Product updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product updated successfully',
+    type: ProductResponseDto,
+  })
   @ApiResponse({ status: 404, description: 'Product not found' })
   @ApiResponse({ status: 403, description: 'Insufficient permissions' })
   async update(
@@ -316,14 +455,23 @@ export class ProductController {
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.update(id, updateProductDto, updatedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.update(
+      id,
+      updateProductDto,
+      updatedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Put(':id/status')
   @UseGuards(ProductOwnershipGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product status' })
-  @ApiResponse({ status: 200, description: 'Product status updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product status updated successfully',
+    type: ProductResponseDto,
+  })
   @ApiResponse({ status: 400, description: 'Invalid status transition' })
   async updateStatus(
     @Param('id', ParseUUIDPipe) id: string,
@@ -331,49 +479,81 @@ export class ProductController {
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.updateStatus(id, statusUpdate, updatedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.updateStatus(
+      id,
+      statusUpdate,
+      updatedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Put(':id/category')
   @UseGuards(ProductOwnershipGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product category' })
-  @ApiResponse({ status: 200, description: 'Product category updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product category updated successfully',
+    type: ProductResponseDto,
+  })
   async updateCategory(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) categoryUpdate: ProductCategoryUpdateDto,
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.updateCategory(id, categoryUpdate, updatedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.updateCategory(
+      id,
+      categoryUpdate,
+      updatedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Put(':id/brand')
   @UseGuards(ProductOwnershipGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product brand' })
-  @ApiResponse({ status: 200, description: 'Product brand updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product brand updated successfully',
+    type: ProductResponseDto,
+  })
   async updateBrand(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) brandUpdate: ProductBrandUpdateDto,
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.updateBrand(id, brandUpdate, updatedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.updateBrand(
+      id,
+      brandUpdate,
+      updatedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Put(':id/featured')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Toggle product featured status (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Product featured status updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Product featured status updated successfully',
+    type: ProductResponseDto,
+  })
   async toggleFeatured(
     @Param('id', ParseUUIDPipe) id: string,
     @Body('isFeatured') isFeatured: boolean,
     @CurrentUser('id') updatedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.setFeatured(id, isFeatured, updatedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.setFeatured(
+      id,
+      isFeatured,
+      updatedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   @Delete(':id')
@@ -383,7 +563,10 @@ export class ProductController {
   @ApiOperation({ summary: 'Delete product' })
   @ApiResponse({ status: 204, description: 'Product deleted successfully' })
   @ApiResponse({ status: 404, description: 'Product not found' })
-  @ApiResponse({ status: 400, description: 'Cannot delete product in current state' })
+  @ApiResponse({
+    status: 400,
+    description: 'Cannot delete product in current state',
+  })
   async delete(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser('id') deletedBy: string,
@@ -401,7 +584,10 @@ export class ProductController {
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get products pending moderation' })
-  @ApiResponse({ status: 200, description: 'Pending products retrieved successfully' })
+  @ApiResponse({
+    status: 200,
+    description: 'Pending products retrieved successfully',
+  })
   async getPendingModeration(
     @Query('limit') limit: number = 50,
   ): Promise<ProductResponseDto[]> {
@@ -414,7 +600,11 @@ export class ProductController {
   @Roles(UserRole.ADMIN, UserRole.MODERATOR)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update product moderation status' })
-  @ApiResponse({ status: 200, description: 'Moderation status updated successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Moderation status updated successfully',
+    type: ProductResponseDto,
+  })
   async updateModerationStatus(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) moderationDto: ProductModerationDto,
@@ -424,7 +614,7 @@ export class ProductController {
       id,
       moderationDto.moderationStatus,
       moderatedBy,
-      moderationDto.moderationNotes
+      moderationDto.moderationNotes,
     ) as Promise<ProductResponseDto>;
   }
 
@@ -453,14 +643,23 @@ export class ProductController {
   @UseGuards(ProductOwnershipGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Clone product' })
-  @ApiResponse({ status: 201, description: 'Product cloned successfully', type: ProductResponseDto })
+  @ApiResponse({
+    status: 201,
+    description: 'Product cloned successfully',
+    type: ProductResponseDto,
+  })
   async cloneProduct(
     @Param('id', ParseUUIDPipe) id: string,
     @Body(ValidationPipe) cloneDto: ProductCloneDto,
     @CurrentUser('id') clonedBy: string,
     @CurrentUser('role') userRole: UserRole,
   ): Promise<ProductResponseDto> {
-    return this.productService.cloneProduct(id, cloneDto, clonedBy, userRole) as Promise<ProductResponseDto>;
+    return this.productService.cloneProduct(
+      id,
+      cloneDto,
+      clonedBy,
+      userRole,
+    ) as Promise<ProductResponseDto>;
   }
 
   // ============================================================================
@@ -469,7 +668,11 @@ export class ProductController {
 
   @Get('category/:categoryId')
   @ApiOperation({ summary: 'Get products by category' })
-  @ApiResponse({ status: 200, description: 'Category products retrieved successfully', type: ProductListResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Category products retrieved successfully',
+    type: ProductListResponseDto,
+  })
   async getProductsByCategory(
     @Param('categoryId', ParseUUIDPipe) categoryId: string,
     @Query() query: ProductQueryFilters,
@@ -477,12 +680,12 @@ export class ProductController {
     @CurrentUser('role') userRole?: UserRole,
   ): Promise<ProductListResponseDto> {
     const filters: any = { ...query, categoryId };
-    
+
     // Parse tags if provided
     if (query.tags) {
       filters.tags = query.tags.split(',');
     }
-    
+
     const pagination = {
       page: query.page || 1,
       limit: query.limit || 20,
@@ -490,7 +693,13 @@ export class ProductController {
       sortOrder: query.sortOrder || 'asc',
     };
 
-    const result = await this.productService.findAll(filters, pagination, {}, userId, userRole);
+    const result = await this.productService.findAll(
+      filters,
+      pagination,
+      {},
+      userId,
+      userRole,
+    );
 
     return {
       data: result.data as ProductResponseDto[],
@@ -503,7 +712,11 @@ export class ProductController {
 
   @Get('brand/:brandId')
   @ApiOperation({ summary: 'Get products by brand' })
-  @ApiResponse({ status: 200, description: 'Brand products retrieved successfully', type: ProductListResponseDto })
+  @ApiResponse({
+    status: 200,
+    description: 'Brand products retrieved successfully',
+    type: ProductListResponseDto,
+  })
   async getProductsByBrand(
     @Param('brandId', ParseUUIDPipe) brandId: string,
     @Query() query: ProductQueryFilters,
@@ -511,12 +724,12 @@ export class ProductController {
     @CurrentUser('role') userRole?: UserRole,
   ): Promise<ProductListResponseDto> {
     const filters: any = { ...query, brandId };
-    
+
     // Parse tags if provided
     if (query.tags) {
       filters.tags = query.tags.split(',');
     }
-    
+
     const pagination = {
       page: query.page || 1,
       limit: query.limit || 20,
@@ -524,7 +737,13 @@ export class ProductController {
       sortOrder: query.sortOrder || 'asc',
     };
 
-    const result = await this.productService.findAll(filters, pagination, {}, userId, userRole);
+    const result = await this.productService.findAll(
+      filters,
+      pagination,
+      {},
+      userId,
+      userRole,
+    );
 
     return {
       data: result.data as ProductResponseDto[],
@@ -543,31 +762,64 @@ export class ProductController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get product audit history (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Audit history retrieved successfully' })
-  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Number of entries to return' })
-  @ApiQuery({ name: 'offset', required: false, type: Number, description: 'Number of entries to skip' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit history retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: 'Number of entries to return',
+  })
+  @ApiQuery({
+    name: 'offset',
+    required: false,
+    type: Number,
+    description: 'Number of entries to skip',
+  })
   async getProductAuditHistory(
     @Param('id', ParseUUIDPipe) productId: string,
     @Query('limit') limit: number = 50,
     @Query('offset') offset: number = 0,
   ) {
-    return this.productAuditService.getProductAuditHistory(productId, limit, offset);
+    return this.productAuditService.getProductAuditHistory(
+      productId,
+      limit,
+      offset,
+    );
   }
 
   @Get('audit/statistics')
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get audit statistics (Admin only)' })
-  @ApiResponse({ status: 200, description: 'Audit statistics retrieved successfully' })
-  @ApiQuery({ name: 'dateFrom', required: false, type: String, description: 'Start date (ISO string)' })
-  @ApiQuery({ name: 'dateTo', required: false, type: String, description: 'End date (ISO string)' })
+  @ApiResponse({
+    status: 200,
+    description: 'Audit statistics retrieved successfully',
+  })
+  @ApiQuery({
+    name: 'dateFrom',
+    required: false,
+    type: String,
+    description: 'Start date (ISO string)',
+  })
+  @ApiQuery({
+    name: 'dateTo',
+    required: false,
+    type: String,
+    description: 'End date (ISO string)',
+  })
   async getAuditStatistics(
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
   ) {
     const dateFromParsed = dateFrom ? new Date(dateFrom) : undefined;
     const dateToParsed = dateTo ? new Date(dateTo) : undefined;
-    
-    return this.productAuditService.getAuditStatistics(dateFromParsed, dateToParsed);
+
+    return this.productAuditService.getAuditStatistics(
+      dateFromParsed,
+      dateToParsed,
+    );
   }
 }

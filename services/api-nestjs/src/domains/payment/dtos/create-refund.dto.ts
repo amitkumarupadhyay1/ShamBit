@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsNumber, IsEnum, IsBoolean, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsBoolean,
+  Min,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateRefundDto {
@@ -10,19 +17,19 @@ export class CreateRefundDto {
   @IsString()
   transactionId: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Refund amount in cents',
-    minimum: 1
+    minimum: 1,
   })
   @IsNumber()
   @Min(1)
   amount: number;
 
-  @ApiProperty({ 
+  @ApiProperty({
     description: 'Reason for the refund',
     enum: [
       'DUPLICATE',
-      'FRAUDULENT', 
+      'FRAUDULENT',
       'REQUESTED_BY_CUSTOMER',
       'DEFECTIVE_PRODUCT',
       'WRONG_ITEM',
@@ -31,14 +38,14 @@ export class CreateRefundDto {
       'LATE_DELIVERY',
       'MERCHANT_ERROR',
       'SYSTEM_ERROR',
-      'OTHER'
-    ]
+      'OTHER',
+    ],
   })
   @IsString()
   @IsEnum([
     'DUPLICATE',
     'FRAUDULENT',
-    'REQUESTED_BY_CUSTOMER', 
+    'REQUESTED_BY_CUSTOMER',
     'DEFECTIVE_PRODUCT',
     'WRONG_ITEM',
     'DAMAGED_IN_SHIPPING',
@@ -46,41 +53,43 @@ export class CreateRefundDto {
     'LATE_DELIVERY',
     'MERCHANT_ERROR',
     'SYSTEM_ERROR',
-    'OTHER'
+    'OTHER',
   ])
   reason: string;
 
-  @ApiPropertyOptional({ description: 'Detailed description of the refund reason' })
+  @ApiPropertyOptional({
+    description: 'Detailed description of the refund reason',
+  })
   @IsOptional()
   @IsString()
   description?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Currency code (defaults to original transaction currency)',
-    example: 'USD'
+    example: 'USD',
   })
   @IsOptional()
   @IsString()
   currency?: string;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Whether to reverse any application fees',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
   reverseApplicationFee?: boolean = false;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Whether to refund shipping costs',
-    default: false
+    default: false,
   })
   @IsOptional()
   @IsBoolean()
   refundShipping?: boolean = false;
 
-  @ApiPropertyOptional({ 
-    description: 'Instructions for the refund (for manual processing)'
+  @ApiPropertyOptional({
+    description: 'Instructions for the refund (for manual processing)',
   })
   @IsOptional()
   @IsString()
@@ -90,8 +99,8 @@ export class CreateRefundDto {
   @IsOptional()
   metadata?: Record<string, any>;
 
-  @ApiPropertyOptional({ 
-    description: 'Notification preferences for the refund'
+  @ApiPropertyOptional({
+    description: 'Notification preferences for the refund',
   })
   @IsOptional()
   notifications?: {
@@ -100,9 +109,9 @@ export class CreateRefundDto {
     webhook?: boolean;
   };
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Expected processing time',
-    enum: ['IMMEDIATE', 'STANDARD', 'EXPEDITED']
+    enum: ['IMMEDIATE', 'STANDARD', 'EXPEDITED'],
   })
   @IsOptional()
   @IsEnum(['IMMEDIATE', 'STANDARD', 'EXPEDITED'])
@@ -117,9 +126,9 @@ export class BulkRefundDto {
   @ApiProperty({ description: 'Refund details to apply to all transactions' })
   refundData: Omit<CreateRefundDto, 'transactionId'>;
 
-  @ApiPropertyOptional({ 
+  @ApiPropertyOptional({
     description: 'Whether to continue processing if some refunds fail',
-    default: true
+    default: true,
   })
   @IsOptional()
   @IsBoolean()

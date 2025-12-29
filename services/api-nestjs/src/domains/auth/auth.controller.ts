@@ -7,7 +7,12 @@ import {
   UseGuards,
   Get,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { AuthService } from './auth.service';
 import {
@@ -47,7 +52,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Google OAuth login' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async googleAuth(@Body() googleAuthDto: GoogleAuthDto): Promise<AuthResponseDto> {
+  async googleAuth(
+    @Body() googleAuthDto: GoogleAuthDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.googleAuth(googleAuthDto);
   }
 
@@ -56,7 +63,9 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Refresh access token' })
   @ApiResponse({ status: 200, type: AuthResponseDto })
-  async refresh(@Body() refreshTokenDto: RefreshTokenDto): Promise<AuthResponseDto> {
+  async refresh(
+    @Body() refreshTokenDto: RefreshTokenDto,
+  ): Promise<AuthResponseDto> {
     return this.authService.refreshToken(refreshTokenDto.refreshToken);
   }
 

@@ -73,7 +73,7 @@ export class Order {
     createdBy: string;
   }): Order {
     const orderNumber = `ORD-${Date.now()}-${Math.random().toString(36).substring(2, 11).toUpperCase()}`;
-    
+
     return new Order({
       ...data,
       orderNumber,
@@ -87,11 +87,19 @@ export class Order {
   }
 
   get isTerminal(): boolean {
-    return [OrderStatus.DELIVERED, OrderStatus.CANCELLED, OrderStatus.REFUNDED].includes(this.status);
+    return [
+      OrderStatus.DELIVERED,
+      OrderStatus.CANCELLED,
+      OrderStatus.REFUNDED,
+    ].includes(this.status);
   }
 
   get canBeCancelled(): boolean {
-    return [OrderStatus.PENDING, OrderStatus.CONFIRMED, OrderStatus.PROCESSING].includes(this.status);
+    return [
+      OrderStatus.PENDING,
+      OrderStatus.CONFIRMED,
+      OrderStatus.PROCESSING,
+    ].includes(this.status);
   }
 
   get canBeRefunded(): boolean {
@@ -122,22 +130,24 @@ export class Order {
   }
 
   isMultiSeller(): boolean {
-    const sellers = new Set(this.items.map(item => item.sellerId));
+    const sellers = new Set(this.items.map((item) => item.sellerId));
     return sellers.size > 1;
   }
 
   getSellers(): string[] {
-    return Array.from(new Set(this.items.map(item => item.sellerId)));
+    return Array.from(new Set(this.items.map((item) => item.sellerId)));
   }
 
   getItemsBySeller(sellerId: string): OrderItem[] {
-    return this.items.filter(item => item.sellerId === sellerId);
+    return this.items.filter((item) => item.sellerId === sellerId);
   }
 
   getSubtotalBySeller(sellerId: string): number {
-    return this.getItemsBySeller(sellerId).reduce((sum, item) => sum + item.totalPrice, 0);
+    return this.getItemsBySeller(sellerId).reduce(
+      (sum, item) => sum + item.totalPrice,
+      0,
+    );
   }
-
 
   get expiresAt(): Date | undefined {
     // TODO: Calculate expiry date based on business rules
@@ -151,7 +161,11 @@ export class Order {
 
   calculateTotals(): void {
     this.subtotal = this.items.reduce((sum, item) => sum + item.totalPrice, 0);
-    this.totalAmount = this.subtotal + this.shippingAmount + this.taxAmount - this.discountAmount;
+    this.totalAmount =
+      this.subtotal +
+      this.shippingAmount +
+      this.taxAmount -
+      this.discountAmount;
   }
 
   addItem(item: OrderItem): void {
@@ -162,13 +176,17 @@ export class Order {
   }
 
   removeItem(itemId: string): void {
-    this.items = this.items.filter(item => item.id !== itemId);
+    this.items = this.items.filter((item) => item.id !== itemId);
     this.calculateTotals();
     this.version++;
     this.updatedAt = new Date();
   }
 
-  updateStatus(newStatus: OrderStatus, updatedBy: string, reason?: string): void {
+  updateStatus(
+    newStatus: OrderStatus,
+    updatedBy: string,
+    reason?: string,
+  ): void {
     this.status = newStatus;
     this.updatedBy = updatedBy;
     this.updatedAt = new Date();
@@ -187,12 +205,12 @@ export class Order {
 
   validateProductSnapshot(): string[] {
     const errors: string[] = [];
-    
+
     for (const item of this.items) {
       const itemErrors = item.validateProductSnapshot();
       errors.push(...itemErrors);
     }
-    
+
     return errors;
   }
 }

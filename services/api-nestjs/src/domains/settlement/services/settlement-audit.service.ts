@@ -4,7 +4,12 @@ import { LoggerService } from '../../../infrastructure/observability/logger.serv
 // Temporary interfaces to avoid circular dependency
 interface ISettlementAuditRepository {
   create(data: any, tx?: any): Promise<SettlementAuditLog>;
-  findAll(filters: any, options: any, limit: number, offset: number): Promise<{
+  findAll(
+    filters: any,
+    options: any,
+    limit: number,
+    offset: number,
+  ): Promise<{
     auditLogs: SettlementAuditLog[];
     total: number;
   }>;
@@ -58,7 +63,7 @@ export class SettlementAuditService {
     oldValues: any,
     newValues: any,
     reason?: string,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     this.logger.log('SettlementAuditService.logAction', {
       settlementId,
@@ -93,7 +98,7 @@ export class SettlementAuditService {
     settlementId: string,
     userId: string,
     settlementData: any,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     return this.logAction(
       settlementId,
@@ -102,7 +107,7 @@ export class SettlementAuditService {
       null,
       settlementData,
       'Settlement created',
-      tx
+      tx,
     );
   }
 
@@ -112,7 +117,7 @@ export class SettlementAuditService {
     oldStatus: string,
     newStatus: string,
     reason?: string,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     return this.logAction(
       settlementId,
@@ -121,7 +126,7 @@ export class SettlementAuditService {
       { status: oldStatus },
       { status: newStatus },
       reason || `Status changed from ${oldStatus} to ${newStatus}`,
-      tx
+      tx,
     );
   }
 
@@ -129,7 +134,7 @@ export class SettlementAuditService {
     settlementId: string,
     userId: string,
     processingData: any,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     return this.logAction(
       settlementId,
@@ -138,7 +143,7 @@ export class SettlementAuditService {
       null,
       processingData,
       'Settlement processed',
-      tx
+      tx,
     );
   }
 
@@ -146,7 +151,7 @@ export class SettlementAuditService {
     settlementId: string,
     userId: string,
     errorData: any,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     return this.logAction(
       settlementId,
@@ -155,7 +160,7 @@ export class SettlementAuditService {
       null,
       errorData,
       'Settlement failed',
-      tx
+      tx,
     );
   }
 
@@ -165,7 +170,7 @@ export class SettlementAuditService {
     oldValues: any,
     newValues: any,
     reason?: string,
-    tx?: any
+    tx?: any,
   ): Promise<SettlementAuditLog> {
     return this.logAction(
       null,
@@ -174,7 +179,7 @@ export class SettlementAuditService {
       oldValues,
       newValues,
       reason,
-      tx
+      tx,
     );
   }
 
@@ -186,26 +191,31 @@ export class SettlementAuditService {
     filters: AuditLogFilters = {},
     options: AuditLogOptions = {},
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
   ): Promise<{
     auditLogs: SettlementAuditLog[];
     total: number;
   }> {
-    this.logger.log('SettlementAuditService.findAuditLogs', { filters, limit, offset });
+    this.logger.log('SettlementAuditService.findAuditLogs', {
+      filters,
+      limit,
+      offset,
+    });
 
-    return this.settlementAuditRepository.findAll(filters, options, limit, offset);
+    return this.settlementAuditRepository.findAll(
+      filters,
+      options,
+      limit,
+      offset,
+    );
   }
 
   async findBySettlementId(
     settlementId: string,
     options: AuditLogOptions = {},
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SettlementAuditLog[]> {
-    const result = await this.findAuditLogs(
-      { settlementId },
-      options,
-      limit
-    );
+    const result = await this.findAuditLogs({ settlementId }, options, limit);
 
     return result.auditLogs;
   }
@@ -213,13 +223,9 @@ export class SettlementAuditService {
   async findByUserId(
     userId: string,
     options: AuditLogOptions = {},
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SettlementAuditLog[]> {
-    const result = await this.findAuditLogs(
-      { userId },
-      options,
-      limit
-    );
+    const result = await this.findAuditLogs({ userId }, options, limit);
 
     return result.auditLogs;
   }
@@ -227,13 +233,9 @@ export class SettlementAuditService {
   async findByAction(
     action: string,
     options: AuditLogOptions = {},
-    limit: number = 50
+    limit: number = 50,
   ): Promise<SettlementAuditLog[]> {
-    const result = await this.findAuditLogs(
-      { action },
-      options,
-      limit
-    );
+    const result = await this.findAuditLogs({ action }, options, limit);
 
     return result.auditLogs;
   }
@@ -242,12 +244,12 @@ export class SettlementAuditService {
     fromDate: Date,
     toDate: Date,
     options: AuditLogOptions = {},
-    limit: number = 100
+    limit: number = 100,
   ): Promise<SettlementAuditLog[]> {
     const result = await this.findAuditLogs(
       { fromDate, toDate },
       options,
-      limit
+      limit,
     );
 
     return result.auditLogs;
@@ -273,12 +275,18 @@ export class SettlementAuditService {
       statusChanges: number;
     };
   }> {
-    this.logger.log('SettlementAuditService.getSettlementAuditTrail', { settlementId });
+    this.logger.log('SettlementAuditService.getSettlementAuditTrail', {
+      settlementId,
+    });
 
-    const auditLogs = await this.findBySettlementId(settlementId, { includeUser: true }, 1000);
+    const auditLogs = await this.findBySettlementId(
+      settlementId,
+      { includeUser: true },
+      1000,
+    );
 
     // Build timeline
-    const timeline = auditLogs.map(log => ({
+    const timeline = auditLogs.map((log) => ({
       timestamp: log.createdAt,
       action: log.action,
       user: log.user?.name || log.userId,
@@ -287,15 +295,23 @@ export class SettlementAuditService {
     }));
 
     // Calculate summary
-    const uniqueUsers = new Set(auditLogs.map(log => log.userId)).size;
-    const statusChanges = auditLogs.filter(log => log.action === 'UPDATE_STATUS').length;
-    const timestamps = auditLogs.map(log => log.createdAt);
+    const uniqueUsers = new Set(auditLogs.map((log) => log.userId)).size;
+    const statusChanges = auditLogs.filter(
+      (log) => log.action === 'UPDATE_STATUS',
+    ).length;
+    const timestamps = auditLogs.map((log) => log.createdAt);
 
     const summary = {
       totalActions: auditLogs.length,
       uniqueUsers,
-      firstAction: timestamps.length > 0 ? new Date(Math.min(...timestamps.map(t => t.getTime()))) : new Date(),
-      lastAction: timestamps.length > 0 ? new Date(Math.max(...timestamps.map(t => t.getTime()))) : new Date(),
+      firstAction:
+        timestamps.length > 0
+          ? new Date(Math.min(...timestamps.map((t) => t.getTime())))
+          : new Date(),
+      lastAction:
+        timestamps.length > 0
+          ? new Date(Math.max(...timestamps.map((t) => t.getTime())))
+          : new Date(),
       statusChanges,
     };
 
@@ -305,14 +321,18 @@ export class SettlementAuditService {
   async getUserActivitySummary(
     userId: string,
     fromDate?: Date,
-    toDate?: Date
+    toDate?: Date,
   ): Promise<{
     totalActions: number;
     actionBreakdown: Record<string, number>;
     settlementsAffected: number;
     activityByDate: Record<string, number>;
   }> {
-    this.logger.log('SettlementAuditService.getUserActivitySummary', { userId, fromDate, toDate });
+    this.logger.log('SettlementAuditService.getUserActivitySummary', {
+      userId,
+      fromDate,
+      toDate,
+    });
 
     const filters: AuditLogFilters = { userId };
     if (fromDate) filters.fromDate = fromDate;
@@ -354,7 +374,7 @@ export class SettlementAuditService {
 
   async generateComplianceReport(
     fromDate: Date,
-    toDate: Date
+    toDate: Date,
   ): Promise<{
     period: { from: Date; to: Date };
     statistics: {
@@ -378,16 +398,29 @@ export class SettlementAuditService {
       severity: 'LOW' | 'MEDIUM' | 'HIGH';
     }>;
   }> {
-    this.logger.log('SettlementAuditService.generateComplianceReport', { fromDate, toDate });
+    this.logger.log('SettlementAuditService.generateComplianceReport', {
+      fromDate,
+      toDate,
+    });
 
-    const result = await this.findAuditLogs({ fromDate, toDate }, { includeUser: true }, 50000);
+    const result = await this.findAuditLogs(
+      { fromDate, toDate },
+      { includeUser: true },
+      50000,
+    );
     const auditLogs = result.auditLogs;
 
     // Calculate statistics
-    const uniqueSettlements = new Set(auditLogs.filter(log => log.settlementId).map(log => log.settlementId!));
-    const uniqueUsers = new Set(auditLogs.map(log => log.userId));
-    const failedActions = auditLogs.filter(log => log.action === 'FAIL');
-    const processedActions = auditLogs.filter(log => log.action === 'PROCESS');
+    const uniqueSettlements = new Set(
+      auditLogs
+        .filter((log) => log.settlementId)
+        .map((log) => log.settlementId!),
+    );
+    const uniqueUsers = new Set(auditLogs.map((log) => log.userId));
+    const failedActions = auditLogs.filter((log) => log.action === 'FAIL');
+    const processedActions = auditLogs.filter(
+      (log) => log.action === 'PROCESS',
+    );
 
     const statistics = {
       totalSettlements: uniqueSettlements.size,
@@ -404,10 +437,16 @@ export class SettlementAuditService {
     }
 
     // User activity
-    const userActivityMap = new Map<string, { actionCount: number; settlementsAffected: Set<string> }>();
+    const userActivityMap = new Map<
+      string,
+      { actionCount: number; settlementsAffected: Set<string> }
+    >();
     for (const log of auditLogs) {
       if (!userActivityMap.has(log.userId)) {
-        userActivityMap.set(log.userId, { actionCount: 0, settlementsAffected: new Set() });
+        userActivityMap.set(log.userId, {
+          actionCount: 0,
+          settlementsAffected: new Set(),
+        });
       }
       const activity = userActivityMap.get(log.userId)!;
       activity.actionCount++;
@@ -416,15 +455,17 @@ export class SettlementAuditService {
       }
     }
 
-    const userActivity = Array.from(userActivityMap.entries()).map(([userId, activity]) => {
-      const user = auditLogs.find(log => log.userId === userId)?.user;
-      return {
-        userId,
-        userName: user?.name || 'Unknown',
-        actionCount: activity.actionCount,
-        settlementsAffected: activity.settlementsAffected.size,
-      };
-    }).sort((a, b) => b.actionCount - a.actionCount);
+    const userActivity = Array.from(userActivityMap.entries())
+      .map(([userId, activity]) => {
+        const user = auditLogs.find((log) => log.userId === userId)?.user;
+        return {
+          userId,
+          userName: user?.name || 'Unknown',
+          actionCount: activity.actionCount,
+          settlementsAffected: activity.settlementsAffected.size,
+        };
+      })
+      .sort((a, b) => b.actionCount - a.actionCount);
 
     // Risk indicators
     const riskIndicators = this.calculateRiskIndicators(auditLogs);
@@ -447,9 +488,15 @@ export class SettlementAuditService {
 
     // Remove sensitive information
     const sanitized = { ...values };
-    
+
     // Remove sensitive fields
-    const sensitiveFields = ['password', 'secret', 'token', 'key', 'bankAccount'];
+    const sensitiveFields = [
+      'password',
+      'secret',
+      'token',
+      'key',
+      'bankAccount',
+    ];
     for (const field of sensitiveFields) {
       if (sanitized[field]) {
         sanitized[field] = '[REDACTED]';
@@ -495,15 +542,15 @@ export class SettlementAuditService {
 
   private formatActionDescription(log: SettlementAuditLog): string {
     const actionDescriptions: Record<string, string> = {
-      'CREATE': 'Settlement created',
-      'UPDATE': 'Settlement updated',
-      'UPDATE_STATUS': 'Status changed',
-      'PROCESS': 'Settlement processed',
-      'FAIL': 'Settlement failed',
-      'RETRY': 'Settlement retried',
-      'CREATE_SELLER_ACCOUNT': 'Seller account created',
-      'UPDATE_SELLER_ACCOUNT': 'Seller account updated',
-      'UPDATE_SELLER_ACCOUNT_STATUS': 'Seller account status changed',
+      CREATE: 'Settlement created',
+      UPDATE: 'Settlement updated',
+      UPDATE_STATUS: 'Status changed',
+      PROCESS: 'Settlement processed',
+      FAIL: 'Settlement failed',
+      RETRY: 'Settlement retried',
+      CREATE_SELLER_ACCOUNT: 'Seller account created',
+      UPDATE_SELLER_ACCOUNT: 'Seller account updated',
+      UPDATE_SELLER_ACCOUNT_STATUS: 'Seller account status changed',
     };
 
     let description = actionDescriptions[log.action] || log.action;
@@ -527,7 +574,10 @@ export class SettlementAuditService {
 
     if (oldValues && newValues) {
       // Find changed fields
-      const allKeys = new Set([...Object.keys(oldValues), ...Object.keys(newValues)]);
+      const allKeys = new Set([
+        ...Object.keys(oldValues),
+        ...Object.keys(newValues),
+      ]);
       for (const key of allKeys) {
         if (oldValues[key] !== newValues[key]) {
           changes[key] = {
@@ -558,11 +608,14 @@ export class SettlementAuditService {
     }> = [];
 
     // High failure rate
-    const failedActions = auditLogs.filter(log => log.action === 'FAIL');
-    const totalProcessingActions = auditLogs.filter(log => log.action === 'PROCESS' || log.action === 'FAIL');
+    const failedActions = auditLogs.filter((log) => log.action === 'FAIL');
+    const totalProcessingActions = auditLogs.filter(
+      (log) => log.action === 'PROCESS' || log.action === 'FAIL',
+    );
     if (totalProcessingActions.length > 0) {
       const failureRate = failedActions.length / totalProcessingActions.length;
-      if (failureRate > 0.1) { // More than 10% failure rate
+      if (failureRate > 0.1) {
+        // More than 10% failure rate
         indicators.push({
           type: 'HIGH_FAILURE_RATE',
           description: `High settlement failure rate: ${(failureRate * 100).toFixed(1)}%`,
@@ -573,10 +626,15 @@ export class SettlementAuditService {
     }
 
     // Frequent status changes
-    const statusChanges = auditLogs.filter(log => log.action === 'UPDATE_STATUS');
-    const settlementsWithStatusChanges = new Set(statusChanges.map(log => log.settlementId));
+    const statusChanges = auditLogs.filter(
+      (log) => log.action === 'UPDATE_STATUS',
+    );
+    const settlementsWithStatusChanges = new Set(
+      statusChanges.map((log) => log.settlementId),
+    );
     if (settlementsWithStatusChanges.size > 0) {
-      const avgStatusChanges = statusChanges.length / settlementsWithStatusChanges.size;
+      const avgStatusChanges =
+        statusChanges.length / settlementsWithStatusChanges.size;
       if (avgStatusChanges > 3) {
         indicators.push({
           type: 'FREQUENT_STATUS_CHANGES',
@@ -588,8 +646,11 @@ export class SettlementAuditService {
     }
 
     // Manual interventions
-    const manualActions = auditLogs.filter(log => 
-      log.action === 'UPDATE' || log.action === 'RETRY' || log.action.includes('MANUAL')
+    const manualActions = auditLogs.filter(
+      (log) =>
+        log.action === 'UPDATE' ||
+        log.action === 'RETRY' ||
+        log.action.includes('MANUAL'),
     );
     if (manualActions.length > 10) {
       indicators.push({

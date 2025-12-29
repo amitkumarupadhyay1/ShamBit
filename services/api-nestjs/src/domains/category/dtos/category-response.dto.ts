@@ -59,7 +59,9 @@ export class CategoryResponseDto {
   @ApiPropertyOptional({ example: 'https://example.com/icons/electronics.svg' })
   iconUrl?: string;
 
-  @ApiPropertyOptional({ example: 'https://example.com/banners/electronics.jpg' })
+  @ApiPropertyOptional({
+    example: 'https://example.com/banners/electronics.jpg',
+  })
   bannerUrl?: string;
 
   @ApiProperty({ example: 1 })

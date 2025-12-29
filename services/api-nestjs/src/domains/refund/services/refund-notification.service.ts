@@ -21,7 +21,9 @@ export class RefundNotificationService {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  async sendRefundInitiatedNotification(data: RefundNotificationData): Promise<void> {
+  async sendRefundInitiatedNotification(
+    data: RefundNotificationData,
+  ): Promise<void> {
     try {
       // Emit event for email notification
       this.eventEmitter.emit('notification.refund.initiated', {
@@ -48,11 +50,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund initiated notification', error, { data });
+      this.logger.error('Failed to send refund initiated notification', error, {
+        data,
+      });
     }
   }
 
-  async sendRefundApprovedNotification(data: RefundNotificationData): Promise<void> {
+  async sendRefundApprovedNotification(
+    data: RefundNotificationData,
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.refund.approved', {
         type: 'refund_approved',
@@ -70,11 +76,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund approved notification', error, { data });
+      this.logger.error('Failed to send refund approved notification', error, {
+        data,
+      });
     }
   }
 
-  async sendRefundRejectedNotification(data: RefundNotificationData & { rejectionReason: string }): Promise<void> {
+  async sendRefundRejectedNotification(
+    data: RefundNotificationData & { rejectionReason: string },
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.refund.rejected', {
         type: 'refund_rejected',
@@ -93,11 +103,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund rejected notification', error, { data });
+      this.logger.error('Failed to send refund rejected notification', error, {
+        data,
+      });
     }
   }
 
-  async sendRefundProcessedNotification(data: RefundNotificationData): Promise<void> {
+  async sendRefundProcessedNotification(
+    data: RefundNotificationData,
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.refund.processed', {
         type: 'refund_processed',
@@ -116,11 +130,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund processed notification', error, { data });
+      this.logger.error('Failed to send refund processed notification', error, {
+        data,
+      });
     }
   }
 
-  async sendRefundCompletedNotification(data: RefundNotificationData): Promise<void> {
+  async sendRefundCompletedNotification(
+    data: RefundNotificationData,
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.refund.completed', {
         type: 'refund_completed',
@@ -138,11 +156,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund completed notification', error, { data });
+      this.logger.error('Failed to send refund completed notification', error, {
+        data,
+      });
     }
   }
 
-  async sendRefundFailedNotification(data: RefundNotificationData & { failureReason: string }): Promise<void> {
+  async sendRefundFailedNotification(
+    data: RefundNotificationData & { failureReason: string },
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.refund.failed', {
         type: 'refund_failed',
@@ -168,11 +190,15 @@ export class RefundNotificationService {
         customerId: data.customerId,
       });
     } catch (error) {
-      this.logger.error('Failed to send refund failed notification', error, { data });
+      this.logger.error('Failed to send refund failed notification', error, {
+        data,
+      });
     }
   }
 
-  async sendMerchantRefundNotification(data: RefundNotificationData & { merchantEmail: string }): Promise<void> {
+  async sendMerchantRefundNotification(
+    data: RefundNotificationData & { merchantEmail: string },
+  ): Promise<void> {
     try {
       this.eventEmitter.emit('notification.merchant.refund', {
         type: 'merchant_refund_notification',
@@ -191,7 +217,9 @@ export class RefundNotificationService {
         merchantEmail: data.merchantEmail,
       });
     } catch (error) {
-      this.logger.error('Failed to send merchant refund notification', error, { data });
+      this.logger.error('Failed to send merchant refund notification', error, {
+        data,
+      });
     }
   }
 
@@ -204,7 +232,7 @@ export class RefundNotificationService {
     const businessDays = 7;
     const estimatedDate = new Date();
     estimatedDate.setDate(estimatedDate.getDate() + businessDays);
-    
+
     return estimatedDate.toLocaleDateString('en-US', {
       weekday: 'long',
       year: 'numeric',

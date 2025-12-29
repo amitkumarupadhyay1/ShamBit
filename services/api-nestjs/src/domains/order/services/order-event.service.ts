@@ -26,7 +26,7 @@ export class OrderEventService {
     if (!this.pendingEvents.has(transactionId)) {
       this.pendingEvents.set(transactionId, []);
     }
-    
+
     this.pendingEvents.get(transactionId)!.push({
       ...event,
       queuedAt: new Date(),
@@ -45,7 +45,7 @@ export class OrderEventService {
    */
   async emitQueuedEvents(transactionId: string): Promise<void> {
     const events = this.pendingEvents.get(transactionId);
-    
+
     if (!events || events.length === 0) {
       return;
     }
@@ -65,14 +65,16 @@ export class OrderEventService {
           emittedAt: new Date(),
         };
 
-        this.eventEmitter.emit(event.constructor.eventName || event.eventName, eventWithId);
-        
+        this.eventEmitter.emit(
+          event.constructor.eventName || event.eventName,
+          eventWithId,
+        );
+
         this.logger.debug('Event emitted successfully', {
           transactionId,
           eventType: event.constructor.name,
           eventId: eventWithId.eventId,
         });
-
       } catch (error) {
         this.logger.error('Failed to emit event', error, {
           transactionId,
@@ -91,7 +93,7 @@ export class OrderEventService {
    */
   clearQueuedEvents(transactionId: string): void {
     const events = this.pendingEvents.get(transactionId);
-    
+
     if (events && events.length > 0) {
       this.logger.log('Clearing queued events due to transaction rollback', {
         transactionId,
@@ -118,7 +120,7 @@ export class OrderEventService {
     let hash = 0;
     for (let i = 0; i < eventString.length; i++) {
       const char = eventString.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
 

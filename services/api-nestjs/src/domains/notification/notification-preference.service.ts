@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service.js';
-import { NotificationType, NotificationChannel } from './notification.service.js';
+import {
+  NotificationType,
+  NotificationChannel,
+} from './notification.service.js';
 
 export interface NotificationPreference {
   userId: string;
@@ -18,9 +21,9 @@ export class NotificationPreferenceService {
       where: { userId },
     });
 
-    return preferences.map(pref => {
+    return preferences.map((pref) => {
       const channels: NotificationChannel[] = [];
-      
+
       if (pref.email) channels.push(NotificationChannel.EMAIL);
       if (pref.inApp) channels.push(NotificationChannel.IN_APP);
       if (pref.sms) channels.push(NotificationChannel.SMS);
@@ -39,7 +42,7 @@ export class NotificationPreferenceService {
     userId: string,
     type: NotificationType,
     channels: NotificationChannel[],
-    isEnabled: boolean = true
+    isEnabled: boolean = true,
   ): Promise<void> {
     const channelPreferences = {
       email: channels.includes(NotificationChannel.EMAIL),
@@ -66,21 +69,64 @@ export class NotificationPreferenceService {
     });
   }
 
-  async getDefaultPreferences(): Promise<Record<NotificationType, NotificationChannel[]>> {
+  async getDefaultPreferences(): Promise<
+    Record<NotificationType, NotificationChannel[]>
+  > {
     return {
-      [NotificationType.ORDER_CONFIRMATION]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.ORDER_SHIPPED]: [NotificationChannel.EMAIL, NotificationChannel.PUSH],
-      [NotificationType.ORDER_DELIVERED]: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
-      [NotificationType.ORDER_CANCELLED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.PAYMENT_SUCCESS]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.PAYMENT_FAILED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP, NotificationChannel.PUSH],
-      [NotificationType.PRODUCT_APPROVED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.PRODUCT_REJECTED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.LOW_STOCK_ALERT]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.SELLER_APPLICATION_APPROVED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.PROMOTION_ACTIVATED]: [NotificationChannel.IN_APP, NotificationChannel.PUSH],
-      [NotificationType.REVIEW_RECEIVED]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP],
-      [NotificationType.SYSTEM_MAINTENANCE]: [NotificationChannel.EMAIL, NotificationChannel.IN_APP, NotificationChannel.PUSH],
+      [NotificationType.ORDER_CONFIRMATION]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.ORDER_SHIPPED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.PUSH,
+      ],
+      [NotificationType.ORDER_DELIVERED]: [
+        NotificationChannel.IN_APP,
+        NotificationChannel.PUSH,
+      ],
+      [NotificationType.ORDER_CANCELLED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.PAYMENT_SUCCESS]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.PAYMENT_FAILED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+        NotificationChannel.PUSH,
+      ],
+      [NotificationType.PRODUCT_APPROVED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.PRODUCT_REJECTED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.LOW_STOCK_ALERT]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.SELLER_APPLICATION_APPROVED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.PROMOTION_ACTIVATED]: [
+        NotificationChannel.IN_APP,
+        NotificationChannel.PUSH,
+      ],
+      [NotificationType.REVIEW_RECEIVED]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+      ],
+      [NotificationType.SYSTEM_MAINTENANCE]: [
+        NotificationChannel.EMAIL,
+        NotificationChannel.IN_APP,
+        NotificationChannel.PUSH,
+      ],
     };
   }
 }

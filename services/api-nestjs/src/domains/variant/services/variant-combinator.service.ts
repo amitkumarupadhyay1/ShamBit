@@ -28,7 +28,7 @@ export class VariantCombinatorService {
    */
   generateCombinations(
     attributeOptions: AttributeOption[],
-    options: CombinationOptions = {}
+    options: CombinationOptions = {},
   ): VariantCombination[] {
     this.logger.log('VariantCombinatorService.generateCombinations', {
       attributeCount: attributeOptions.length,
@@ -52,12 +52,18 @@ export class VariantCombinatorService {
     filteredCombinations = this.applySorting(filteredCombinations, options);
 
     // Apply limit
-    if (options.maxCombinations && filteredCombinations.length > options.maxCombinations) {
+    if (
+      options.maxCombinations &&
+      filteredCombinations.length > options.maxCombinations
+    ) {
       this.logger.warn('Combination limit exceeded', {
         generated: filteredCombinations.length,
         limit: options.maxCombinations,
       });
-      filteredCombinations = filteredCombinations.slice(0, options.maxCombinations);
+      filteredCombinations = filteredCombinations.slice(
+        0,
+        options.maxCombinations,
+      );
     }
 
     this.logger.log('Combinations generated successfully', {
@@ -72,7 +78,7 @@ export class VariantCombinatorService {
    */
   *generateCombinationsIterator(
     attributeOptions: AttributeOption[],
-    options: CombinationOptions = {}
+    options: CombinationOptions = {},
   ): Generator<VariantCombination, void, unknown> {
     if (attributeOptions.length === 0) {
       return;
@@ -81,7 +87,7 @@ export class VariantCombinatorService {
     this.validateAttributeOptions(attributeOptions);
 
     const indices = new Array(attributeOptions.length).fill(0);
-    const maxIndices = attributeOptions.map(attr => attr.values.length - 1);
+    const maxIndices = attributeOptions.map((attr) => attr.values.length - 1);
     let count = 0;
 
     do {
@@ -120,7 +126,10 @@ export class VariantCombinatorService {
       return 0;
     }
 
-    return attributeOptions.reduce((total, attr) => total * attr.values.length, 1);
+    return attributeOptions.reduce(
+      (total, attr) => total * attr.values.length,
+      1,
+    );
   }
 
   /**
@@ -128,10 +137,12 @@ export class VariantCombinatorService {
    */
   validateCombination(
     combination: Record<string, string>,
-    attributeOptions: AttributeOption[]
+    attributeOptions: AttributeOption[],
   ): boolean {
     // Check if all required attributes are present
-    const requiredAttributes = new Set(attributeOptions.map(attr => attr.attributeId));
+    const requiredAttributes = new Set(
+      attributeOptions.map((attr) => attr.attributeId),
+    );
     const providedAttributes = new Set(Object.keys(combination));
 
     if (requiredAttributes.size !== providedAttributes.size) {
@@ -153,8 +164,9 @@ export class VariantCombinatorService {
    * Generate a deterministic hash for a combination
    */
   generateCombinationHash(attributeValues: Record<string, string>): string {
-    const sortedEntries = Object.entries(attributeValues)
-      .sort(([a], [b]) => a.localeCompare(b));
+    const sortedEntries = Object.entries(attributeValues).sort(([a], [b]) =>
+      a.localeCompare(b),
+    );
 
     const combined = sortedEntries
       .map(([key, value]) => `${key}:${value}`)
@@ -164,7 +176,7 @@ export class VariantCombinatorService {
     let hash = 0;
     for (let i = 0; i < combined.length; i++) {
       const char = combined.charCodeAt(i);
-      hash = ((hash << 5) - hash) + char;
+      hash = (hash << 5) - hash + char;
       hash = hash & hash; // Convert to 32-bit integer
     }
 
@@ -176,18 +188,18 @@ export class VariantCombinatorService {
    */
   compareCombinations(
     oldCombinations: VariantCombination[],
-    newCombinations: VariantCombination[]
+    newCombinations: VariantCombination[],
   ): {
     added: VariantCombination[];
     removed: VariantCombination[];
     unchanged: VariantCombination[];
   } {
-    const oldHashes = new Set(oldCombinations.map(c => c.hash));
-    const newHashes = new Set(newCombinations.map(c => c.hash));
+    const oldHashes = new Set(oldCombinations.map((c) => c.hash));
+    const newHashes = new Set(newCombinations.map((c) => c.hash));
 
-    const added = newCombinations.filter(c => !oldHashes.has(c.hash));
-    const removed = oldCombinations.filter(c => !newHashes.has(c.hash));
-    const unchanged = newCombinations.filter(c => oldHashes.has(c.hash));
+    const added = newCombinations.filter((c) => !oldHashes.has(c.hash));
+    const removed = oldCombinations.filter((c) => !newHashes.has(c.hash));
+    const unchanged = newCombinations.filter((c) => oldHashes.has(c.hash));
 
     return { added, removed, unchanged };
   }
@@ -195,9 +207,13 @@ export class VariantCombinatorService {
   /**
    * Optimize attribute order for better performance
    */
-  optimizeAttributeOrder(attributeOptions: AttributeOption[]): AttributeOption[] {
+  optimizeAttributeOrder(
+    attributeOptions: AttributeOption[],
+  ): AttributeOption[] {
     // Sort by value count (ascending) to minimize early combinations
-    return [...attributeOptions].sort((a, b) => a.values.length - b.values.length);
+    return [...attributeOptions].sort(
+      (a, b) => a.values.length - b.values.length,
+    );
   }
 
   private validateAttributeOptions(attributeOptions: AttributeOption[]): void {
@@ -211,7 +227,9 @@ export class VariantCombinatorService {
       }
 
       if (!attr.values || attr.values.length === 0) {
-        throw new Error(`Attribute ${attr.attributeName} must have at least one value`);
+        throw new Error(
+          `Attribute ${attr.attributeName} must have at least one value`,
+        );
       }
 
       // Check for duplicate values
@@ -222,7 +240,7 @@ export class VariantCombinatorService {
     }
 
     // Check for duplicate attribute IDs
-    const attributeIds = attributeOptions.map(attr => attr.attributeId);
+    const attributeIds = attributeOptions.map((attr) => attr.attributeId);
     const uniqueIds = new Set(attributeIds);
     if (uniqueIds.size !== attributeIds.length) {
       throw new Error('Duplicate attribute IDs found');
@@ -233,7 +251,7 @@ export class VariantCombinatorService {
     if (totalCombinations > 10000) {
       this.logger.warn('Large number of combinations detected', {
         totalCombinations,
-        attributeOptions: attributeOptions.map(attr => ({
+        attributeOptions: attributeOptions.map((attr) => ({
           id: attr.attributeId,
           valueCount: attr.values.length,
         })),
@@ -241,10 +259,12 @@ export class VariantCombinatorService {
     }
   }
 
-  private generateCartesianProduct(attributeOptions: AttributeOption[]): VariantCombination[] {
+  private generateCartesianProduct(
+    attributeOptions: AttributeOption[],
+  ): VariantCombination[] {
     const result: VariantCombination[] = [];
     const indices = new Array(attributeOptions.length).fill(0);
-    const maxIndices = attributeOptions.map(attr => attr.values.length - 1);
+    const maxIndices = attributeOptions.map((attr) => attr.values.length - 1);
 
     do {
       const attributeValues: Record<string, string> = {};
@@ -275,14 +295,16 @@ export class VariantCombinatorService {
 
   private applyFilters(
     combinations: VariantCombination[],
-    options: CombinationOptions
+    options: CombinationOptions,
   ): VariantCombination[] {
-    return combinations.filter(combination => this.shouldIncludeCombination(combination, options));
+    return combinations.filter((combination) =>
+      this.shouldIncludeCombination(combination, options),
+    );
   }
 
   private shouldIncludeCombination(
     combination: VariantCombination,
-    options: CombinationOptions
+    options: CombinationOptions,
   ): boolean {
     // Check if explicitly disabled
     if (options.disabledCombinations?.includes(combination.hash)) {
@@ -299,7 +321,7 @@ export class VariantCombinatorService {
 
   private applySorting(
     combinations: VariantCombination[],
-    options: CombinationOptions
+    options: CombinationOptions,
   ): VariantCombination[] {
     switch (options.sortOrder) {
       case 'alphabetical':

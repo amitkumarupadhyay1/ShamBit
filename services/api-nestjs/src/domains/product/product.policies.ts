@@ -11,7 +11,7 @@ export class ProductPolicies {
   static canUserViewProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Deleted products are not viewable
     if (product.isDeleted) {
@@ -33,15 +33,15 @@ export class ProductPolicies {
       case ProductVisibility.PUBLIC:
         // Public products are visible if published
         return product.status === ProductStatus.PUBLISHED;
-      
+
       case ProductVisibility.INTERNAL:
         // Internal products are visible to sellers and admins
         return userRole === 'SELLER' || userRole === 'ADMIN';
-      
+
       case ProductVisibility.PRIVATE:
         // Private products are only visible to owner and admins
         return false;
-      
+
       default:
         return false;
     }
@@ -50,7 +50,7 @@ export class ProductPolicies {
   static canUserEditProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Deleted products cannot be edited
     if (product.isDeleted) {
@@ -74,7 +74,7 @@ export class ProductPolicies {
   static canUserDeleteProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Already deleted products cannot be deleted again
     if (product.isDeleted) {
@@ -98,7 +98,7 @@ export class ProductPolicies {
   static canUserModerateProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Only admins and moderators can moderate products
     return userRole === 'ADMIN' || userRole === 'MODERATOR';
@@ -107,7 +107,7 @@ export class ProductPolicies {
   static canUserPublishProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Admins can publish any product
     if (userRole === 'ADMIN') {
@@ -126,7 +126,7 @@ export class ProductPolicies {
   static canUserFeatureProduct(
     product: Product,
     userId?: string,
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Only admins can feature products
     if (userRole !== 'ADMIN') {
@@ -145,9 +145,12 @@ export class ProductPolicies {
     currentStatus: ProductStatus,
     newStatus: ProductStatus,
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
-    const { canTransitionTo, isApprovalRequired } = require('./enums/product-status.enum');
+    const {
+      canTransitionTo,
+      isApprovalRequired,
+    } = require('./enums/product-status.enum');
 
     // Check if transition is allowed
     if (!canTransitionTo(currentStatus, newStatus)) {
@@ -170,9 +173,11 @@ export class ProductPolicies {
   static canTransitionToModerationStatus(
     currentStatus: ProductModerationStatus,
     newStatus: ProductModerationStatus,
-    userRole?: string
+    userRole?: string,
   ): boolean {
-    const { canModerationTransitionTo } = require('./enums/product-moderation-status.enum');
+    const {
+      canModerationTransitionTo,
+    } = require('./enums/product-moderation-status.enum');
 
     // Check if transition is allowed
     if (!canModerationTransitionTo(currentStatus, newStatus)) {
@@ -194,7 +199,12 @@ export class ProductPolicies {
     }
 
     // Product must have required fields
-    if (!product.name || !product.description || !product.categoryId || !product.brandId) {
+    if (
+      !product.name ||
+      !product.description ||
+      !product.categoryId ||
+      !product.brandId
+    ) {
       return false;
     }
 
@@ -215,13 +225,15 @@ export class ProductPolicies {
     // Product must be pending moderation or under review
     return [
       ProductModerationStatus.PENDING,
-      ProductModerationStatus.REVIEWING
+      ProductModerationStatus.REVIEWING,
     ].includes(product.moderationStatus);
   }
 
   static canRejectProduct(product: Product): boolean {
     // Product must be submitted or approved
-    return [ProductStatus.SUBMITTED, ProductStatus.APPROVED].includes(product.status);
+    return [ProductStatus.SUBMITTED, ProductStatus.APPROVED].includes(
+      product.status,
+    );
   }
 
   static canPublishProduct(product: Product): boolean {
@@ -256,7 +268,7 @@ export class ProductPolicies {
     product: Product,
     newCategoryId: string,
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Admins can always change categories
     if (userRole === 'ADMIN') {
@@ -285,7 +297,7 @@ export class ProductPolicies {
     product: Product,
     newBrandId: string,
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Admins can always change brands
     if (userRole === 'ADMIN') {
@@ -317,7 +329,7 @@ export class ProductPolicies {
   static canModifyVariantConfiguration(
     product: Product,
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Admins can always modify variant configuration
     if (userRole === 'ADMIN') {
@@ -336,13 +348,13 @@ export class ProductPolicies {
 
     // TODO: Add check for existing variants - cannot modify if variants already exist
     // This would require checking the variants table
-    
+
     return true;
   }
 
   static canAddVariantAttribute(
     product: Product,
-    attributeId: string
+    attributeId: string,
   ): boolean {
     // Product must support variants
     if (!product.hasVariants) {
@@ -364,7 +376,7 @@ export class ProductPolicies {
 
   static canRemoveVariantAttribute(
     product: Product,
-    attributeId: string
+    attributeId: string,
   ): boolean {
     // Attribute must be a variant attribute
     if (!product.variantAttributes.includes(attributeId)) {
@@ -373,7 +385,7 @@ export class ProductPolicies {
 
     // TODO: Add check for existing variants using this attribute
     // Cannot remove if variants exist that use this attribute
-    
+
     return true;
   }
 
@@ -385,7 +397,7 @@ export class ProductPolicies {
     product: Product,
     mediaType: 'image' | 'video' | 'document',
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Admins can always add media
     if (userRole === 'ADMIN') {
@@ -414,7 +426,7 @@ export class ProductPolicies {
     product: Product,
     mediaType: 'image' | 'video' | 'document',
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Admins can always remove media
     if (userRole === 'ADMIN') {
@@ -441,7 +453,7 @@ export class ProductPolicies {
   static canPerformBulkOperation(
     operation: string,
     productIds: string[],
-    userRole?: string
+    userRole?: string,
   ): boolean {
     // Only admins can perform bulk operations
     if (userRole !== 'ADMIN') {
@@ -459,7 +471,7 @@ export class ProductPolicies {
       'feature_toggle',
       'tag_update',
       'bulk_delete',
-      'bulk_archive'
+      'bulk_archive',
     ];
 
     return allowedOperations.includes(operation);
@@ -472,7 +484,7 @@ export class ProductPolicies {
   static canCloneProduct(
     product: Product,
     userRole?: string,
-    isOwner?: boolean
+    isOwner?: boolean,
   ): boolean {
     // Deleted products cannot be cloned
     if (product.isDeleted) {
@@ -500,26 +512,27 @@ export class ProductPolicies {
 
   static isProductSearchable(product: Product): boolean {
     // Only published, approved products are searchable
-    return product.status === ProductStatus.PUBLISHED &&
-           product.moderationStatus === ProductModerationStatus.APPROVED &&
-           !product.isDeleted;
+    return (
+      product.status === ProductStatus.PUBLISHED &&
+      product.moderationStatus === ProductModerationStatus.APPROVED &&
+      !product.isDeleted
+    );
   }
 
   static isProductFeaturable(product: Product): boolean {
     // Only published products can be featured
-    return product.status === ProductStatus.PUBLISHED &&
-           product.moderationStatus === ProductModerationStatus.APPROVED &&
-           !product.isDeleted;
+    return (
+      product.status === ProductStatus.PUBLISHED &&
+      product.moderationStatus === ProductModerationStatus.APPROVED &&
+      !product.isDeleted
+    );
   }
 
   // ============================================================================
   // AUDIT & COMPLIANCE POLICIES
   // ============================================================================
 
-  static requiresAuditLog(
-    action: string,
-    product: Product
-  ): boolean {
+  static requiresAuditLog(action: string, product: Product): boolean {
     // All actions on published products require audit logs
     if (product.status === ProductStatus.PUBLISHED) {
       return true;
@@ -532,7 +545,7 @@ export class ProductPolicies {
       'category_change',
       'brand_change',
       'delete',
-      'feature_toggle'
+      'feature_toggle',
     ];
 
     return auditRequiredActions.includes(action);
@@ -540,7 +553,7 @@ export class ProductPolicies {
 
   static requiresModerationReview(
     product: Product,
-    changes: Record<string, any>
+    changes: Record<string, any>,
   ): boolean {
     // Published products require moderation review for significant changes
     if (product.status !== ProductStatus.PUBLISHED) {
@@ -553,9 +566,9 @@ export class ProductPolicies {
       'description',
       'categoryId',
       'brandId',
-      'images'
+      'images',
     ];
 
-    return Object.keys(changes).some(key => significantChanges.includes(key));
+    return Object.keys(changes).some((key) => significantChanges.includes(key));
   }
 }

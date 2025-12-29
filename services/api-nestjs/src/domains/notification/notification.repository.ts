@@ -1,6 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service.js';
-import { Notification, NotificationType, NotificationChannel, NotificationPriority } from './notification.service.js';
+import {
+  Notification,
+  NotificationType,
+  NotificationChannel,
+  NotificationPriority,
+} from './notification.service.js';
 
 @Injectable()
 export class NotificationRepository {
@@ -45,14 +50,17 @@ export class NotificationRepository {
     };
   }
 
-  async findByUserId(userId: string, limit: number = 50): Promise<Notification[]> {
+  async findByUserId(
+    userId: string,
+    limit: number = 50,
+  ): Promise<Notification[]> {
     const notifications = await this.prisma.notification.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: limit,
     });
 
-    return notifications.map(notification => ({
+    return notifications.map((notification) => ({
       id: notification.id,
       userId: notification.userId,
       type: notification.type as NotificationType,
@@ -71,7 +79,7 @@ export class NotificationRepository {
   async markAsRead(id: string): Promise<void> {
     await this.prisma.notification.update({
       where: { id },
-      data: { 
+      data: {
         isRead: true,
         readAt: new Date(),
       },

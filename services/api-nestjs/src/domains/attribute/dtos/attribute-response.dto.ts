@@ -129,7 +129,10 @@ export class AttributeResponseDto {
   @ApiPropertyOptional({ example: 'Select a color...' })
   placeholder?: string;
 
-  @ApiProperty({ enum: AttributeVisibility, example: AttributeVisibility.PUBLIC })
+  @ApiProperty({
+    enum: AttributeVisibility,
+    example: AttributeVisibility.PUBLIC,
+  })
   visibility: AttributeVisibility;
 
   @ApiProperty({ example: false })
@@ -278,7 +281,7 @@ export class AttributeStatisticsDto {
   @ApiProperty({
     type: 'object',
     additionalProperties: { type: 'number' },
-    example: { 'ENUM': 45, 'STRING': 32, 'NUMBER': 28 },
+    example: { ENUM: 45, STRING: 32, NUMBER: 28 },
   })
   attributesByType: Record<string, number>;
 

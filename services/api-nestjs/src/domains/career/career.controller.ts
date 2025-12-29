@@ -11,7 +11,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { JobService } from './job.service';
 import { ApplicationService } from './application.service';
@@ -31,7 +36,10 @@ export class CareerController {
   @Public()
   @Get()
   @ApiOperation({ summary: 'Get active jobs' })
-  async getActiveJobs(@Query() query: PaginationQuery & { department?: string; location?: string }) {
+  async getActiveJobs(
+    @Query()
+    query: PaginationQuery & { department?: string; location?: string },
+  ) {
     return this.jobService.getActiveJobs(query);
   }
 
@@ -59,10 +67,7 @@ export class CareerController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update job posting' })
-  async updateJob(
-    @Param('id') id: string,
-    @Body() updateJobDto: any,
-  ) {
+  async updateJob(@Param('id') id: string, @Body() updateJobDto: any) {
     return this.jobService.updateJob(id, updateJobDto);
   }
 
@@ -83,7 +88,11 @@ export class CareerController {
     @Body() applicationDto: any,
     @CurrentUser('id') userId?: string,
   ) {
-    return this.applicationService.createApplication(jobId, applicationDto, userId);
+    return this.applicationService.createApplication(
+      jobId,
+      applicationDto,
+      userId,
+    );
   }
 
   @Get('applications')
@@ -91,7 +100,9 @@ export class CareerController {
   @Roles(UserRole.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get job applications' })
-  async getApplications(@Query() query: PaginationQuery & { jobId?: string; status?: string }) {
+  async getApplications(
+    @Query() query: PaginationQuery & { jobId?: string; status?: string },
+  ) {
     return this.applicationService.findAll(query);
   }
 
@@ -114,6 +125,11 @@ export class CareerController {
     @Body() body: { status: string; notes?: string },
     @CurrentUser('id') reviewedBy: string,
   ) {
-    return this.applicationService.updateStatus(id, body.status, reviewedBy, body.notes);
+    return this.applicationService.updateStatus(
+      id,
+      body.status,
+      reviewedBy,
+      body.notes,
+    );
   }
 }

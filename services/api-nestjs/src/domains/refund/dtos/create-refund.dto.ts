@@ -1,6 +1,22 @@
-import { IsString, IsNumber, IsOptional, IsArray, IsBoolean, IsEnum, ValidateNested, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsNumber,
+  IsOptional,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  ValidateNested,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type, Transform } from 'class-transformer';
-import { RefundType, RefundCategory, RefundReason, RefundReasonCode, ItemCondition } from '../enums/refund-status.enum';
+import {
+  RefundType,
+  RefundCategory,
+  RefundReason,
+  RefundReasonCode,
+  ItemCondition,
+} from '../enums/refund-status.enum';
 
 export class CreateRefundItemDto {
   @IsString()

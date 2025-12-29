@@ -10,7 +10,12 @@ import {
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+} from '@nestjs/swagger';
 
 import { CartService, AddToCartDto } from './cart.service';
 import { AuthGuard } from '../../common/guards/auth.guard';
@@ -56,7 +61,12 @@ export class CartController {
     @CurrentUser('sessionId') sessionId?: string,
   ) {
     const cart = await this.cartService.getOrCreateCart(userId, sessionId);
-    return this.cartService.updateQuantity(cart.id, itemId, body.quantity, userId);
+    return this.cartService.updateQuantity(
+      cart.id,
+      itemId,
+      body.quantity,
+      userId,
+    );
   }
 
   @Delete('items/:itemId')
