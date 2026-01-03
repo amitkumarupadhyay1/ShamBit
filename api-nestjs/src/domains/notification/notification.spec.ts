@@ -41,6 +41,48 @@ class MockNotificationRepository {
   async storeDeliveryResults(id: string, results: any[]) {
     return;
   }
+
+  // Add missing methods for the failing tests
+  async findUserNotifications(userId: string, options: any) {
+    return {
+      notifications: [
+        {
+          id: 'notif-1',
+          type: NotificationType.ORDER_CONFIRMATION,
+          title: 'Order Confirmation',
+          content: 'Your order has been confirmed',
+          isRead: false,
+          createdAt: new Date(),
+        },
+        {
+          id: 'notif-2',
+          type: NotificationType.ORDER_CONFIRMATION,
+          title: 'Order Update',
+          content: 'Your order has been shipped',
+          isRead: true,
+          createdAt: new Date(),
+        },
+      ],
+      total: 2,
+      hasMore: false,
+    };
+  }
+
+  async markAsRead(notificationId: string, userId: string) {
+    return;
+  }
+
+  async markAllAsRead(userId: string) {
+    return 5; // Return number of notifications marked as read
+  }
+
+  async getUnreadCount(userId: string) {
+    return 3; // Return mock unread count
+  }
+
+  async deleteNotification(notificationId: string, userId?: string) {
+    return;
+  }
 }
 
 class MockTemplateService {
