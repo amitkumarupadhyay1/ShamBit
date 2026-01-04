@@ -8,22 +8,22 @@ import {
 import { EventEmitter2 } from '@nestjs/event-emitter';
 
 import { VariantRepository } from './repositories/variant.repository';
-import { VariantAuditService } from './services/variant-audit.service.js';
-import { SkuGeneratorService } from './services/sku-generator.service.js';
-import { VariantCombinatorService } from './services/variant-combinator.service.js';
+import { VariantAuditService } from './services/variant-audit.service';
+import { SkuGeneratorService } from './services/sku-generator.service';
+import { VariantCombinatorService } from './services/variant-combinator.service';
 import { LoggerService } from '../../infrastructure/observability/logger.service';
 
 import { ProductVariant } from './entities/variant.entity';
 import { VariantStatus } from './enums/variant-status.enum';
-import { VariantPolicies } from './variant.policies.js';
+import { VariantPolicies } from './variant.policies';
 import { VariantValidators } from './variant.validators';
 
 import { CreateVariantDto } from './dtos/create-variant.dto';
 import {
   UpdateVariantDto,
   VariantStatusUpdateDto,
-} from './dtos/update-variant.dto.js';
-import { GenerateVariantsDto } from './dtos/generate-variants.dto.js';
+} from './dtos/update-variant.dto';
+import { GenerateVariantsDto } from './dtos/generate-variants.dto';
 
 import {
   VariantFilters,
@@ -54,7 +54,7 @@ export class VariantService {
     private readonly variantCombinatorService: VariantCombinatorService,
     private readonly eventEmitter: EventEmitter2,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   // ============================================================================
   // BASIC CRUD OPERATIONS

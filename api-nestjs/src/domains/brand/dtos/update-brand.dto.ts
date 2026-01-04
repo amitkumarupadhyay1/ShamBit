@@ -4,9 +4,7 @@ import { ApiPropertyOptional } from '@nestjs/swagger';
 import { CreateBrandDto } from './create-brand.dto';
 import { BrandStatus } from '../enums/brand-status.enum';
 
-export class UpdateBrandDto extends PartialType(
-  OmitType(CreateBrandDto, ['slug'] as const),
-) {
+export class UpdateBrandDto extends PartialType(CreateBrandDto) {
   @ApiPropertyOptional({
     description: 'Brand status',
     enum: BrandStatus,

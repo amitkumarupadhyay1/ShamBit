@@ -1,5 +1,5 @@
 import { VariantStatus } from '../enums/variant-status.enum';
-import { ProductVariantAttribute } from './variant-attribute.entity.js';
+import { ProductVariantAttribute } from './variant-attribute.entity';
 
 export interface VariantMetadata {
   weight?: number;

@@ -4,6 +4,7 @@ import { PassportModule } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
 
 import { AuthController } from './auth.controller';
+import { AuthV2Controller } from './auth-v2.controller';
 import { AuthService } from './auth.service';
 import { AuthRepository } from './auth.repository';
 import { JwtStrategy } from './strategies/jwt.strategy';
@@ -11,6 +12,7 @@ import { GoogleStrategy } from './strategies/google.strategy';
 import { TokenDenylistService } from '../../infrastructure/security/token-denylist.service';
 import { PrismaModule } from '../../infrastructure/prisma/prisma.module';
 import { RedisModule } from '../../infrastructure/redis/redis.module';
+import { BetterAuthModule } from '../../infrastructure/auth/better-auth.module';
 
 @Global()
 @Module({
@@ -27,8 +29,9 @@ import { RedisModule } from '../../infrastructure/redis/redis.module';
     }),
     PrismaModule,
     RedisModule,
+    BetterAuthModule,
   ],
-  controllers: [AuthController],
+  controllers: [AuthController, AuthV2Controller],
   providers: [
     AuthService,
     AuthRepository,
@@ -36,6 +39,6 @@ import { RedisModule } from '../../infrastructure/redis/redis.module';
     GoogleStrategy,
     TokenDenylistService,
   ],
-  exports: [AuthService, JwtModule, TokenDenylistService],
+  exports: [AuthService, JwtModule, TokenDenylistService, BetterAuthModule],
 })
 export class AuthModule {}

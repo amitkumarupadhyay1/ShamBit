@@ -1,0 +1,11 @@
+npm warn Unknown cli config "--config". This will stop working in the next major version of npm.
+
+> marketplace-api@1.0.0 test
+> jest --config jest.config.js debug-jest.config.js src/domains/banner/__tests__/banner.service.spec.ts
+
+🚀 Setting up global test environment...
+📦 Setting up test database...
+npm warn Unknown env config "config". This will stop working in the next major version of npm.
+Loaded Prisma config from prisma.config.ts.
+
+Prisma schema loaded from prisma\schema.prisma.

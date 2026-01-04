@@ -26,7 +26,7 @@ import { UserRole } from '../../common/types';
 @Controller('orders')
 @UseGuards(AuthGuard, RolesGuard)
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(private readonly orderService: OrderService) { }
 
   @Get()
   @Roles(UserRole.BUYER, UserRole.ADMIN)
@@ -111,10 +111,10 @@ export class OrderController {
     const userRole = userRoles.includes(UserRole.ADMIN)
       ? UserRole.ADMIN
       : UserRole.BUYER;
-    return this.orderService.cancelOrder(
+    return this.orderService.cancel(
       orderId,
+      { reason: body.reason },
       userId,
-      body.reason,
       userRole,
     );
   }

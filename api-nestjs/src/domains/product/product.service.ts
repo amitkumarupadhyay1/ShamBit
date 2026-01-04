@@ -845,7 +845,7 @@ export class ProductService {
     // Check permissions
     if (
       !ProductPolicies.canPerformBulkOperation(
-        'bulk_update',
+        'status_update',
         bulkUpdate.productIds,
         userRole,
       )

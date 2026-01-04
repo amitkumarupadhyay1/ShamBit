@@ -57,15 +57,24 @@ export class BrandService {
   async create(
     createBrandDto: CreateBrandDto,
     createdBy: string,
+    userRole?: string,
   ): Promise<Brand> {
     this.logger.log('BrandService.create', { createBrandDto, createdBy });
 
     // Check if slug already exists
-    const existingBrand = await this.brandRepository.findBySlug(
+    const existingBrandBySlug = await this.brandRepository.findBySlug(
       createBrandDto.slug,
     );
-    if (existingBrand) {
+    if (existingBrandBySlug) {
       throw new ConflictException('Brand with this slug already exists');
+    }
+
+    // Check if name already exists
+    const existingBrandByName = await this.brandRepository.findByName(
+      createBrandDto.name,
+    );
+    if (existingBrandByName) {
+      throw new ConflictException('Brand with this name already exists');
     }
 
     // Validate category assignments
@@ -78,7 +87,7 @@ export class BrandService {
 
     const brand = await this.brandRepository.create({
       ...createBrandDto,
-      status: BrandStatus.ACTIVE,
+      status: BrandStatus.DRAFT,
       createdBy,
     });
 
@@ -90,17 +99,13 @@ export class BrandService {
       null,
       brand,
       'Brand created',
+      undefined,
+      undefined,
+      userRole || 'UNKNOWN',
     );
 
     // Emit brand created event
-    this.eventEmitter.emit('brand.created', {
-      brandId: brand.id,
-      brandName: brand.name,
-      isGlobal: brand.isGlobal,
-      sellerId: brand.sellerId,
-      createdBy,
-      timestamp: new Date(),
-    });
+    this.eventEmitter.emit('brand.created', brand);
 
     this.logger.log('Brand created successfully', { brandId: brand.id });
     return brand;
@@ -118,6 +123,14 @@ export class BrandService {
 
     // Check permissions
     await this.validateUpdatePermissions(existingBrand, updatedBy, userRole);
+
+    // Validate slug uniqueness if updating slug
+    if (updateBrandDto.slug && updateBrandDto.slug !== existingBrand.slug) {
+      const existingBrandBySlug = await this.brandRepository.findBySlug(updateBrandDto.slug);
+      if (existingBrandBySlug && existingBrandBySlug.id !== id) {
+        throw new ConflictException('Brand with this slug already exists');
+      }
+    }
 
     // Validate category assignments if provided
     if (updateBrandDto.categoryIds) {
@@ -145,16 +158,13 @@ export class BrandService {
       existingBrand,
       updatedBrand,
       'Brand updated',
+      undefined,
+      undefined,
+      userRole || 'UNKNOWN',
     );
 
     // Emit brand updated event
-    this.eventEmitter.emit('brand.updated', {
-      brandId: id,
-      brandName: updatedBrand.name,
-      changes: updateBrandDto,
-      updatedBy,
-      timestamp: new Date(),
-    });
+    this.eventEmitter.emit('brand.updated', updatedBrand);
 
     this.logger.log('Brand updated successfully', { brandId: id });
     return updatedBrand;
@@ -174,38 +184,34 @@ export class BrandService {
 
     const existingBrand = await this.findById(id);
 
-    // Check permissions
-    await this.validateUpdatePermissions(existingBrand, updatedBy, userRole);
+    // Check if admin approval is required
+    if (this.requiresAdminApproval(statusUpdate.status) && userRole !== 'ADMIN') {
+      throw new ForbiddenException('Only administrators can perform this status change');
+    }
 
     // Validate status transition
     this.validateStatusTransition(existingBrand.status, statusUpdate.status);
 
-    const updatedBrand = await this.brandRepository.updateStatus(
-      id,
-      statusUpdate.status,
+    const updatedBrand = await this.brandRepository.update(id, {
+      status: statusUpdate.status,
       updatedBy,
-    );
+    });
 
     // Create audit log
     await this.brandAuditService.logAction(
       id,
-      `STATUS_CHANGE_${statusUpdate.status}`,
+      'STATUS_CHANGE',
       updatedBy,
-      { status: existingBrand.status },
-      { status: statusUpdate.status },
+      existingBrand,
+      updatedBrand,
       statusUpdate.reason || 'Status changed',
+      undefined,
+      undefined,
+      userRole || 'UNKNOWN',
     );
 
     // Emit status change event
-    this.eventEmitter.emit('brand.status.changed', {
-      brandId: id,
-      brandName: updatedBrand.name,
-      oldStatus: existingBrand.status,
-      newStatus: statusUpdate.status,
-      reason: statusUpdate.reason,
-      updatedBy,
-      timestamp: new Date(),
-    });
+    this.eventEmitter.emit('brand.status_changed', updatedBrand);
 
     this.logger.log('Brand status updated successfully', {
       brandId: id,
@@ -218,7 +224,7 @@ export class BrandService {
     id: string,
     deletedBy: string,
     userRole?: string,
-  ): Promise<void> {
+  ): Promise<Brand> {
     this.logger.log('BrandService.delete', { id, deletedBy });
 
     const existingBrand = await this.findById(id);
@@ -229,7 +235,12 @@ export class BrandService {
     // Check if brand is in use
     await this.validateBrandNotInUse(id);
 
-    await this.brandRepository.softDelete(id, deletedBy);
+    await this.brandRepository.update(id, {
+      status: BrandStatus.ARCHIVED,
+      updatedBy: deletedBy,
+    });
+
+    const deletedBrand = await this.findById(id);
 
     // Create audit log
     await this.brandAuditService.logAction(
@@ -237,27 +248,57 @@ export class BrandService {
       'DELETE',
       deletedBy,
       existingBrand,
-      null,
+      deletedBrand,
       'Brand deleted',
+      undefined,
+      undefined,
+      userRole || 'UNKNOWN',
     );
 
     // Emit brand deleted event
-    this.eventEmitter.emit('brand.deleted', {
-      brandId: id,
-      brandName: existingBrand.name,
-      deletedBy,
-      timestamp: new Date(),
-    });
+    this.eventEmitter.emit('brand.deleted', deletedBrand);
 
     this.logger.log('Brand deleted successfully', { brandId: id });
+    return deletedBrand;
   }
 
   async findBySellerId(sellerId: string): Promise<Brand[]> {
     return this.brandRepository.findBySellerId(sellerId);
   }
 
-  async getStatistics(sellerId?: string): Promise<Record<BrandStatus, number>> {
-    return this.brandRepository.countByStatus(sellerId);
+  async getStatistics(sellerId?: string): Promise<any> {
+    return this.brandRepository.getStatistics();
+  }
+
+  async validateBrandAccess(
+    brandId: string,
+    userId: string,
+    userRole: string,
+  ): Promise<boolean> {
+    const brand = await this.findById(brandId);
+
+    // Admins can access any brand
+    if (userRole === 'ADMIN') {
+      return true;
+    }
+
+    // Global brands are accessible to all
+    if (brand.scope === BrandScope.GLOBAL) {
+      return true;
+    }
+
+    // Owner can access their own brand
+    if (brand.sellerId === userId) {
+      return true;
+    }
+
+    // For shared brands, check access table (simplified for now)
+    if (brand.scope === BrandScope.SELLER_SHARED) {
+      // TODO: Implement proper access control check
+      return false;
+    }
+
+    return false;
   }
 
   // Validation methods
@@ -319,7 +360,18 @@ export class BrandService {
   }
 
   private async validateBrandNotInUse(brandId: string): Promise<void> {
-    // TODO: Check if brand is used in any products
-    // This would prevent deletion of brands that are actively used
+    const isInUse = await this.brandRepository.isBrandInUse(brandId);
+    if (isInUse) {
+      throw new BadRequestException('Cannot delete brand that is currently in use');
+    }
+  }
+
+  private requiresAdminApproval(status: BrandStatus): boolean {
+    const adminOnlyStatuses = [
+      BrandStatus.APPROVED,
+      BrandStatus.REJECTED,
+      BrandStatus.SUSPENDED,
+    ];
+    return adminOnlyStatuses.includes(status);
   }
 }

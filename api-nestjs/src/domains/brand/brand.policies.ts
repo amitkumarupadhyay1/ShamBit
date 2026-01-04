@@ -32,6 +32,11 @@ export class BrandPolicies {
     userId: string,
     userRole: UserRole,
   ): boolean {
+    // Handle null/undefined inputs
+    if (!brand || !userId || !userRole) {
+      return false;
+    }
+
     // Admins can view all brands
     if (userRole === UserRole.ADMIN) {
       return true;
@@ -62,6 +67,11 @@ export class BrandPolicies {
     userId: string,
     userRole: UserRole,
   ): boolean {
+    // Handle null/undefined inputs
+    if (!brand || !userId || !userRole) {
+      return false;
+    }
+
     // Must be usable status first
     if (!this.isUsableInProducts(brand.status)) {
       return false;
@@ -166,6 +176,48 @@ export class BrandPolicies {
     }
 
     return false;
+  }
+
+  static canUserManageBrand(
+    brand: Brand,
+    userId: string,
+    userRole: UserRole,
+  ): boolean {
+    // Handle null/undefined inputs
+    if (!brand || !userId || !userRole) {
+      return false;
+    }
+    
+    return this.canUserModifyBrand(brand, userId, userRole);
+  }
+
+  static getBrandVisibilityScope(brand: Brand): string {
+    switch (brand.scope) {
+      case BrandScope.GLOBAL:
+        return 'PUBLIC';
+      case BrandScope.SELLER_PRIVATE:
+        return 'PRIVATE';
+      case BrandScope.SELLER_SHARED:
+        return 'RESTRICTED';
+      default:
+        return 'PRIVATE';
+    }
+  }
+
+  static validateBrandStatusTransition(
+    currentStatus: BrandStatus,
+    newStatus: BrandStatus,
+    userRole: UserRole,
+  ): void {
+    // Check if transition is valid
+    if (!this.canTransitionTo(currentStatus, newStatus)) {
+      throw new Error('Invalid status transition');
+    }
+
+    // Check if admin approval is required
+    if (this.requiresAdminApproval(newStatus) && userRole !== UserRole.ADMIN) {
+      throw new Error('Only admins can approve brands');
+    }
   }
 
   // Request validation policies

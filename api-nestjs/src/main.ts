@@ -113,11 +113,20 @@ async function bootstrap() {
           ## Security Features
           
           ### Authentication & Authorization:
-          - **JWT-based authentication** with access and refresh tokens
+          - **JWT-based authentication** with access and refresh tokens (Legacy)
+          - **Better Auth integration** with Neon database for modern authentication
           - **HttpOnly cookies** for secure token storage (prevents XSS)
           - **Token revocation** with Redis-based denylist
           - **Refresh token rotation** for enhanced security
           - **Role-based access control (RBAC)** with fine-grained permissions
+          - **Social login support** (Google OAuth)
+          
+          ### Better Auth Features:
+          - **Email/Password authentication** with secure password hashing
+          - **Session management** with automatic expiration
+          - **Database-first approach** with all auth data in Neon PostgreSQL
+          - **Branching support** - auth state branches with your database
+          - **Type-safe APIs** with full TypeScript support
           
           ### Security Headers:
           - **Content Security Policy (CSP)** to prevent XSS attacks
@@ -127,10 +136,26 @@ async function bootstrap() {
           - **Referrer Policy** for privacy protection
           
           ### Session Security:
-          - **Short-lived access tokens** (15 minutes)
+          - **Short-lived access tokens** (15 minutes) - Legacy JWT
+          - **Long-lived sessions** (7 days) - Better Auth
           - **Secure cookie attributes** (HttpOnly, Secure, SameSite=Strict)
           - **Automatic token cleanup** with Redis TTL
           - **Session invalidation** on logout
+          
+          ## Authentication Endpoints
+          
+          ### Legacy Authentication (v1):
+          - \`POST /api/v1/auth/register\` - Register with JWT
+          - \`POST /api/v1/auth/login\` - Login with JWT
+          - \`POST /api/v1/auth/logout\` - Logout JWT session
+          - \`GET /api/v1/auth/me\` - Get current user (JWT)
+          
+          ### Better Auth (v2) - Recommended:
+          - \`POST /api/v1/auth/v2/signup\` - Register with Better Auth
+          - \`POST /api/v1/auth/v2/signin\` - Login with Better Auth
+          - \`POST /api/v1/auth/v2/signout\` - Logout Better Auth session
+          - \`GET /api/v1/auth/v2/me\` - Get current user (Better Auth)
+          - \`GET /api/v1/auth/v2/session\` - Get current session info
           
           ## Settlement System
           
@@ -151,10 +176,31 @@ async function bootstrap() {
           ### Rate Limiting:
           - 100 requests per minute per IP
           - Higher limits for authenticated users
+          
+          ## Database Integration
+          
+          ### Neon PostgreSQL:
+          - **Primary database** for all application data
+          - **Better Auth tables** for user authentication
+          - **Branching support** for development workflows
+          - **Connection pooling** for optimal performance
+          
+          ### Redis:
+          - **Session storage** for JWT tokens (legacy)
+          - **Rate limiting** counters
+          - **Caching** for improved performance
+          - **Queue management** for background jobs
         `,
         )
-        .setVersion('1.0')
-        .addTag('Authentication', 'Secure authentication with JWT and cookies')
+        .setVersion('2.0')
+        .addTag('Authentication', 'Secure authentication with JWT and cookies (Legacy)')
+        .addTag('Authentication v2 (Better Auth)', 'Modern authentication with Better Auth and Neon')
+        .addTag('Better Auth', 'Better Auth endpoints and session management')
+        .addTag('Categories', 'Product category management')
+        .addTag('Products', 'Product catalog and inventory')
+        .addTag('Orders', 'Order processing and management')
+        .addTag('Cart', 'Shopping cart operations')
+        .addTag('Users', 'User profile and account management')
         .addTag(
           'Settlements',
           'Settlement creation, processing, and management',
@@ -168,16 +214,30 @@ async function bootstrap() {
           'Settlement Webhooks',
           'Webhook endpoints for payment gateway integration',
         )
+        .addTag('Notifications', 'Push notifications and messaging')
+        .addTag('Search', 'Product search and filtering')
+        .addTag('Reviews', 'Product reviews and ratings')
         .addBearerAuth(
           {
             type: 'http',
             scheme: 'bearer',
             bearerFormat: 'JWT',
             name: 'JWT',
-            description: 'Enter JWT token',
+            description: 'Enter JWT token (Legacy authentication)',
             in: 'header',
           },
           'JWT-auth',
+        )
+        .addBearerAuth(
+          {
+            type: 'http',
+            scheme: 'bearer',
+            bearerFormat: 'Session Token',
+            name: 'Better Auth',
+            description: 'Enter Better Auth session token',
+            in: 'header',
+          },
+          'Better-Auth',
         )
         .addApiKey(
           {

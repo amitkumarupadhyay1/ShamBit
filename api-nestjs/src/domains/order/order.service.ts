@@ -8,11 +8,11 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { PrismaService } from '../../infrastructure/prisma/prisma.service';
 
 import { OrderRepository } from './repositories/order.repository';
-import { OrderAuditService } from './services/order-audit.service.js';
+import { OrderAuditService } from './services/order-audit.service';
 import { OrderOrchestrationService } from './services/order-orchestration.service';
 
-import { OrderFulfillmentService } from './services/order-fulfillment.service.js';
-import { OrderRefundService } from './services/order-refund.service.js';
+import { OrderFulfillmentService } from './services/order-fulfillment.service';
+import { OrderRefundService } from './services/order-refund.service';
 import { InventoryReservationService } from '../inventory/services/inventory-reservation.service';
 import { InventoryValidators } from '../inventory/inventory.validators';
 import { LoggerService } from '../../infrastructure/observability/logger.service';
@@ -20,16 +20,16 @@ import { LoggerService } from '../../infrastructure/observability/logger.service
 import { Order } from './entities/order.entity';
 import { OrderItem } from './entities/order-item.entity';
 import { OrderStatus, OrderItemStatus } from './enums/order-status.enum';
-import { OrderPolicies } from './order.policies.js';
+import { OrderPolicies } from './order.policies';
 import { OrderValidators } from './order.validators';
 
 import { CreateOrderDto } from './dtos/create-order.dto';
 import {
   UpdateOrderDto,
   OrderStatusUpdateDto,
-} from './dtos/update-order.dto.js';
-import { CancelOrderDto } from './dtos/cancel-order.dto.js';
-import { RefundOrderDto } from './dtos/refund-order.dto.js';
+} from './dtos/update-order.dto';
+import { CancelOrderDto } from './dtos/cancel-order.dto';
+import { RefundOrderDto } from './dtos/refund-order.dto';
 
 import {
   OrderUpdatedEvent,
@@ -59,7 +59,7 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly eventEmitter: EventEmitter2,
     private readonly logger: LoggerService,
-  ) {}
+  ) { }
 
   // ============================================================================
   // BASIC CRUD OPERATIONS
@@ -169,13 +169,17 @@ export class OrderService {
     id: string,
     updateOrderDto: UpdateOrderDto,
     updatedBy: string,
+    userRole?: UserRole,
   ): Promise<Order> {
     this.logger.log('OrderService.update', { id, updateOrderDto, updatedBy });
 
-    const existingOrder = await this.findById(id);
+    const existingOrder = await this.orderRepository.findById(id);
+    if (!existingOrder) {
+      throw new NotFoundException('Order not found');
+    }
 
     // Check permissions
-    await this.checkOrderAccess(existingOrder, updatedBy);
+    await this.checkOrderAccess(existingOrder, updatedBy, userRole);
 
     // SAFETY: Validate order immutability after confirmation
     OrderValidators.validateOrderImmutability(existingOrder, updateOrderDto);
@@ -229,6 +233,7 @@ export class OrderService {
     id: string,
     statusUpdate: OrderStatusUpdateDto,
     updatedBy: string,
+    userRole?: UserRole,
   ): Promise<Order> {
     this.logger.log('OrderService.updateStatus', {
       id,
@@ -236,10 +241,13 @@ export class OrderService {
       updatedBy,
     });
 
-    const order = await this.findById(id);
+    const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
 
     // Check permissions
-    await this.checkOrderAccess(order, updatedBy);
+    await this.checkOrderAccess(order, updatedBy, userRole);
 
     // Validate status transition
     OrderValidators.validateStatusTransition(order.status, statusUpdate.status);
@@ -276,7 +284,10 @@ export class OrderService {
     shippedBy: string,
     trackingNumber?: string,
   ): Promise<Order> {
-    const order = await this.findById(id);
+    const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
 
     // Use fulfillment service for shipping logic
     return this.orderFulfillmentService.shipOrder(
@@ -302,13 +313,17 @@ export class OrderService {
     id: string,
     cancelDto: CancelOrderDto,
     cancelledBy: string,
+    userRole?: UserRole,
   ): Promise<Order> {
     this.logger.log('OrderService.cancel', { id, cancelDto, cancelledBy });
 
-    const order = await this.findById(id);
+    const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
 
     // Check permissions
-    await this.checkOrderAccess(order, cancelledBy);
+    await this.checkOrderAccess(order, cancelledBy, userRole);
 
     // Validate cancellation rules
     await this.validateOrderCancellation(order);
@@ -360,13 +375,21 @@ export class OrderService {
   // ORDER REFUNDS
   // ============================================================================
 
-  async refund(id: string, refundDto: RefundOrderDto, refundedBy: string) {
+  async refund(
+    id: string,
+    refundDto: RefundOrderDto,
+    refundedBy: string,
+    userRole?: UserRole,
+  ) {
     this.logger.log('OrderService.refund', { id, refundDto, refundedBy });
 
-    const order = await this.findById(id);
+    const order = await this.orderRepository.findById(id);
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
 
     // Check permissions
-    await this.checkOrderAccess(order, refundedBy);
+    await this.checkOrderAccess(order, refundedBy, userRole);
 
     // Use refund service for complex refund logic
     return this.orderRefundService.processRefund(order.id, refundDto);
