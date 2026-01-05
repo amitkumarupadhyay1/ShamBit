@@ -281,10 +281,9 @@ export class NotificationRepository {
       data: {
         id: `${notificationId}_read_${Date.now()}`,
         notificationId,
-        type: 'READ',
-        userId,
+        eventType: 'READ',
         timestamp: new Date(),
-        metadata: {},
+        data: { userId },
       },
     });
   }
@@ -298,10 +297,9 @@ export class NotificationRepository {
     const events = notifications.map((n) => ({
       id: `${n.id}_read_${Date.now()}`,
       notificationId: n.id,
-      type: 'READ' as const,
-      userId,
+      eventType: 'READ' as const,
       timestamp: new Date(),
-      metadata: {},
+      data: { userId },
     }));
 
     await this.prisma.notificationEvent.createMany({
@@ -314,8 +312,11 @@ export class NotificationRepository {
   async getUnreadCount(userId: string): Promise<number> {
     const readNotificationIds = await this.prisma.notificationEvent.findMany({
       where: {
-        userId,
-        type: 'READ',
+        eventType: 'READ',
+        data: {
+          path: ['userId'],
+          equals: userId,
+        },
       },
       select: { notificationId: true },
     });
@@ -365,11 +366,11 @@ export class NotificationRepository {
   }> {
     const where: Prisma.NotificationWhereInput = {};
 
-    if (filters.type) where.type = filters.type;
+    if (filters.type) where.type = filters.type as $Enums.NotificationType;
     if (filters.userId) where.userId = filters.userId;
     if (filters.channel) {
       where.channels = {
-        has: filters.channel,
+        has: filters.channel as $Enums.NotificationChannel,
       };
     }
     if (filters.dateFrom || filters.dateTo) {
@@ -394,7 +395,7 @@ export class NotificationRepository {
     // Count opened notifications (those with READ events)
     const openedCount = await this.prisma.notificationEvent.count({
       where: {
-        type: 'READ',
+        eventType: 'READ',
         notification: where,
       },
     });

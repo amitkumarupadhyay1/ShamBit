@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
+import { $Enums } from '@prisma/client';
 import {
   NotificationChannel,
   NotificationType,
@@ -150,8 +151,8 @@ export class NotificationMetricsService {
       await this.prisma.notificationEvent.create({
         data: {
           notificationId,
-          type: eventType,
-          channel,
+          eventType: eventType,
+          channel: channel as $Enums.NotificationChannel,
           data: data || {},
           timestamp: new Date(),
         },

@@ -111,10 +111,9 @@ export class InAppChannelService {
       data: {
         id: `${notificationId}_read_${Date.now()}`,
         notificationId,
-        type: 'READ',
-        userId,
+        eventType: 'READ',
         timestamp: new Date(),
-        metadata: {},
+        data: { userId },
       },
     });
   }
@@ -133,10 +132,9 @@ export class InAppChannelService {
     const events = notifications.map((n) => ({
       id: `${n.id}_read_${Date.now()}`,
       notificationId: n.id,
-      type: 'READ' as const,
-      userId,
+      eventType: 'READ' as const,
       timestamp: new Date(),
-      metadata: {},
+      data: { userId },
     }));
 
     if (events.length > 0) {
@@ -161,9 +159,12 @@ export class InAppChannelService {
     // Get read notification IDs
     const readNotificationIds = await this.prisma.notificationEvent.findMany({
       where: {
-        userId,
-        type: 'READ',
+        eventType: 'READ',
         notificationId: { in: allNotifications.map((n) => n.id) },
+        data: {
+          path: ['userId'],
+          equals: userId,
+        },
       },
       select: { notificationId: true },
     });
@@ -205,9 +206,12 @@ export class InAppChannelService {
     if (options.isRead !== undefined) {
       const readEvents = await this.prisma.notificationEvent.findMany({
         where: {
-          userId,
-          type: 'READ',
+          eventType: 'READ',
           notificationId: { in: allNotifications.map((n) => n.id) },
+          data: {
+            path: ['userId'],
+            equals: userId,
+          },
         },
         select: { notificationId: true },
       });

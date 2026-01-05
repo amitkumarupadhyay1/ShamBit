@@ -148,8 +148,8 @@ export class CategoryController {
     }
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
       sortBy: query.sortBy || 'displayOrder',
       sortOrder: query.sortOrder || 'asc',
     };
@@ -188,8 +188,8 @@ export class CategoryController {
     };
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 50,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 50,
       sortBy: query.sortBy || 'displayOrder',
       sortOrder: query.sortOrder || 'asc',
     };
@@ -328,8 +328,8 @@ export class CategoryController {
     };
 
     const pagination = {
-      page: filters.page || 1,
-      limit: filters.limit || 20,
+      page: Number(filters.page) || 1,
+      limit: Number(filters.limit) || 20,
       sortBy: filters.sortBy || 'name',
       sortOrder: filters.sortOrder || 'asc',
     };
@@ -427,8 +427,8 @@ export class CategoryController {
     };
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 50,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 50,
       sortBy: query.sortBy || 'displayOrder',
       sortOrder: query.sortOrder || 'asc',
     };

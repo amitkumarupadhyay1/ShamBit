@@ -7,7 +7,7 @@ export class VariantRepository {
 
   async findAll(filters?: any, pagination?: any, includes?: any): Promise<any> {
     const { page = 1, limit = 10 } = pagination || {};
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
 
     const where = this.buildWhereClause(filters);
 
@@ -16,7 +16,7 @@ export class VariantRepository {
         where,
         include: this.buildIncludeClause(includes),
         skip,
-        take: limit,
+        take: Number(limit),
       }),
       this.prisma.productVariant.count({ where }),
     ]);

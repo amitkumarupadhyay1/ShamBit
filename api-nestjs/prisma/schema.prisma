@@ -6,70 +6,6 @@ datasource db {
   provider = "postgresql"
 }
 
-model BetterAuthUser {
-  id              String              @id @default(cuid())
-  name            String
-  email           String              @unique
-  emailVerified   Boolean             @default(false)
-  image           String?
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  roles           String?             @default("BUYER")
-  phone           String?
-  isEmailVerified Boolean             @default(false)
-  isPhoneVerified Boolean             @default(false)
-  accounts        BetterAuthAccount[]
-  sessions        BetterAuthSession[]
-
-  @@map("better_auth_user")
-}
-
-model BetterAuthSession {
-  id        String         @id @default(cuid())
-  userId    String
-  token     String         @unique
-  expiresAt DateTime
-  ipAddress String?
-  userAgent String?
-  createdAt DateTime       @default(now())
-  updatedAt DateTime       @updatedAt
-  user      BetterAuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
-  @@map("better_auth_session")
-}
-
-model BetterAuthAccount {
-  id                    String         @id @default(cuid())
-  userId                String
-  accountId             String
-  providerId            String
-  accessToken           String?
-  refreshToken          String?
-  accessTokenExpiresAt  DateTime?
-  refreshTokenExpiresAt DateTime?
-  scope                 String?
-  idToken               String?
-  password              String?
-  user                  BetterAuthUser @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([providerId, accountId])
-  @@index([userId])
-  @@map("better_auth_account")
-}
-
-model BetterAuthVerification {
-  id         String   @id @default(cuid())
-  identifier String
-  value      String
-  expiresAt  DateTime
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@unique([identifier, value])
-  @@map("better_auth_verification")
-}
-
 model Tenant {
   id                   String                     @id @default(cuid())
   name                 String
@@ -2233,6 +2169,10 @@ enum NotificationType {
   PROMOTION_APPLIED
   FLASH_SALE_STARTED
   COUPON_EXPIRING_SOON
+  REVIEW_RECEIVED
+  REVIEW_APPROVED
+  REVIEW_REJECTED
+  REVIEW_RESPONSE_RECEIVED
   SYSTEM_MAINTENANCE
   SECURITY_ALERT
   ACCOUNT_LOCKED
@@ -2240,10 +2180,25 @@ enum NotificationType {
   EMAIL_VERIFICATION
   TWO_FACTOR_ENABLED
   LOGIN_FROM_NEW_DEVICE
+  MARKETING_CAMPAIGN
+  NEWSLETTER
+  PROMOTIONAL_OFFER
+  ABANDONED_CART_REMINDER
+  WELCOME_SERIES
   SETTLEMENT_PROCESSED
   SETTLEMENT_FAILED
   SETTLEMENT_SCHEDULED
   SETTLEMENT_DELAYED
+  INVENTORY_ADJUSTMENT
+  BULK_IMPORT_COMPLETED
+  BULK_IMPORT_FAILED
+  SUPPORT_TICKET_CREATED
+  SUPPORT_TICKET_UPDATED
+  SUPPORT_TICKET_RESOLVED
+  KYC_VERIFICATION_REQUIRED
+  KYC_VERIFICATION_APPROVED
+  KYC_VERIFICATION_REJECTED
+  TAX_DOCUMENT_READY
 }
 
 enum NotificationChannel {
@@ -2253,6 +2208,8 @@ enum NotificationChannel {
   PUSH
   WEBHOOK
   WHATSAPP
+  SLACK
+  TEAMS
 }
 
 enum NotificationPriority {

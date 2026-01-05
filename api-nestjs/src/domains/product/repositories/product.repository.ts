@@ -26,13 +26,17 @@ export class ProductRepository implements IProductRepository {
     const orderBy = this.buildOrderByClause(pagination);
     const include = this.buildIncludeClause(includes);
 
+    const page = Number(pagination.page) || 1;
+    const limit = Number(pagination.limit) || 20;
+    const skip = (page - 1) * limit;
+
     const [data, total] = await Promise.all([
       this.prisma.product.findMany({
         where,
         include,
         orderBy,
-        skip: ((pagination.page || 1) - 1) * (pagination.limit || 20),
-        take: pagination.limit || 20,
+        skip,
+        take: limit,
       }),
       this.prisma.product.count({ where }),
     ]);
@@ -567,8 +571,8 @@ export class ProductRepository implements IProductRepository {
     limit: number = 10,
   ): Promise<Product[]> {
     // TODO: Uncomment after Prisma client regeneration
-    // const result = await this.findAll({ ...filters, isFeatured: true }, { limit });
-    const result = await this.findAll(filters, { limit });
+    // const result = await this.findAll({ ...filters, isFeatured: true }, { limit: Number(limit) });
+    const result = await this.findAll(filters, { limit: Number(limit) });
     return result.data;
   }
 
@@ -630,7 +634,7 @@ export class ProductRepository implements IProductRepository {
   async findPendingModeration(limit: number = 50): Promise<Product[]> {
     const result = await this.findAll(
       { moderationStatus: ProductModerationStatus.PENDING },
-      { limit, sortBy: 'createdAt', sortOrder: 'asc' },
+      { limit: Number(limit), sortBy: 'createdAt', sortOrder: 'asc' },
     );
     return result.data;
   }

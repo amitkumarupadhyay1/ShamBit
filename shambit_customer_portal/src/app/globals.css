@@ -1,26 +1,43 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --primary: #13b6ec;
+  --primary-dark: #0e8db8;
+  --background-light: #f1f3f6;
+  --background-dark: #0f172a;
+  --surface-light: #ffffff;
+  --surface-dark: #1e293b;
+  --text-main-light: #212121;
+  --text-main-dark: #f8fafc;
+  --text-sec-light: #878787;
+  --text-sec-dark: #94a3b8;
 }
 
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-dark);
+  --color-background-light: var(--background-light);
+  --color-background-dark: var(--background-dark);
+  --color-surface-light: var(--surface-light);
+  --color-surface-dark: var(--surface-dark);
+  --color-text-main-light: var(--text-main-light);
+  --color-text-main-dark: var(--text-main-dark);
+  --color-text-sec-light: var(--text-sec-light);
+  --color-text-sec-dark: var(--text-sec-dark);
+  --font-display: 'Inter', sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  min-height: max(884px, 100dvh);
+  font-family: 'Inter', sans-serif;
 }

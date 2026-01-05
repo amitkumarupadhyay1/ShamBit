@@ -33,8 +33,8 @@ export class AttributeRepository implements IAttributeRepository {
         where,
         include,
         orderBy,
-        skip: ((pagination.page || 1) - 1) * (pagination.limit || 20),
-        take: pagination.limit || 20,
+        skip: ((Number(pagination.page) || 1) - 1) * (Number(pagination.limit) || 20),
+        take: Number(pagination.limit) || 20,
       }),
       this.prisma.attribute.count({ where }),
     ]);

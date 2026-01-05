@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/prisma/prisma.service';
 import { HttpService } from '@nestjs/axios';
 import { createHmac, randomBytes } from 'crypto';
+import { $Enums } from '@prisma/client';
 import {
   NotificationType,
   WebhookSubscription,
@@ -78,7 +79,7 @@ export class WebhookService {
       data: {
         name: dto.name,
         url: dto.url,
-        events: dto.events,
+        events: dto.events as $Enums.NotificationType[],
         secret,
         headers: dto.headers || {},
         isActive: dto.isActive ?? true,
@@ -104,12 +105,14 @@ export class WebhookService {
     subscriptionId: string,
     updates: Partial<CreateWebhookDto>,
   ): Promise<WebhookSubscription> {
+    const updateData: any = { ...updates, updatedAt: new Date() };
+    if (updates.events) {
+      updateData.events = updates.events as $Enums.NotificationType[];
+    }
+    
     const subscription = await this.prisma.webhookSubscription.update({
       where: { id: subscriptionId },
-      data: {
-        ...updates,
-        updatedAt: new Date(),
-      },
+      data: updateData,
     });
 
     return this.mapToWebhookType(subscription);
@@ -409,7 +412,7 @@ export class WebhookService {
       where: {
         isActive: true,
         status: WebhookStatus.ACTIVE,
-        events: { has: eventType },
+        events: { has: eventType as $Enums.NotificationType },
         tenantId: tenantId || null,
       },
     });
@@ -426,7 +429,7 @@ export class WebhookService {
     const delivery = await this.prisma.webhookDelivery.create({
       data: {
         subscriptionId: subscription.id,
-        eventType,
+        eventType: eventType as $Enums.NotificationType,
         eventId,
         payload,
         status: 'PENDING',

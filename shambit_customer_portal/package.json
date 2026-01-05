@@ -6,19 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test:integration": "node test-integration.js"
   },
   "dependencies": {
-    "@neondatabase/auth": "^0.1.0-beta.20",
-    "@neondatabase/neon-js": "^0.1.0-beta.21",
+    "axios": "^1.7.9",
+    "js-cookie": "^3.0.5",
     "next": "16.1.1",
-    "next-auth": "^4.24.13",
-    "pg": "^8.16.3",
     "react": "19.2.3",
     "react-dom": "19.2.3"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/js-cookie": "^3.0.6",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

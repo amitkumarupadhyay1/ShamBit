@@ -54,8 +54,8 @@ export class InventoryRepository {
     includes: any = {},
   ): Promise<{ data: Inventory[]; total: number }> {
     const where: any = { ...(filters || {}) };
-    const take = pagination.limit || 20;
-    const skip = ((pagination.page || 1) - 1) * take;
+    const take = Number(pagination.limit) || 20;
+    const skip = ((Number(pagination.page) || 1) - 1) * take;
 
     const [records, total] = await Promise.all([
       this.prisma.variantInventory.findMany({ where, take, skip }),
@@ -95,8 +95,8 @@ export class InventoryRepository {
     includes: any = {},
   ): Promise<{ data: Inventory[]; total: number }> {
     const where = { sellerId, ...(filters || {}) };
-    const take = pagination.limit || 20;
-    const skip = ((pagination.page || 1) - 1) * take;
+    const take = Number(pagination.limit) || 20;
+    const skip = ((Number(pagination.page) || 1) - 1) * take;
 
     const [records, total] = await Promise.all([
       this.prisma.variantInventory.findMany({ where, take, skip }),
@@ -135,8 +135,8 @@ export class InventoryRepository {
     pagination: any = {},
   ): Promise<{ data: InventoryLedger[]; total: number }> {
     const where: any = { inventoryId, ...(filters || {}) };
-    const take = pagination.limit || 50;
-    const skip = ((pagination.page || 1) - 1) * take;
+    const take = Number(pagination.limit) || 50;
+    const skip = ((Number(pagination.page) || 1) - 1) * take;
 
     const [records, total] = await Promise.all([
       this.prisma.inventoryLedger.findMany({
@@ -168,8 +168,8 @@ export class InventoryRepository {
     if (threshold !== undefined) {
       where.availableQuantity = { lte: threshold };
     }
-    const take = pagination.limit || 50;
-    const skip = ((pagination.page || 1) - 1) * take;
+    const take = Number(pagination.limit) || 50;
+    const skip = ((Number(pagination.page) || 1) - 1) * take;
     const [records, total] = await Promise.all([
       this.prisma.variantInventory.findMany({ where, take, skip }),
       this.prisma.variantInventory.count({ where }),
@@ -183,8 +183,8 @@ export class InventoryRepository {
   ): Promise<{ data: Inventory[]; total: number }> {
     const where: any = { availableQuantity: { lte: 0 } };
     if (sellerId) where.sellerId = sellerId;
-    const take = pagination.limit || 50;
-    const skip = ((pagination.page || 1) - 1) * take;
+    const take = Number(pagination.limit) || 50;
+    const skip = ((Number(pagination.page) || 1) - 1) * take;
     const [records, total] = await Promise.all([
       this.prisma.variantInventory.findMany({ where, take, skip }),
       this.prisma.variantInventory.count({ where }),

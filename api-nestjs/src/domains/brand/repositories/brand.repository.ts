@@ -37,7 +37,7 @@ export class BrandRepository {
       sortOrder = 'desc',
     } = pagination;
 
-    const skip = (page - 1) * limit;
+    const skip = (Number(page) - 1) * Number(limit);
 
     const where: any = {};
 
@@ -105,7 +105,7 @@ export class BrandRepository {
           },
         } as any,
         skip,
-        take: limit,
+        take: Number(limit),
         orderBy: {
           [sortBy]: sortOrder,
         },

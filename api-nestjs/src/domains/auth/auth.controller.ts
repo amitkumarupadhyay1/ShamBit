@@ -16,6 +16,7 @@ import {
   ApiResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 import type { Response, Request } from 'express';
 import { ConfigService } from '@nestjs/config';
 
@@ -40,6 +41,7 @@ export class AuthController {
 
   @Public()
   @Post('register')
+  @Throttle({ default: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   @ApiOperation({ summary: 'Register new user' })
   @ApiResponse({ status: 201, description: 'User registered successfully' })
   async register(
@@ -59,6 +61,7 @@ export class AuthController {
 
   @Public()
   @Post('login')
+  @Throttle({ default: { limit: 10, ttl: 60000 } }) // 10 attempts per minute
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Login user' })
   @ApiResponse({ status: 200, description: 'Login successful' })
@@ -174,6 +177,7 @@ export class AuthController {
       secure: isProduction, // Only send over HTTPS in production
       sameSite: 'strict' as const,
       path: '/',
+      domain: isProduction ? this.configService.get('COOKIE_DOMAIN') : undefined,
     };
 
     // Set access token cookie (15 minutes)

@@ -96,14 +96,15 @@ export class CategoryRepository implements ICategoryRepository {
       sortOrder = 'asc',
     } = pagination;
 
-    const skip = (page - 1) * limit;
+    const skip = (page - 1) * Number(limit);
+    const take = Number(limit);
     const where = this.buildWhereClause(filters);
 
     const [data, total] = await Promise.all([
       this.prisma.category.findMany({
         where,
         skip,
-        take: limit,
+        take,
         orderBy: this.buildOrderBy(sortBy, sortOrder),
         include: {
           parent: {

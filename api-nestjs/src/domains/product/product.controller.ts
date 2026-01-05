@@ -178,8 +178,8 @@ export class ProductController {
     }
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
       sortBy: query.sortBy || 'createdAt',
       sortOrder: query.sortOrder || 'desc',
     };
@@ -227,7 +227,7 @@ export class ProductController {
     const filters = { isFeatured: true, status: ProductStatus.PUBLISHED };
     const result = await this.productService.findAll(
       filters,
-      { limit },
+      { limit: Number(limit) },
       {},
       undefined,
       userRole,
@@ -262,8 +262,8 @@ export class ProductController {
     };
 
     const pagination = {
-      page: filters.page || 1,
-      limit: filters.limit || 20,
+      page: Number(filters.page) || 1,
+      limit: Number(filters.limit) || 20,
       sortBy: filters.sortBy || 'relevance',
       sortOrder: filters.sortOrder || 'desc',
     };
@@ -319,8 +319,8 @@ export class ProductController {
     }
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
       sortBy: query.sortBy || 'updatedAt',
       sortOrder: query.sortOrder || 'desc',
     };
@@ -592,7 +592,7 @@ export class ProductController {
     @Query('limit') limit: number = 50,
   ): Promise<ProductResponseDto[]> {
     const filters = { moderationStatus: ProductModerationStatus.PENDING };
-    const result = await this.productService.findAll(filters, { limit }, {});
+    const result = await this.productService.findAll(filters, { limit: Number(limit) }, {});
     return result.data as ProductResponseDto[];
   }
 
@@ -687,8 +687,8 @@ export class ProductController {
     }
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
       sortBy: query.sortBy || 'displayOrder',
       sortOrder: query.sortOrder || 'asc',
     };
@@ -731,8 +731,8 @@ export class ProductController {
     }
 
     const pagination = {
-      page: query.page || 1,
-      limit: query.limit || 20,
+      page: Number(query.page) || 1,
+      limit: Number(query.limit) || 20,
       sortBy: query.sortBy || 'displayOrder',
       sortOrder: query.sortOrder || 'asc',
     };

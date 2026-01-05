@@ -79,8 +79,8 @@ export class CartRepository implements ICartRepository {
     try {
       const where = this.buildWhereClause(filters);
       const orderBy = this.buildOrderByClause(pagination);
-      const skip = ((pagination.page || 1) - 1) * (pagination.limit || 20);
-      const take = pagination.limit || 20;
+      const skip = ((Number(pagination.page) || 1) - 1) * (Number(pagination.limit) || 20);
+      const take = Number(pagination.limit) || 20;
 
       const [carts, total] = await Promise.all([
         this.prisma.cart.findMany({
@@ -186,9 +186,9 @@ export class CartRepository implements ICartRepository {
         ? this.buildOrderByClause(pagination)
         : { createdAt: 'desc' };
       const skip = pagination
-        ? ((pagination.page || 1) - 1) * (pagination.limit || 20)
+        ? ((Number(pagination.page) || 1) - 1) * (Number(pagination.limit) || 20)
         : 0;
-      const take = pagination?.limit || 50;
+      const take = Number(pagination?.limit) || 50;
 
       const carts = await this.prisma.cart.findMany({
         where: { userId },
