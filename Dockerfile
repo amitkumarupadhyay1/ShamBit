@@ -17,15 +17,8 @@ RUN npm install --legacy-peer-deps && npm cache clean --force
 # Copy source code
 COPY api-nestjs/ ./
 
-# Temporarily disable Prisma config and use environment variable
-RUN mv prisma.config.ts prisma.config.ts.bak || echo "No config file to backup"
-ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
-
-# Generate Prisma client
+# Generate Prisma client (Prisma 7 uses config files for database URLs)
 RUN npx prisma generate
-
-# Restore Prisma config
-RUN mv prisma.config.ts.bak prisma.config.ts || echo "No config file to restore"
 
 # Build the application
 RUN npm run build

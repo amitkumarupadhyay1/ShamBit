@@ -51,9 +51,8 @@ Should return:
 ✅ **Node version**: Updated to Node 20 for modern package compatibility
 ✅ **Lock file conflicts**: Removes package-lock.json and reinstalls fresh
 ✅ **NPM configuration**: Added --legacy-peer-deps for smooth builds
-✅ **Prisma configuration**: Fixed missing DATABASE_URL in schema
-✅ **Prisma config conflict**: Created build-specific prisma.config.ts
-✅ **Build-time Prisma**: Swaps config files during build process
+✅ **Prisma 7 compatibility**: Updated schema to work with new config system
+✅ **Database URL configuration**: Moved to prisma.config.ts (Prisma 7 requirement)
 
 ## Your Database is Ready!
 ✅ **Neon Database**: Already configured and connected
@@ -65,12 +64,10 @@ Should return:
 2. Uses Node 20 (required for modern packages like Prisma 7.x)
 3. Removes package-lock.json to avoid version conflicts
 4. Installs dependencies fresh with --legacy-peer-deps
-5. Swaps prisma.config.ts with build version (dummy DATABASE_URL)
-6. Generates Prisma client using build config
-7. Builds NestJS application
-8. Restores original prisma.config.ts for runtime
-9. At runtime: Regenerates Prisma client with real DATABASE_URL
-10. Runs migrations and starts server
+5. Generates Prisma client using config system (Prisma 7)
+6. Builds NestJS application
+7. At runtime: Uses Prisma config with real DATABASE_URL
+8. Runs migrations and starts server
 
 ## Next Steps (Optional)
 - Add Redis: Railway dashboard → "New Service" → "Redis"
@@ -84,8 +81,7 @@ Should return:
 - **"ERESOLVE could not resolve"**: Fixed with --legacy-peer-deps
 - **"lock file's @nestjs/axios does not satisfy"**: Fixed by removing lock file
 - **"Unsupported engine" warnings**: Fixed with Node 20 upgrade
-- **"Cannot resolve environment variable: DATABASE_URL"**: Fixed with build config swap
-- **"PrismaConfigEnvError"**: Fixed by using dummy config during build
+- **"url property no longer supported"**: Fixed by updating to Prisma 7 config system
 - **Database issues**: Verify Neon connection string
 - **Health check fails**: Check `/health` endpoint
 - **CORS errors**: Update `ALLOWED_ORIGINS` with your domain
