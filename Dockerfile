@@ -10,8 +10,8 @@ WORKDIR /app
 COPY api-nestjs/package*.json ./
 COPY api-nestjs/prisma ./prisma/
 
-# Install dependencies
-RUN npm ci --only=production && npm cache clean --force
+# Install dependencies with legacy peer deps to handle conflicts
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 
 # Copy source code
 COPY api-nestjs/ ./

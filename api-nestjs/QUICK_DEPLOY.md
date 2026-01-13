@@ -48,6 +48,8 @@ Should return:
 ✅ **Root railway.json**: Proper build configuration
 ✅ **Root nixpacks.toml**: Alternative build method
 ✅ **Subdirectory navigation**: All commands now use `cd api-nestjs`
+✅ **Dependency conflicts**: Fixed @nestjs/axios version compatibility
+✅ **NPM configuration**: Added --legacy-peer-deps for smooth builds
 
 ## Your Database is Ready!
 ✅ **Neon Database**: Already configured and connected
@@ -70,6 +72,8 @@ Should return:
 ## Troubleshooting
 - **Build fails**: Check Railway build logs
 - **"Script start.sh not found"**: Fixed with root configuration
+- **"ERESOLVE could not resolve"**: Fixed with --legacy-peer-deps
+- **Dependency conflicts**: Fixed @nestjs/axios version compatibility
 - **Database issues**: Verify Neon connection string
 - **Health check fails**: Check `/health` endpoint
 - **CORS errors**: Update `ALLOWED_ORIGINS` with your domain

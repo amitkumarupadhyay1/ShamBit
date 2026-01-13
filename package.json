@@ -8,7 +8,7 @@
     "start": "cd api-nestjs && npm run start:prod",
     "railway:deploy": "cd api-nestjs && npm run railway:deploy",
     "railway:env": "cd api-nestjs && npm run railway:env",
-    "install:api": "cd api-nestjs && npm ci",
+    "install:api": "cd api-nestjs && npm ci --legacy-peer-deps",
     "prisma:deploy": "cd api-nestjs && npm run prisma:deploy"
   },
   "engines": {

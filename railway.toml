@@ -1,6 +1,6 @@
 [build]
 builder = "NIXPACKS"
-buildCommand = "cd api-nestjs && npm ci && npm run build:railway"
+buildCommand = "cd api-nestjs && npm ci --legacy-peer-deps && npm run build:railway"
 
 [deploy]
 startCommand = "cd api-nestjs && npm run railway:deploy"
