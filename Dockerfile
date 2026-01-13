@@ -1,5 +1,5 @@
 # Railway Dockerfile for subdirectory deployment
-FROM node:18-alpine AS base
+FROM node:20-alpine AS base
 
 # Install curl for health checks
 RUN apk add --no-cache curl libc6-compat
@@ -10,8 +10,9 @@ WORKDIR /app
 COPY api-nestjs/package*.json ./
 COPY api-nestjs/prisma ./prisma/
 
-# Install dependencies with legacy peer deps to handle conflicts
-RUN npm ci --legacy-peer-deps && npm cache clean --force
+# Delete lock file and install fresh to avoid conflicts
+RUN rm -f package-lock.json
+RUN npm install --legacy-peer-deps && npm cache clean --force
 
 # Copy source code
 COPY api-nestjs/ ./

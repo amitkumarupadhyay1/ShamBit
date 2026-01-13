@@ -48,7 +48,8 @@ Should return:
 ✅ **Root railway.json**: Proper build configuration
 ✅ **Root nixpacks.toml**: Alternative build method
 ✅ **Subdirectory navigation**: All commands now use `cd api-nestjs`
-✅ **Dependency conflicts**: Fixed @nestjs/axios version compatibility
+✅ **Node version**: Updated to Node 20 for modern package compatibility
+✅ **Lock file conflicts**: Removes package-lock.json and reinstalls fresh
 ✅ **NPM configuration**: Added --legacy-peer-deps for smooth builds
 
 ## Your Database is Ready!
@@ -58,10 +59,12 @@ Should return:
 
 ## Build Process Now:
 1. Railway detects Node.js project in root
-2. Installs dependencies in `api-nestjs/`
-3. Generates Prisma client
-4. Builds NestJS application
-5. Runs migrations and starts server
+2. Uses Node 20 (required for modern packages like Prisma 7.x)
+3. Removes package-lock.json to avoid version conflicts
+4. Installs dependencies fresh with --legacy-peer-deps
+5. Generates Prisma client
+6. Builds NestJS application
+7. Runs migrations and starts server
 
 ## Next Steps (Optional)
 - Add Redis: Railway dashboard → "New Service" → "Redis"
@@ -73,7 +76,8 @@ Should return:
 - **Build fails**: Check Railway build logs
 - **"Script start.sh not found"**: Fixed with root configuration
 - **"ERESOLVE could not resolve"**: Fixed with --legacy-peer-deps
-- **Dependency conflicts**: Fixed @nestjs/axios version compatibility
+- **"lock file's @nestjs/axios does not satisfy"**: Fixed by removing lock file
+- **"Unsupported engine" warnings**: Fixed with Node 20 upgrade
 - **Database issues**: Verify Neon connection string
 - **Health check fails**: Check `/health` endpoint
 - **CORS errors**: Update `ALLOWED_ORIGINS` with your domain

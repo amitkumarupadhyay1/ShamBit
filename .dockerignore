@@ -1,0 +1,30 @@
+# Exclude lock files to avoid conflicts
+api-nestjs/package-lock.json
+api-nestjs/npm-shrinkwrap.json
+
+# Exclude development files
+api-nestjs/node_modules
+api-nestjs/.env
+api-nestjs/.env.local
+api-nestjs/.env.development
+api-nestjs/.env.test
+api-nestjs/coverage
+api-nestjs/.nyc_output
+api-nestjs/dist
+
+# Exclude git and IDE files
+.git
+.gitignore
+api-nestjs/.vscode
+api-nestjs/.idea
+
+# Exclude logs
+api-nestjs/logs
+api-nestjs/*.log
+api-nestjs/npm-debug.log*
+api-nestjs/yarn-debug.log*
+api-nestjs/yarn-error.log*
+
+# Exclude temporary files
+api-nestjs/.temp
+api-nestjs/.tmp

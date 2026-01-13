@@ -8,12 +8,12 @@
     "start": "cd api-nestjs && npm run start:prod",
     "railway:deploy": "cd api-nestjs && npm run railway:deploy",
     "railway:env": "cd api-nestjs && npm run railway:env",
-    "install:api": "cd api-nestjs && npm ci --legacy-peer-deps",
+    "install:api": "cd api-nestjs && rm -f package-lock.json && npm install --legacy-peer-deps",
     "prisma:deploy": "cd api-nestjs && npm run prisma:deploy"
   },
   "engines": {
-    "node": ">=18.0.0",
-    "npm": ">=9.0.0"
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
   },
   "workspaces": [
     "api-nestjs"
