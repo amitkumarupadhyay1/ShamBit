@@ -1,6 +1,6 @@
 [variables]
-NIXPACKS_BUILD_CMD = "cd api-nestjs && rm -f package-lock.json && npm install --legacy-peer-deps && npx prisma generate && npm run build"
-NIXPACKS_START_CMD = "cd api-nestjs && npm run prisma:deploy && npm run start:prod"
+NIXPACKS_BUILD_CMD = "cd api-nestjs && rm -f package-lock.json && npm install --legacy-peer-deps && npx prisma generate --schema=./prisma/schema.build.prisma && npm run build"
+NIXPACKS_START_CMD = "cd api-nestjs && npx prisma generate && npm run prisma:deploy && npm run start:prod"
 
 [phases.setup]
 nixPkgs = ['nodejs_20', 'npm-10_x']
@@ -10,7 +10,7 @@ cmds = [
   'cd api-nestjs',
   'rm -f package-lock.json',
   'npm install --legacy-peer-deps',
-  'npx prisma generate'
+  'npx prisma generate --schema=./prisma/schema.build.prisma'
 ]
 
 [phases.build]
@@ -20,4 +20,4 @@ cmds = [
 ]
 
 [start]
-cmd = 'cd api-nestjs && npm run prisma:deploy && npm run start:prod'
+cmd = 'cd api-nestjs && npx prisma generate && npm run prisma:deploy && npm run start:prod'

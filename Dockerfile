@@ -17,8 +17,8 @@ RUN npm install --legacy-peer-deps && npm cache clean --force
 # Copy source code
 COPY api-nestjs/ ./
 
-# Generate Prisma client
-RUN npx prisma generate
+# Generate Prisma client using build schema (no DATABASE_URL needed)
+RUN npx prisma generate --schema=./prisma/schema.build.prisma
 
 # Build the application
 RUN npm run build
@@ -40,5 +40,5 @@ ENV NODE_ENV=production
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD curl -f http://localhost:3001/health || exit 1
 
-# Start command
-CMD ["sh", "-c", "npm run prisma:deploy && npm run start:prod"]
+# Start command - regenerate with real schema and deploy migrations at runtime
+CMD ["sh", "-c", "npx prisma generate && npm run prisma:deploy && npm run start:prod"]
