@@ -1,0 +1,21 @@
+{
+  "name": "marketplace-api-monorepo",
+  "version": "1.0.0",
+  "description": "Marketplace API deployment configuration for Railway",
+  "private": true,
+  "scripts": {
+    "build": "cd api-nestjs && npm run build:railway",
+    "start": "cd api-nestjs && npm run start:prod",
+    "railway:deploy": "cd api-nestjs && npm run railway:deploy",
+    "railway:env": "cd api-nestjs && npm run railway:env",
+    "install:api": "cd api-nestjs && npm ci",
+    "prisma:deploy": "cd api-nestjs && npm run prisma:deploy"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
+  "workspaces": [
+    "api-nestjs"
+  ]
+}

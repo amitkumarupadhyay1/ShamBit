@@ -1,0 +1,22 @@
+[variables]
+NIXPACKS_BUILD_CMD = "cd api-nestjs && npm ci && npx prisma generate && npm run build"
+NIXPACKS_START_CMD = "cd api-nestjs && npm run prisma:deploy && npm run start:prod"
+
+[phases.setup]
+nixPkgs = ['nodejs_18', 'npm-9_x']
+
+[phases.install]
+cmds = [
+  'cd api-nestjs',
+  'npm ci --include=dev',
+  'npx prisma generate'
+]
+
+[phases.build]
+cmds = [
+  'cd api-nestjs',
+  'npm run build'
+]
+
+[start]
+cmd = 'cd api-nestjs && npm run prisma:deploy && npm run start:prod'
