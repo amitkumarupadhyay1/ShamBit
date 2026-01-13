@@ -2,6 +2,10 @@
 api-nestjs/package-lock.json
 api-nestjs/npm-shrinkwrap.json
 
+# Include build-specific files
+!api-nestjs/.env.build
+!api-nestjs/prisma.config.build.ts
+
 # Exclude development files
 api-nestjs/node_modules
 api-nestjs/.env
