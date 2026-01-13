@@ -17,19 +17,18 @@ RUN npm install --legacy-peer-deps && npm cache clean --force
 # Copy source code
 COPY api-nestjs/ ./
 
-# Temporarily replace prisma config for build
-RUN mv prisma.config.ts prisma.config.runtime.ts
-RUN mv prisma.config.build.ts prisma.config.ts
+# Temporarily disable Prisma config and use environment variable
+RUN mv prisma.config.ts prisma.config.ts.bak || echo "No config file to backup"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
-# Generate Prisma client with build config
+# Generate Prisma client
 RUN npx prisma generate
+
+# Restore Prisma config
+RUN mv prisma.config.ts.bak prisma.config.ts || echo "No config file to restore"
 
 # Build the application
 RUN npm run build
-
-# Restore runtime config
-RUN mv prisma.config.ts prisma.config.build.ts
-RUN mv prisma.config.runtime.ts prisma.config.ts
 
 # Create non-root user
 RUN addgroup --system --gid 1001 nodejs
