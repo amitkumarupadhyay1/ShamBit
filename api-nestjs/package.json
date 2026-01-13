@@ -7,6 +7,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "build": "nest build",
+    "build:railway": "npm run prisma:generate && nest build",
+    "railway:deploy": "npm run prisma:deploy && npm run start:prod",
+    "railway:env": "node scripts/setup-railway-env.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",

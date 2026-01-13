@@ -1,9 +1,9 @@
-# Multi-stage build for production
+# Multi-stage build for Railway deployment
 FROM node:18-alpine AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-RUN apk add --no-cache libc6-compat
+RUN apk add --no-cache libc6-compat curl
 WORKDIR /app
 
 # Copy package files
@@ -31,6 +31,9 @@ WORKDIR /app
 
 ENV NODE_ENV=production
 
+# Install curl for health checks
+RUN apk add --no-cache curl
+
 # Create a non-root user
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nestjs
@@ -49,6 +52,7 @@ ENV PORT=3001
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3001/api/v1/health/live || exit 1
+  CMD curl -f http://localhost:3001/health || exit 1
 
-CMD ["npm", "run", "prod:start"]
+# Start command for Railway
+CMD ["npm", "run", "start:prod"]
