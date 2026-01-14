@@ -16,15 +16,15 @@ postgresql://localhost:5432/test_db
 
 ### DATABASE_URL_STAGING
 ```
-postgresql://neondb_owner:npg_1aMifZB8OyPw@ep-shy-mouse-ahf2c6ga-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
+postgresql://neondb_owner:npg_l4hMUcETI7wz@ep-nameless-thunder-aeciahnr-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
 ```
-*Note: You should create a separate Neon project for staging*
+*✅ Created for you! Schema already deployed.*
 
 ### DATABASE_URL_PRODUCTION
 ```
-postgresql://neondb_owner:npg_1aMifZB8OyPw@ep-shy-mouse-ahf2c6ga-pooler.c-3.us-east-1.aws.neon.tech/neondb?sslmode=require
+postgresql://neondb_owner:npg_qTMwBJFx3Q5r@ep-bold-morning-ae8pgnqx-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require
 ```
-*Note: You should create a separate Neon project for production*
+*✅ Created for you! Schema already deployed.*
 
 ---
 
