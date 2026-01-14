@@ -4,7 +4,6 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import compression from 'compression';
 import helmet from 'helmet';
-import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
@@ -22,9 +21,6 @@ async function bootstrap() {
     const configService = app.get(ConfigService);
     const port = configService.get<number>('PORT', 3001);
     const nodeEnv = configService.get<string>('NODE_ENV', 'development');
-
-    // Cookie parser middleware
-    app.use(cookieParser());
 
     // Enhanced security middleware with comprehensive headers
     app.use(
@@ -56,7 +52,6 @@ async function bootstrap() {
         xssFilter: true,
         referrerPolicy: { policy: 'strict-origin-when-cross-origin' },
         permittedCrossDomainPolicies: false,
-        // Additional security headers
         frameguard: { action: 'deny' },
         hidePoweredBy: true,
       }),
@@ -91,7 +86,7 @@ async function bootstrap() {
 
     app.enableCors({
       origin: allowedOrigins,
-      credentials: true, // Required for cookies
+      credentials: true,
       methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       allowedHeaders: [
         'Content-Type',
@@ -108,98 +103,9 @@ async function bootstrap() {
     // Swagger documentation (only in non-production)
     if (nodeEnv !== 'production') {
       const config = new DocumentBuilder()
-        .setTitle('ShamBit API')
-        .setDescription(
-          `
-          ShamBit Quick Commerce Platform API
-          
-          ## Security Features
-          
-          ### Authentication & Authorization:
-          - **JWT-based authentication** with access and refresh tokens
-          - **HttpOnly cookies** for secure token storage (prevents XSS)
-          - **Token revocation** with Redis-based denylist
-          - **Refresh token rotation** for enhanced security
-          - **Role-based access control (RBAC)** with fine-grained permissions
-          - **Social login support** (Google OAuth)
-          
-          ### Security Headers:
-          - **Content Security Policy (CSP)** to prevent XSS attacks
-          - **Strict Transport Security (HSTS)** for HTTPS enforcement
-          - **X-Content-Type-Options** to prevent MIME sniffing
-          - **X-Frame-Options** to prevent clickjacking
-          - **Referrer Policy** for privacy protection
-          
-          ### Session Security:
-          - **Short-lived access tokens** (15 minutes)
-          - **Secure cookie attributes** (HttpOnly, Secure, SameSite=Strict)
-          - **Automatic token cleanup** with Redis TTL
-          - **Session invalidation** on logout
-          
-          ## Authentication Endpoints
-          
-          ### JWT Authentication:
-          - \`POST /api/v1/auth/register\` - Register with JWT
-          - \`POST /api/v1/auth/login\` - Login with JWT
-          - \`POST /api/v1/auth/logout\` - Logout JWT session
-          - \`GET /api/v1/auth/me\` - Get current user (JWT)
-          
-          ## Settlement System
-          
-          The Settlement System manages seller payouts, wallet operations, and financial reconciliation.
-          
-          ### Key Features:
-          - **Seller Account Management**: KYC verification, bank account setup
-          - **Wallet Operations**: Balance management, transactions, reserves
-          - **Settlement Processing**: Automated and manual settlement creation
-          - **Razorpay Integration**: Payout processing and webhook handling
-          - **Audit Trail**: Complete transaction history and status tracking
-          
-          ### Authentication:
-          - Use Bearer token for API access or rely on secure cookies
-          - Sellers can only access their own data
-          - Admin/Finance roles have full access
-          
-          ### Rate Limiting:
-          - 100 requests per minute per IP
-          - Higher limits for authenticated users
-          
-          ## Database Integration
-          
-          ### Neon PostgreSQL:
-          - **Primary database** for all application data
-          - **Connection pooling** for optimal performance
-          
-          ### Redis:
-          - **Session storage** for JWT tokens
-          - **Rate limiting** counters
-          - **Caching** for improved performance
-          - **Queue management** for background jobs
-        `,
-        )
-        .setVersion('2.0')
-        .addTag('Authentication', 'Secure JWT-based authentication with cookies')
-        .addTag('Categories', 'Product category management')
-        .addTag('Products', 'Product catalog and inventory')
-        .addTag('Orders', 'Order processing and management')
-        .addTag('Cart', 'Shopping cart operations')
-        .addTag('Users', 'User profile and account management')
-        .addTag(
-          'Settlements',
-          'Settlement creation, processing, and management',
-        )
-        .addTag(
-          'Seller Accounts',
-          'Seller account setup, KYC, and bank details',
-        )
-        .addTag('Seller Wallets', 'Wallet balance operations and transactions')
-        .addTag(
-          'Settlement Webhooks',
-          'Webhook endpoints for payment gateway integration',
-        )
-        .addTag('Notifications', 'Push notifications and messaging')
-        .addTag('Search', 'Product search and filtering')
-        .addTag('Reviews', 'Product reviews and ratings')
+        .setTitle('Marketplace API')
+        .setDescription('Enterprise marketplace API')
+        .setVersion('1.0')
         .addBearerAuth(
           {
             type: 'http',
@@ -211,17 +117,7 @@ async function bootstrap() {
           },
           'JWT-auth',
         )
-        .addApiKey(
-          {
-            type: 'apiKey',
-            name: 'X-API-Key',
-            in: 'header',
-            description: 'API Key for service-to-service communication',
-          },
-          'API-Key',
-        )
         .addServer('http://localhost:3001', 'Development server')
-        .addServer('https://api.shambit.com', 'Production server')
         .build();
 
       const document = SwaggerModule.createDocument(app, config, {
@@ -238,15 +134,7 @@ async function bootstrap() {
           showRequestHeaders: true,
           tryItOutEnabled: true,
         },
-        customSiteTitle: 'ShamBit API Documentation',
-        customfavIcon: '/favicon.ico',
-        customJs: [
-          'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-bundle.min.js',
-          'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui-standalone-preset.min.js',
-        ],
-        customCssUrl: [
-          'https://cdnjs.cloudflare.com/ajax/libs/swagger-ui/4.15.5/swagger-ui.min.css',
-        ],
+        customSiteTitle: 'Marketplace API Documentation',
       });
     }
 
@@ -260,7 +148,6 @@ async function bootstrap() {
     logger.log(
       `🔒 Security headers enabled with CSP, HSTS, and XSS protection`,
     );
-    logger.log(`🍪 Secure cookie authentication configured`);
 
     if (nodeEnv !== 'production') {
       logger.log(
