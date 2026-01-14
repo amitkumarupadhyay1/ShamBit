@@ -1,0 +1,68 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+model User {
+  id                    String       @id @default(uuid())
+  email                 String       @unique
+  name                  String
+  password              String
+  phone                 String?
+  roles                 String[]     @default(["BUYER"])
+  isEmailVerified       Boolean      @default(false)
+  status                UserStatus   @default(ACTIVE)
+  lastLoginAt           DateTime?
+  refreshToken          String?
+  refreshTokenExpiresAt DateTime?
+  createdAt             DateTime     @default(now())
+  updatedAt             DateTime     @updatedAt
+  
+  userTenants           UserTenant[]
+
+  @@index([email])
+  @@index([status])
+  @@map("users")
+}
+
+model Tenant {
+  id          String       @id @default(uuid())
+  name        String
+  slug        String       @unique
+  description String?
+  status      String       @default("ACTIVE")
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  
+  userTenants UserTenant[]
+
+  @@index([slug])
+  @@map("tenants")
+}
+
+model UserTenant {
+  id        String   @id @default(uuid())
+  userId    String
+  tenantId  String
+  role      String   @default("MEMBER")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([userId])
+  @@index([tenantId])
+  @@map("user_tenants")
+}

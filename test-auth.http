@@ -1,0 +1,40 @@
+### Test Auth Endpoints
+
+### Health Check
+GET http://localhost:3002/api/v1/health
+
+### Register User
+POST http://localhost:3002/api/v1/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john.doe@example.com",
+  "password": "Password123!",
+  "phone": "+1234567890"
+}
+
+### Login
+POST http://localhost:3002/api/v1/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "Password123!"
+}
+
+### Get Profile (requires auth token from login)
+GET http://localhost:3002/api/v1/auth/me
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE
+
+### Refresh Token (requires refresh token from login)
+POST http://localhost:3002/api/v1/auth/refresh
+Content-Type: application/json
+
+{
+  "refreshToken": "YOUR_REFRESH_TOKEN_HERE"
+}
+
+### Logout (requires auth token)
+POST http://localhost:3002/api/v1/auth/logout
+Authorization: Bearer YOUR_ACCESS_TOKEN_HERE

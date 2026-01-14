@@ -4,6 +4,7 @@ import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import compression from 'compression';
 import helmet from 'helmet';
+import cookieParser from 'cookie-parser';
 
 import { AppModule } from './app.module';
 
@@ -59,6 +60,9 @@ async function bootstrap() {
 
     // Compression middleware
     app.use(compression());
+
+    // Cookie parser middleware
+    app.use(cookieParser());
 
     // Global validation pipe with enhanced security
     app.useGlobalPipes(
