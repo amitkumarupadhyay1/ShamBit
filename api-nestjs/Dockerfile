@@ -10,14 +10,17 @@ WORKDIR /app
 # Copy package files
 COPY api-nestjs/package*.json ./
 
-# Install dependencies
-RUN npm install --only=production
+# Install all dependencies (needed for build)
+RUN npm install
 
 # Copy source code
 COPY api-nestjs/ .
 
 # Build the application
 RUN npm run build
+
+# Remove dev dependencies
+RUN npm prune --production
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
