@@ -8,14 +8,14 @@ RUN apk add --no-cache curl
 WORKDIR /app
 
 # Copy package files
-COPY package*.json ./
-COPY prisma ./prisma/
+COPY api-nestjs/package*.json ./
+COPY api-nestjs/prisma ./prisma/
 
 # Install dependencies
 RUN npm ci --only=production
 
 # Copy source code
-COPY . .
+COPY api-nestjs/ .
 
 # Generate Prisma client
 RUN npx prisma generate
