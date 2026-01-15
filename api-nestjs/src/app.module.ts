@@ -34,7 +34,7 @@ import { AuthGuard } from './common/guards/auth.guard';
     PrismaModule,
 
     // Domains
-    AuthModule,
+    AuthModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [
