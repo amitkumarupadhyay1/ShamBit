@@ -16,11 +16,17 @@ RUN npm install
 # Copy source code
 COPY api-nestjs/ .
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Build the application
 RUN npm run build
 
-# Remove dev dependencies
+# Remove dev dependencies (but keep prisma for migrations)
 RUN npm prune --production
+
+# Reinstall prisma CLI for runtime (needed for migrations)
+RUN npm install prisma --save-dev
 
 # Create non-root user
 RUN addgroup -g 1001 -S nodejs
