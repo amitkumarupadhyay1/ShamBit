@@ -20,7 +20,8 @@ async function bootstrap() {
     });
 
     const configService = app.get(ConfigService);
-    const port = configService.get<number>('PORT', 3001);
+    // Railway provides PORT env var - use it or fallback to 3001
+    const port = parseInt(process.env.PORT || configService.get<string>('PORT', '3001'), 10);
     const nodeEnv = configService.get<string>('NODE_ENV', 'development');
 
     // Enhanced security middleware with comprehensive headers
@@ -147,8 +148,9 @@ async function bootstrap() {
 
     await app.listen(port, '0.0.0.0');
 
-    logger.log(`🚀 NestJS API running on http://localhost:${port}`);
+    logger.log(`🚀 NestJS API running on http://0.0.0.0:${port}`);
     logger.log(`📚 Environment: ${nodeEnv}`);
+    logger.log(`🔌 Port: ${port} (from ${process.env.PORT ? 'Railway PORT env' : 'config/default'})`);
     logger.log(
       `🔒 Security headers enabled with CSP, HSTS, and XSS protection`,
     );
