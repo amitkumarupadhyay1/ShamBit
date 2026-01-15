@@ -123,7 +123,7 @@ async function bootstrap() {
           },
           'JWT-auth',
         )
-        .addServer('http://localhost:3001', 'Development server')
+        .addServer(`http://localhost:${port}`, 'Development server')
         .build();
 
       const document = SwaggerModule.createDocument(app, config, {
