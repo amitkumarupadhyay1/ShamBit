@@ -1,8 +1,8 @@
 # Simple Node.js Dockerfile for NestJS API
 FROM node:20-alpine
 
-# Install system dependencies
-RUN apk add --no-cache curl
+# Install system dependencies including OpenSSL 1.1 for Prisma
+RUN apk add --no-cache curl openssl1.1-compat
 
 # Set working directory
 WORKDIR /app
