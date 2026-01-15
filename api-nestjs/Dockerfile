@@ -1,8 +1,8 @@
 # Simple Node.js Dockerfile for NestJS API
 FROM node:20-alpine
 
-# Install system dependencies including OpenSSL 1.1 for Prisma
-RUN apk add --no-cache curl openssl1.1-compat
+# Install system dependencies
+RUN apk add --no-cache curl openssl
 
 # Set working directory
 WORKDIR /app
@@ -16,7 +16,7 @@ RUN npm install
 # Copy source code
 COPY api-nestjs/ .
 
-# Generate Prisma Client
+# Generate Prisma Client (will use binaryTargets from schema.prisma)
 RUN npx prisma generate
 
 # Build the application
