@@ -36,12 +36,12 @@ RUN adduser -S nestjs -u 1001
 RUN chown -R nestjs:nodejs /app
 USER nestjs
 
-# Expose port
+# Expose port (Railway will use its own PORT env var)
 EXPOSE 3001
 
-# Health check
-HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:3001/api/v1/health || exit 1
+# Health check - use PORT env var if available, fallback to 3001
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
+  CMD curl -f http://localhost:${PORT:-3001}/api/v1/health || exit 1
 
 # Start the application
 CMD ["npm", "run", "start:prod"]
